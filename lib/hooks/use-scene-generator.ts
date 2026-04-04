@@ -8,20 +8,13 @@ import { db } from '@/lib/utils/database';
 import type { SceneOutline, PdfImage, ImageMapping } from '@/lib/types/generation';
 import type { AgentInfo } from '@/lib/generation/generation-pipeline';
 import type { Scene } from '@/lib/types/stage';
-import type { Action, SpeechAction } from '@/lib/types/action';
-import type { TTSProviderId } from '@/lib/audio/types';
+import type { SpeechAction } from '@/lib/types/action';
 import { splitLongSpeechActions } from '@/lib/audio/tts-utils';
 import { generateMediaForOutlines } from '@/lib/media/media-orchestrator';
 import { createLogger } from '@/lib/logger';
+import { requestSceneContent, type SceneContentResult } from '@/lib/api/scene-content-client';
 
 const log = createLogger('SceneGenerator');
-
-interface SceneContentResult {
-  success: boolean;
-  content?: unknown;
-  effectiveOutline?: SceneOutline;
-  error?: string;
-}
 
 interface SceneActionsResult {
   success: boolean;
@@ -77,19 +70,7 @@ async function fetchSceneContent(
   },
   signal?: AbortSignal,
 ): Promise<SceneContentResult> {
-  const response = await fetch('/api/generate/scene-content', {
-    method: 'POST',
-    headers: getApiHeaders(),
-    body: JSON.stringify(params),
-    signal,
-  });
-
-  if (!response.ok) {
-    const data = await response.json().catch(() => ({ error: 'Request failed' }));
-    return { success: false, error: data.error || `HTTP ${response.status}` };
-  }
-
-  return response.json();
+  return requestSceneContent(params, getApiHeaders(), signal);
 }
 
 /** Call POST /api/generate/scene-actions (step 2) */
