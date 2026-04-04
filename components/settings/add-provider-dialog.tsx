@@ -33,22 +33,29 @@ export function AddProviderDialog({ open, onOpenChange, onAdd }: AddProviderDial
   const [baseUrl, setBaseUrl] = useState('');
   const [icon, setIcon] = useState('');
   const [requiresApiKey, setRequiresApiKey] = useState(true);
+  const baseUrlPlaceholder =
+    type === 'openai'
+      ? 'https://example-resource.openai.azure.com/openai/deployments/{{model}}'
+      : 'https://api.example.com/v1';
 
-  // Reset form when dialog closes (derived state pattern)
-  const [prevOpen, setPrevOpen] = useState(open);
-  if (open !== prevOpen) {
-    setPrevOpen(open);
-    if (!open) {
-      setName('');
-      setType('openai');
-      setBaseUrl('');
-      setIcon('');
-      setRequiresApiKey(true);
+  const resetForm = () => {
+    setName('');
+    setType('openai');
+    setBaseUrl('');
+    setIcon('');
+    setRequiresApiKey(true);
+  };
+
+  const handleOpenChange = (nextOpen: boolean) => {
+    if (!nextOpen) {
+      resetForm();
     }
-  }
+
+    onOpenChange(nextOpen);
+  };
 
   const handleClose = () => {
-    onOpenChange(false);
+    handleOpenChange(false);
   };
 
   const handleAdd = () => {
@@ -62,7 +69,7 @@ export function AddProviderDialog({ open, onOpenChange, onAdd }: AddProviderDial
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="sm:max-w-[450px]">
         <DialogTitle className="sr-only">{t('settings.addProviderDialog')}</DialogTitle>
         <DialogDescription className="sr-only">
@@ -128,7 +135,7 @@ export function AddProviderDialog({ open, onOpenChange, onAdd }: AddProviderDial
             <Label>{t('settings.defaultBaseUrl')}</Label>
             <Input
               type="url"
-              placeholder="https://api.example.com/v1"
+              placeholder={baseUrlPlaceholder}
               value={baseUrl}
               onChange={(e) => setBaseUrl(e.target.value)}
             />
