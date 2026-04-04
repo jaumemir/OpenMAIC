@@ -29,6 +29,7 @@ import { AgentRevealModal } from '@/components/agent/agent-reveal-modal';
 import { createLogger } from '@/lib/logger';
 import { type GenerationSessionState, ALL_STEPS, getActiveSteps } from './types';
 import { StepVisualizer } from './components/visualizers';
+import { requestSceneContent } from '@/lib/api/scene-content-client';
 
 const log = createLogger('GenerationPreview');
 
@@ -656,10 +657,8 @@ function GenerationPreviewContent() {
       const firstOutline = outlines[0];
 
       // Step 2: Generate content (currentStepIndex is already 2)
-      const contentResp = await fetch('/api/generate/scene-content', {
-        method: 'POST',
-        headers: getApiHeaders(),
-        body: JSON.stringify({
+      const contentData = await requestSceneContent(
+        {
           outline: firstOutline,
           allOutlines: outlines,
           pdfImages: currentSession.pdfImages,
@@ -667,16 +666,10 @@ function GenerationPreviewContent() {
           stageInfo,
           stageId: stage.id,
           agents,
-        }),
+        },
+        getApiHeaders(),
         signal,
-      });
-
-      if (!contentResp.ok) {
-        const errorData = await contentResp.json().catch(() => ({ error: 'Request failed' }));
-        throw new Error(errorData.error || t('generation.sceneGenerateFailed'));
-      }
-
-      const contentData = await contentResp.json();
+      );
       if (!contentData.success || !contentData.content) {
         throw new Error(contentData.error || t('generation.sceneGenerateFailed'));
       }
