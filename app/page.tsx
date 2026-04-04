@@ -5,11 +5,13 @@ import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'motion/react';
 import {
   ArrowUp,
+  AudioLines,
   Check,
   ChevronDown,
   Clock,
   Copy,
   ImagePlus,
+  Loader2,
   Pencil,
   Trash2,
   Settings,
@@ -47,6 +49,10 @@ import { toast } from 'sonner';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { useDraftCache } from '@/lib/hooks/use-draft-cache';
 import { SpeechButton } from '@/components/audio/speech-button';
+import {
+  regenerateClassroomAudio,
+  RegenerateAudioError,
+} from '@/lib/audio/regenerate-classroom-audio';
 
 const log = createLogger('Home');
 
@@ -87,7 +93,6 @@ function HomePage() {
   const [recentOpen, setRecentOpen] = useState(true);
 
   // Hydrate client-only state after mount (avoids SSR mismatch)
-  /* eslint-disable react-hooks/set-state-in-effect -- Hydration from localStorage must happen in effect */
   useEffect(() => {
     try {
       const saved = localStorage.getItem(RECENT_OPEN_STORAGE_KEY);
@@ -113,7 +118,6 @@ function HomePage() {
       /* localStorage unavailable */
     }
   }, []);
-  /* eslint-enable react-hooks/set-state-in-effect */
 
   // Restore requirement draft from cache (derived state pattern — no effect needed)
   const [prevCachedRequirement, setPrevCachedRequirement] = useState(cachedRequirement);
@@ -130,6 +134,7 @@ function HomePage() {
   const [classrooms, setClassrooms] = useState<StageListItem[]>([]);
   const [thumbnails, setThumbnails] = useState<Record<string, Slide>>({});
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
+  const [regeneratingAudioId, setRegeneratingAudioId] = useState<string | null>(null);
   const toolbarRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -167,7 +172,6 @@ function HomePage() {
     useMediaGenerationStore.getState().revokeObjectUrls();
     useMediaGenerationStore.setState({ tasks: {} });
 
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- Store hydration on mount
     loadClassrooms();
   }, []);
 
@@ -194,6 +198,50 @@ function HomePage() {
     } catch (err) {
       log.error('Failed to rename classroom:', err);
       toast.error(t('classroom.renameFailed'));
+    }
+  };
+
+  const handleRegenerateAudio = async (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (regeneratingAudioId) return;
+
+    setRegeneratingAudioId(id);
+    try {
+      const result = await regenerateClassroomAudio(id);
+      await loadClassrooms();
+      toast.success(
+        t('classroom.regenerateAudioSuccess').replace('{count}', String(result.speechCount)),
+      );
+    } catch (err) {
+      if (err instanceof RegenerateAudioError) {
+        log.warn('Audio regeneration unavailable:', {
+          classroomId: id,
+          code: err.code,
+          message: err.message,
+        });
+
+        if (
+          err.code === 'BROWSER_NATIVE_UNSUPPORTED' ||
+          err.code === 'TTS_NOT_CONFIGURED'
+        ) {
+          setSettingsSection('tts');
+          setSettingsOpen(true);
+        }
+
+        const messageMap: Record<string, string> = {
+          BROWSER_NATIVE_UNSUPPORTED: t('classroom.regenerateAudioBrowserNativeUnsupported'),
+          TTS_NOT_CONFIGURED: t('classroom.regenerateAudioSetupNeeded'),
+          STAGE_NOT_FOUND: t('classroom.regenerateAudioFailed'),
+          NO_SPEECH_ACTIONS: t('classroom.regenerateAudioNoSpeech'),
+          TTS_GENERATION_FAILED: t('classroom.regenerateAudioFailed'),
+        };
+        toast.error(messageMap[err.code] || t('classroom.regenerateAudioFailed'));
+      } else {
+        log.error('Failed to regenerate classroom audio:', err);
+        toast.error(t('classroom.regenerateAudioFailed'));
+      }
+    } finally {
+      setRegeneratingAudioId(null);
     }
   };
 
@@ -665,7 +713,9 @@ function HomePage() {
                         formatDate={formatDate}
                         onDelete={handleDelete}
                         onRename={handleRename}
+                        onRegenerateAudio={handleRegenerateAudio}
                         confirmingDelete={pendingDeleteId === classroom.id}
+                        regeneratingAudio={regeneratingAudioId === classroom.id}
                         onConfirmDelete={() => confirmDelete(classroom.id)}
                         onCancelDelete={() => setPendingDeleteId(null)}
                         onClick={() => router.push(`/classroom/${classroom.id}`)}
@@ -984,7 +1034,9 @@ function ClassroomCard({
   formatDate,
   onDelete,
   onRename,
+  onRegenerateAudio,
   confirmingDelete,
+  regeneratingAudio,
   onConfirmDelete,
   onCancelDelete,
   onClick,
@@ -994,7 +1046,9 @@ function ClassroomCard({
   formatDate: (ts: number) => string;
   onDelete: (id: string, e: React.MouseEvent) => void;
   onRename: (id: string, newName: string) => void;
+  onRegenerateAudio: (id: string, e: React.MouseEvent) => void;
   confirmingDelete: boolean;
+  regeneratingAudio: boolean;
   onConfirmDelete: () => void;
   onCancelDelete: () => void;
   onClick: () => void;
@@ -1076,6 +1130,22 @@ function ClassroomCard({
                 }}
               >
                 <Trash2 className="size-3.5" />
+              </Button>
+              <Button
+                size="icon"
+                variant="ghost"
+                title={t('classroom.regenerateAudio')}
+                disabled={regeneratingAudio}
+                className="absolute top-2 right-20 size-7 opacity-0 group-hover:opacity-100 transition-opacity bg-black/30 hover:bg-black/50 text-white hover:text-white backdrop-blur-sm rounded-full disabled:opacity-100 disabled:bg-black/45 disabled:cursor-default"
+                onClick={(e) => {
+                  onRegenerateAudio(classroom.id, e);
+                }}
+              >
+                {regeneratingAudio ? (
+                  <Loader2 className="size-3.5 animate-spin" />
+                ) : (
+                  <AudioLines className="size-3.5" />
+                )}
               </Button>
               <Button
                 size="icon"
