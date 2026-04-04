@@ -50,8 +50,8 @@ export async function POST(req: NextRequest) {
     const resultWithMetadata: ParsedPdfContent = {
       ...result,
       metadata: {
-        pageCount: result.metadata?.pageCount || 0, // Ensure pageCount is always a number
         ...result.metadata,
+        pageCount: result.metadata?.pageCount ?? 0, // Ensure pageCount is always a number
         fileName: pdfFile.name,
         fileSize: pdfFile.size,
       },
