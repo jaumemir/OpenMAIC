@@ -11,6 +11,12 @@ export const generationZhCN = {
     rename: '重命名',
     renamePlaceholder: '输入课堂名称',
     renameFailed: '重命名失败',
+    regenerateAudio: '重新生成语音',
+    regenerateAudioSuccess: '已重新生成 {count} 段语音',
+    regenerateAudioFailed: '重新生成语音失败',
+    regenerateAudioNoSpeech: '该课堂没有可重新生成的语音',
+    regenerateAudioSetupNeeded: '请先配置可用的 TTS 提供商',
+    regenerateAudioBrowserNativeUnsupported: '浏览器原生 TTS 不支持批量重新生成语音',
   },
   upload: {
     pdfSizeLimit: '支持最大50MB的PDF文件',
@@ -81,6 +87,13 @@ export const generationEnUS = {
     rename: 'Rename',
     renamePlaceholder: 'Enter classroom name',
     renameFailed: 'Failed to rename classroom',
+    regenerateAudio: 'Regenerate Audio',
+    regenerateAudioSuccess: 'Regenerated {count} audio clips',
+    regenerateAudioFailed: 'Failed to regenerate audio',
+    regenerateAudioNoSpeech: 'This classroom has no speech audio to regenerate',
+    regenerateAudioSetupNeeded: 'Please configure a usable TTS provider first',
+    regenerateAudioBrowserNativeUnsupported:
+      'Browser Native TTS does not support bulk classroom audio regeneration',
   },
   upload: {
     pdfSizeLimit: 'Supports PDF files up to 50MB',
