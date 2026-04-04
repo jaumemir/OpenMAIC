@@ -823,6 +823,7 @@ export const settingsCa = {
     // Audio provider names
     providerOpenAITTS: 'OpenAI TTS (gpt-4o-mini-tts)',
     providerAzureTTS: 'Azure TTS',
+    providerAzureFoundryTTS: 'Azure AI Foundry TTS',
     providerGLMTTS: 'GLM TTS',
     providerQwenTTS: 'Qwen TTS (Alibaba Cloud Bailian)',
     providerDoubaoTTS: 'Doubao TTS 2.0 (Volcengine)',

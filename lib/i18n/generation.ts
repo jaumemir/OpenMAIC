@@ -87,6 +87,12 @@ export const generationCa = {
     rename: 'Reanomenar',
     renamePlaceholder: 'Introduïu el nom de l\'aula',
     renameFailed: 'Error en reanomenar l\'aula',
+    regenerateAudio: 'Regenerar àudio',
+    regenerateAudioSuccess: 'S\'han regenerat {count} clips d\'àudio',
+    regenerateAudioFailed: 'Error en regenerar l\'àudio',
+    regenerateAudioNoSpeech: 'Aquesta aula no té àudio de veu per regenerar',
+    regenerateAudioSetupNeeded: 'Configureu primer un proveïdor TTS disponible',
+    regenerateAudioBrowserNativeUnsupported: 'El TTS natiu del navegador no admet la regeneració massiva d\'àudio de l\'aula',
   },
   upload: {
     pdfSizeLimit: 'Suporta fitxers PDF de fins a 50MB',
