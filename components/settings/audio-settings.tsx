@@ -35,6 +35,7 @@ function getTTSProviderName(providerId: TTSProviderId, t: (key: string) => strin
   const names: Record<TTSProviderId, string> = {
     'openai-tts': t('settings.providerOpenAITTS'),
     'azure-tts': t('settings.providerAzureTTS'),
+    'azure-foundry-tts': t('settings.providerAzureFoundryTTS'),
     'glm-tts': t('settings.providerGLMTTS'),
     'qwen-tts': t('settings.providerQwenTTS'),
     'doubao-tts': t('settings.providerDoubaoTTS'),
@@ -498,6 +499,32 @@ export function AudioSettings({ onSave }: AudioSettingsProps = {}) {
                 </div>
               </div>
             </>
+          )}
+
+          {/* Voice selector — shown for providers with voices defined in constants
+              (azure-tts uses the separate locale-filter + big JSON, so excluded) */}
+          {ttsProviderId !== 'azure-tts' && getTTSVoices(ttsProviderId).length > 0 && (
+            <div className="space-y-2">
+              <Label className="text-sm">{t('settings.ttsVoice')}</Label>
+              <Select
+                value={ttsVoice}
+                onValueChange={(v) => {
+                  setTTSVoice(v);
+                  onSave?.();
+                }}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {getTTSVoices(ttsProviderId).map((voice) => (
+                    <SelectItem key={voice.id} value={voice.id}>
+                      {voice.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           )}
         </div>
       </div>
