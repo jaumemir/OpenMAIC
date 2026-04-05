@@ -155,6 +155,7 @@ export async function generateSceneContent(
   visionEnabled?: boolean,
   generatedMediaMapping?: ImageMapping,
   agents?: AgentInfo[],
+  themeInstructions?: string,
 ): Promise<
   | GeneratedSlideContent
   | GeneratedQuizContent
@@ -176,6 +177,7 @@ export async function generateSceneContent(
       visionEnabled,
       generatedMediaMapping,
       agents,
+      themeInstructions,
     );
   }
 
@@ -189,11 +191,12 @@ export async function generateSceneContent(
         visionEnabled,
         generatedMediaMapping,
         agents,
+        themeInstructions,
       );
     case 'quiz':
       return generateQuizContent(outline, aiCall);
     case 'interactive':
-      return generateInteractiveContent(outline, aiCall, outline.language);
+      return generateInteractiveContent(outline, aiCall, outline.language, themeInstructions);
     case 'pbl':
       return generatePBLSceneContent(outline, languageModel);
     default:
@@ -466,6 +469,7 @@ async function generateSlideContent(
   visionEnabled?: boolean,
   generatedMediaMapping?: ImageMapping,
   agents?: AgentInfo[],
+  themeInstructions?: string,
 ): Promise<GeneratedSlideContent | null> {
   const lang = outline.language || 'zh-CN';
 
@@ -544,6 +548,7 @@ async function generateSlideContent(
     canvas_width: canvasWidth,
     canvas_height: canvasHeight,
     teacherContext,
+    themeInstructions: themeInstructions || '',
   });
 
   if (!prompts) {
@@ -736,6 +741,7 @@ async function generateInteractiveContent(
   outline: SceneOutline,
   aiCall: AICallFn,
   language: 'zh-CN' | 'en-US' | 'ca' = 'zh-CN',
+  themeInstructions?: string,
 ): Promise<GeneratedInteractiveContent | null> {
   const config = outline.interactiveConfig!;
 
@@ -793,6 +799,7 @@ async function generateInteractiveContent(
     scientificConstraints,
     designIdea: config.designIdea,
     language,
+    themeInstructions: themeInstructions || '',
   });
 
   if (!htmlPrompts) {

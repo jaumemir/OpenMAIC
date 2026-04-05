@@ -5,7 +5,7 @@ import {
   generateSceneContent,
   type AgentInfo,
 } from '@/lib/generation/generation-pipeline';
-import { resolveThemeManifest, resolveThemeCSS } from '@/lib/generation/theme-instructions';
+import { resolveThemeManifest, resolveThemeCSS, resolveThemeInstructions } from '@/lib/generation/theme-instructions';
 import { themeToSlideTheme } from '@/lib/generation/theme-utils';
 import { createLogger } from '@/lib/logger';
 import { resolveModel } from '@/lib/server/resolve-model';
@@ -143,6 +143,8 @@ export async function generateSceneContentFromInput(
     `Generating content: "${effectiveOutline.title}" (${effectiveOutline.type}) [model=${modelString}]`,
   );
 
+  const themeInstructions = await resolveThemeInstructions(stageInfo.themeId);
+
   const content = await generateSceneContent(
     effectiveOutline,
     aiCall,
@@ -152,6 +154,7 @@ export async function generateSceneContentFromInput(
     hasVision,
     generatedMediaMapping,
     agents,
+    themeInstructions || undefined,
   );
 
   if (!content) {

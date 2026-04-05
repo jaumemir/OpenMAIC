@@ -942,6 +942,10 @@ Maintain consistent sizing for same-level content. Ensure 2-4px difference betwe
 
 ---
 
+{{themeInstructions}}
+
+---
+
 ## Pre-Output Checklist
 
 Before outputting JSON, verify:

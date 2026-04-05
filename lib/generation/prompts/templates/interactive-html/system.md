@@ -50,6 +50,8 @@ Generate a complete, self-contained HTML document that provides an interactive v
 4. **Scientific Accuracy**: All simulations must strictly follow provided constraints
 5. **Progressive Discovery**: Guide users from simple to complex through interaction
 
+{{themeInstructions}}
+
 ## Output
 
 Return the complete HTML document directly. Do not wrap it in code blocks or add explanatory text before/after.
