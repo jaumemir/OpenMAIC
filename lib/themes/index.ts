@@ -1,12 +1,12 @@
-import sistemaManifest from './sistema/theme.json';
+import sistemaManifestRaw from './sistema/theme.json';
 import type { ThemeManifest, ThemeListItem } from '@/lib/types/theme';
 
 const BUILT_IN_MANIFESTS: ThemeManifest[] = [
-  sistemaManifest as ThemeManifest,
+  sistemaManifestRaw satisfies ThemeManifest,
 ];
 
 export function getBuiltInThemes(): ThemeListItem[] {
-  return BUILT_IN_MANIFESTS.map((t) => ({
+  return BUILT_IN_MANIFESTS.map((t): ThemeListItem => ({
     id: t.id,
     name: t.name,
     description: t.description,
