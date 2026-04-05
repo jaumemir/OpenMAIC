@@ -120,7 +120,8 @@ async function generateTTSForScene(
     const audioId = `tts_${action.id}`;
     action.audioId = audioId;
     try {
-      await generateAndStoreTTS(audioId, action.text, signal);
+      const audioUrl = await generateAndStoreTTS(audioId, action.text, signal);
+      if (audioUrl) action.audioUrl = audioUrl;
     } catch (error) {
       failedCount++;
       lastError = error instanceof Error ? error.message : `TTS failed for action ${action.id}`;

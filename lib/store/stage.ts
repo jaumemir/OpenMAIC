@@ -197,16 +197,11 @@ const useStageStoreBase = create<StageState>()((set, get) => ({
 
   setOutlines: (outlines) => {
     set({ outlines });
-    // Persist outlines to IndexedDB
+    // Persist outlines for resume-on-refresh
     const stageId = get().stage?.id;
     if (stageId) {
-      import('@/lib/utils/database').then(({ db }) => {
-        db.stageOutlines.put({
-          stageId,
-          outlines,
-          createdAt: Date.now(),
-          updatedAt: Date.now(),
-        });
+      import('@/lib/utils/outlines-storage').then(({ saveOutlines }) => {
+        saveOutlines(stageId, outlines);
       });
     }
   },
@@ -281,9 +276,8 @@ const useStageStoreBase = create<StageState>()((set, get) => ({
       const data = await loadStageData(stageId);
 
       // Load outlines for resume-on-refresh
-      const { db } = await import('@/lib/utils/database');
-      const outlinesRecord = await db.stageOutlines.get(stageId);
-      const outlines = outlinesRecord?.outlines || [];
+      const { loadOutlines } = await import('@/lib/utils/outlines-storage');
+      const outlines = await loadOutlines(stageId);
 
       if (data) {
         set({

@@ -1,27 +1,36 @@
 /**
- * Playback Storage - Persist playback engine state to IndexedDB
+ * Playback Storage - Persist playback engine state.
  *
- * Stores minimal state needed to resume playback from a breakpoint:
- * position (sceneIndex + actionIndex) and consumed discussions.
+ * In server mode (NEXT_PUBLIC_STORAGE_BACKEND=server):
+ *   State is stored via the server API at /api/stages/[stageId]/playback.
+ *
+ * In IndexedDB mode (legacy):
+ *   State is stored in the playbackState table.
  */
 
-import { db } from './database';
+import { isServerStorageEnabled } from './storage-backend';
 
-export interface PlaybackSnapshot {
-  sceneIndex: number;
-  actionIndex: number;
-  consumedDiscussions: string[];
-  sceneId?: string; // Scene this snapshot belongs to; discard on mismatch
-}
+// Re-export type from the shared location so existing imports keep working
+export type { PlaybackSnapshot } from '@/lib/server/storage/types';
+import type { PlaybackSnapshot } from '@/lib/server/storage/types';
 
 /**
  * Save playback state for a stage.
- * Each stage has at most one playback state record.
  */
 export async function savePlaybackState(
   stageId: string,
   snapshot: PlaybackSnapshot,
 ): Promise<void> {
+  if (isServerStorageEnabled()) {
+    await fetch(`/api/stages/${stageId}/playback`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(snapshot),
+    });
+    return;
+  }
+
+  const { db } = await import('./database');
   await db.playbackState.put({
     stageId,
     sceneIndex: snapshot.sceneIndex,
@@ -35,9 +44,16 @@ export async function savePlaybackState(
 
 /**
  * Load playback state for a stage.
- * Returns null if no saved state exists.
  */
 export async function loadPlaybackState(stageId: string): Promise<PlaybackSnapshot | null> {
+  if (isServerStorageEnabled()) {
+    const res = await fetch(`/api/stages/${stageId}/playback`);
+    if (res.status === 404) return null;
+    if (!res.ok) return null;
+    return res.json();
+  }
+
+  const { db } = await import('./database');
   const record = await db.playbackState.get(stageId);
   if (!record) return null;
 
@@ -51,8 +67,14 @@ export async function loadPlaybackState(stageId: string): Promise<PlaybackSnapsh
 }
 
 /**
- * Clear playback state for a stage (e.g. on playback complete or stop).
+ * Clear playback state for a stage.
  */
 export async function clearPlaybackState(stageId: string): Promise<void> {
+  if (isServerStorageEnabled()) {
+    await fetch(`/api/stages/${stageId}/playback`, { method: 'DELETE' });
+    return;
+  }
+
+  const { db } = await import('./database');
   await db.playbackState.delete(stageId);
 }
