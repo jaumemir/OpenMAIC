@@ -90,6 +90,7 @@ function HomePage() {
 
   // Model setup state
   const currentModelId = useSettingsStore((s) => s.modelId);
+  const themeId = useSettingsStore((state) => state.themeId);
   const [recentOpen, setRecentOpen] = useState(true);
 
   // Hydrate client-only state after mount (avoids SSR mismatch)
@@ -314,6 +315,7 @@ function HomePage() {
         userNickname: userProfile.nickname || undefined,
         userBio: userProfile.bio || undefined,
         webSearch: form.webSearch || undefined,
+        themeId: themeId || undefined,
       };
 
       let pdfStorageKey: string | undefined;
