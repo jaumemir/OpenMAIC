@@ -5,7 +5,7 @@ import {
   generateSceneContent,
   type AgentInfo,
 } from '@/lib/generation/generation-pipeline';
-import { resolveThemeManifest } from '@/lib/generation/theme-instructions';
+import { resolveThemeManifest, resolveThemeCSS } from '@/lib/generation/theme-instructions';
 import { themeToSlideTheme } from '@/lib/generation/theme-utils';
 import { createLogger } from '@/lib/logger';
 import { resolveModel } from '@/lib/server/resolve-model';
@@ -163,6 +163,17 @@ export async function generateSceneContentFromInput(
 
   const themeManifest = await resolveThemeManifest(stageInfo.themeId);
   const slideTheme = themeManifest ? themeToSlideTheme(themeManifest) : undefined;
+
+  // Inject theme CSS into interactive HTML content
+  if (stageInfo.themeId && content && 'html' in content && typeof content.html === 'string') {
+    const themeCSS = await resolveThemeCSS(stageInfo.themeId);
+    if (themeCSS) {
+      const styleTag = `<style>\n${themeCSS}\n</style>`;
+      content.html = content.html.includes('</head>')
+        ? content.html.replace('</head>', `${styleTag}\n</head>`)
+        : `${styleTag}\n${content.html}`;
+    }
+  }
 
   return { content, effectiveOutline, slideTheme };
 }
