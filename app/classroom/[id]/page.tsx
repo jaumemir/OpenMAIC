@@ -8,6 +8,7 @@ import { useEffect, useRef, useState, useCallback } from 'react';
 import { useParams } from 'next/navigation';
 import { useSceneGenerator } from '@/lib/hooks/use-scene-generator';
 import { useMediaGenerationStore } from '@/lib/store/media-generation';
+import { useSettingsStore } from '@/lib/store/settings';
 import { useWhiteboardHistoryStore } from '@/lib/store/whiteboard-history';
 import { createLogger } from '@/lib/logger';
 import { MediaStageProvider } from '@/lib/contexts/media-stage-context';
@@ -161,6 +162,7 @@ export default function ClassroomDetailPage() {
             description: stage.description,
             language: stage.language,
             style: stage.style,
+            themeId: useSettingsStore.getState().themeId,
           },
           agents: params.agents,
           userProfile: params.userProfile,
