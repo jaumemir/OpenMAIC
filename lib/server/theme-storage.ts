@@ -51,6 +51,7 @@ export async function listCustomThemes(): Promise<ThemeListItem[]> {
 }
 
 export async function loadCustomTheme(themeId: string): Promise<ThemeManifest | null> {
+  if (!/^[a-zA-Z0-9_-]{1,64}$/.test(themeId)) return null;
   const manifestPath = path.join(THEMES_DIR, themeId, 'theme.json');
   return readJson<ThemeManifest>(manifestPath);
 }
@@ -74,6 +75,7 @@ export async function saveCustomThemeCSS(themeId: string, css: string): Promise<
 }
 
 export async function loadCustomThemeCSS(themeId: string): Promise<string | null> {
+  if (!/^[a-zA-Z0-9_-]{1,64}$/.test(themeId)) return null;
   const cssPath = path.join(THEMES_DIR, themeId, 'styles.css');
   try {
     return await fs.readFile(cssPath, 'utf-8');
