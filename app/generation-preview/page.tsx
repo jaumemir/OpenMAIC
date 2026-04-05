@@ -644,6 +644,7 @@ function GenerationPreviewContent() {
         description: stage.description,
         language: stage.language,
         style: stage.style,
+        themeId: currentSession.requirements.themeId,
       };
 
       const userProfile =
@@ -686,6 +687,7 @@ function GenerationPreviewContent() {
           allOutlines: outlines,
           content: contentData.content,
           stageId: stage.id,
+          slideTheme: contentData.slideTheme,
           agents,
           previousSpeeches: [],
           userProfile,
