@@ -44,11 +44,12 @@ export async function GET(
     // Add assets if exist
     const assetsDir = path.join(themeDir, 'assets');
     try {
-      const assetFiles = await fs.readdir(assetsDir);
+      const entries = await fs.readdir(assetsDir, { withFileTypes: true });
       const assetsFolder = zip.folder('assets')!;
-      for (const file of assetFiles) {
-        const buffer = await fs.readFile(path.join(assetsDir, file));
-        assetsFolder.file(file, buffer);
+      for (const entry of entries) {
+        if (!entry.isFile()) continue;
+        const buffer = await fs.readFile(path.join(assetsDir, entry.name));
+        assetsFolder.file(entry.name, buffer);
       }
     } catch { /* no assets dir */ }
 
