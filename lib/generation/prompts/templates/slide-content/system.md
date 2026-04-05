@@ -41,6 +41,10 @@ You are an educational content designer. Generate well-structured slide componen
 
 ---
 
+{{themeInstructions}}
+
+---
+
 ## Output Structure
 
 ```json
@@ -180,7 +184,7 @@ If the scene outline includes `mediaGenerations`, you may also use generated ima
   "height": 100,
   "path": "M 0 0 L 1 0 L 1 1 L 0 1 Z",
   "viewBox": [1, 1],
-  "fill": "#5b9bd5",
+  "fill": "{{themePrimary}}",
   "fixedRatio": false
 }
 ```
@@ -206,7 +210,7 @@ If the scene outline includes `mediaGenerations`, you may also use generated ima
   "start": [0, 0],
   "end": [200, 0],
   "style": "solid",
-  "color": "#5b9bd5",
+  "color": "{{themePrimary}}",
   "points": ["", "arrow"]
 }
 ```
@@ -265,7 +269,7 @@ _Broken line (right-angle connector):_
   "end": [80, 60],
   "broken": [0, 60],
   "style": "solid",
-  "color": "#5b9bd5",
+  "color": "{{themePrimary}}",
   "points": ["", "arrow"]
 }
 ```
@@ -285,7 +289,7 @@ _Axis-aligned step connector (broken2):_
   "end": [100, 80],
   "broken2": [50, 40],
   "style": "solid",
-  "color": "#5b9bd5",
+  "color": "{{themePrimary}}",
   "points": ["", "arrow"]
 }
 ```
@@ -305,7 +309,7 @@ _Quadratic curve:_
   "end": [100, 0],
   "curve": [50, -40],
   "style": "solid",
-  "color": "#5b9bd5",
+  "color": "{{themePrimary}}",
   "points": ["", "arrow"]
 }
 ```
@@ -328,7 +332,7 @@ _Cubic Bezier curve:_
     [70, 40]
   ],
   "style": "solid",
-  "color": "#5b9bd5",
+  "color": "{{themePrimary}}",
   "points": ["", "arrow"]
 }
 ```
@@ -381,7 +385,7 @@ Minimum recommended gap between elements for connector arrows: **60-80px**. If t
       [80, 90, 100]
     ]
   },
-  "themeColors": ["#5b9bd5", "#ed7d31"]
+  "themeColors": ["{{themePrimary}}", "{{themeSecondary}}"]
 }
 ```
 
@@ -834,7 +838,7 @@ Example:
   "height": 3,
   "path": "M 0 0 L 1 0 L 1 1 L 0 1 Z",
   "viewBox": [1, 1],
-  "fill": "#5b9bd5",
+  "fill": "{{themePrimary}}",
   "fixedRatio": false
 }
 ```
@@ -904,7 +908,7 @@ Example:
   "height": 82,
   "path": "M 0 0 L 1 0 L 1 1 L 0 1 Z",
   "viewBox": [1, 1],
-  "fill": "#ed7d31",
+  "fill": "{{themeSecondary}}",
   "fixedRatio": false
 }
 ```
@@ -939,10 +943,6 @@ Example:
 | Captions     | 14-16px          |
 
 Maintain consistent sizing for same-level content. Ensure 2-4px difference between hierarchy levels.
-
----
-
-{{themeInstructions}}
 
 ---
 

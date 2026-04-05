@@ -143,7 +143,10 @@ export async function generateSceneContentFromInput(
     `Generating content: "${effectiveOutline.title}" (${effectiveOutline.type}) [model=${modelString}]`,
   );
 
-  const themeInstructions = await resolveThemeInstructions(stageInfo.themeId);
+  const [themeInstructions, themeManifest] = await Promise.all([
+    resolveThemeInstructions(stageInfo.themeId),
+    resolveThemeManifest(stageInfo.themeId),
+  ]);
 
   const content = await generateSceneContent(
     effectiveOutline,
@@ -155,6 +158,8 @@ export async function generateSceneContentFromInput(
     generatedMediaMapping,
     agents,
     themeInstructions || undefined,
+    themeManifest?.colors.primary,
+    themeManifest?.colors.secondary,
   );
 
   if (!content) {
@@ -164,7 +169,7 @@ export async function generateSceneContentFromInput(
 
   log.info(`Content generated successfully: "${effectiveOutline.title}"`);
 
-  const themeManifest = await resolveThemeManifest(stageInfo.themeId);
+  // themeManifest already resolved above
   const slideTheme = themeManifest ? themeToSlideTheme(themeManifest) : undefined;
 
   // Inject theme CSS into interactive HTML content
