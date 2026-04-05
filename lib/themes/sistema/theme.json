@@ -1,0 +1,23 @@
+{
+  "id": "sistema",
+  "name": "Sistema",
+  "description": "Tema per defecte d'OpenMAIC",
+  "locked": true,
+  "builtIn": true,
+  "version": "1.0.0",
+  "typography": {
+    "fontFamily": "system-ui, -apple-system, sans-serif",
+    "headingWeight": "700",
+    "bodyWeight": "400"
+  },
+  "colors": {
+    "primary": "#5b9bd5",
+    "secondary": "#4472c4",
+    "background": "#ffffff",
+    "text": "#333333",
+    "accent": "#ed7d31",
+    "palette": ["#5b9bd5", "#ed7d31", "#a5a5a5", "#ffc000", "#4472c4", "#70ad47"]
+  },
+  "modelInstructions": "",
+  "assets": {}
+}

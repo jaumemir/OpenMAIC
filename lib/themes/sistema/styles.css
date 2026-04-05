@@ -1,0 +1,15 @@
+/* Sistema theme — default OpenMAIC visual identity */
+:root {
+  --theme-primary: #5b9bd5;
+  --theme-secondary: #4472c4;
+  --theme-background: #ffffff;
+  --theme-text: #333333;
+  --theme-accent: #ed7d31;
+  --theme-font-family: system-ui, -apple-system, sans-serif;
+  --theme-heading-weight: 700;
+  --theme-body-weight: 400;
+}
+
+body { font-family: var(--theme-font-family); color: var(--theme-text); background: var(--theme-background); }
+h1, h2, h3, h4 { color: var(--theme-primary); font-weight: var(--theme-heading-weight); }
+a { color: var(--theme-primary); }
