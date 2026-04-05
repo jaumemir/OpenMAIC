@@ -1,0 +1,56 @@
+/* Gencat theme — Sistema de Disseny de la Generalitat de Catalunya */
+/* Typography: Open Sans (official digital alternative) */
+@import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&display=swap');
+
+:root {
+  --theme-primary: #006699;
+  --theme-secondary: #003366;
+  --theme-background: #ffffff;
+  --theme-text: #333333;
+  --theme-accent: #cc0000;
+  --theme-font-family: 'Open Sans', Arial, sans-serif;
+  --theme-heading-weight: 700;
+  --theme-body-weight: 400;
+  --theme-border-color: #006699;
+}
+
+body {
+  font-family: var(--theme-font-family);
+  color: var(--theme-text);
+  background: var(--theme-background);
+  font-weight: var(--theme-body-weight);
+}
+
+h1, h2, h3, h4 {
+  color: var(--theme-primary);
+  font-weight: var(--theme-heading-weight);
+  font-family: var(--theme-font-family);
+}
+
+a { color: var(--theme-primary); }
+a:hover { color: var(--theme-secondary); }
+
+/* Institutional header band */
+.theme-header {
+  background: var(--theme-primary);
+  color: #ffffff;
+  padding: 8px 16px;
+  font-weight: 600;
+}
+
+/* Accent elements */
+.theme-accent { color: var(--theme-accent); }
+.theme-primary { color: var(--theme-primary); }
+
+/* Buttons */
+button.theme-btn-primary {
+  background: var(--theme-primary);
+  color: #ffffff;
+  border: none;
+  border-radius: 4px;
+  padding: 8px 16px;
+  font-family: var(--theme-font-family);
+  font-weight: 600;
+  cursor: pointer;
+}
+button.theme-btn-primary:hover { background: var(--theme-secondary); }

@@ -1,0 +1,26 @@
+{
+  "id": "gencat",
+  "name": "Gencat",
+  "description": "Sistema de Disseny de la Generalitat de Catalunya",
+  "locked": false,
+  "builtIn": false,
+  "version": "1.0.0",
+  "typography": {
+    "fontFamily": "Open Sans, Arial, sans-serif",
+    "fontUrl": "https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&display=swap",
+    "headingWeight": "700",
+    "bodyWeight": "400"
+  },
+  "colors": {
+    "primary": "#006699",
+    "secondary": "#003366",
+    "background": "#ffffff",
+    "text": "#333333",
+    "accent": "#cc0000",
+    "palette": ["#006699", "#003366", "#cc0000", "#4d9900", "#ff6600", "#666666"]
+  },
+  "modelInstructions": "Segueix les directrius del Sistema de Disseny de la Generalitat de Catalunya. Usa un to institucional, formal però accessible i clar. Estructura les diapositives amb títols concisos i jerarquia visual clara. Prioritza l'accessibilitat i la llegibilitat. No generis mai logos, senyals ni símbols institucionals de la Generalitat; aquests s'inclouen automàticament des dels recursos del tema. Usa Open Sans com a tipografia. Els colors principals són #006699 (blau institucional) i #cc0000 (vermell).",
+  "assets": {
+    "logo": "assets/logo.svg"
+  }
+}
