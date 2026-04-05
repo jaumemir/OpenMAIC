@@ -4,6 +4,7 @@
  */
 import { getBuiltInTheme } from '@/lib/themes/index';
 import { loadCustomTheme } from '@/lib/server/theme-storage';
+import type { ThemeManifest } from '@/lib/types/theme';
 
 export async function resolveThemeInstructions(themeId: string | undefined): Promise<string> {
   if (!themeId) return '';
@@ -11,4 +12,11 @@ export async function resolveThemeInstructions(themeId: string | undefined): Pro
   if (builtIn) return builtIn.modelInstructions ?? '';
   const custom = await loadCustomTheme(themeId);
   return custom?.modelInstructions ?? '';
+}
+
+export async function resolveThemeManifest(themeId: string | undefined): Promise<ThemeManifest | null> {
+  if (!themeId) return null;
+  const builtIn = getBuiltInTheme(themeId);
+  if (builtIn) return builtIn;
+  return loadCustomTheme(themeId);
 }

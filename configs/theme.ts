@@ -1,3 +1,8 @@
+/**
+ * @deprecated Use lib/themes/ system instead.
+ * PRESET_THEMES kept for any legacy code still referencing it.
+ * New code should use ThemeManifest from lib/types/theme.ts.
+ */
 import type { PPTElementOutline, PPTElementShadow } from '@/lib/types/slides';
 
 export interface PresetTheme {

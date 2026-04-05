@@ -65,6 +65,7 @@ async function fetchSceneContent(
       description?: string;
       language?: string;
       style?: string;
+      themeId?: string;
     };
     agents?: AgentInfo[];
   },
@@ -80,6 +81,7 @@ async function fetchSceneActions(
     allOutlines: SceneOutline[];
     content: unknown;
     stageId: string;
+    slideTheme?: unknown;
     agents?: AgentInfo[];
     previousSpeeches?: string[];
     userProfile?: string;
@@ -156,6 +158,7 @@ export interface GenerationParams {
     description?: string;
     language?: string;
     style?: string;
+    themeId?: string;
   };
   agents?: AgentInfo[];
   userProfile?: string;
@@ -250,7 +253,10 @@ export function useSceneGenerator(options: UseSceneGeneratorOptions = {}) {
               stageId: stage.id,
               pdfImages: params.pdfImages,
               imageMapping: params.imageMapping,
-              stageInfo: params.stageInfo,
+              stageInfo: {
+                ...params.stageInfo,
+                themeId: useSettingsStore.getState().themeId,
+              },
               agents: params.agents,
             },
             signal,
@@ -282,6 +288,7 @@ export function useSceneGenerator(options: UseSceneGeneratorOptions = {}) {
               allOutlines: outlines,
               content: contentResult.content,
               stageId: stage.id,
+              slideTheme: contentResult.slideTheme,
               agents: params.agents,
               previousSpeeches,
               userProfile: params.userProfile,
@@ -399,7 +406,10 @@ export function useSceneGenerator(options: UseSceneGeneratorOptions = {}) {
             stageId: state.stage.id,
             pdfImages: params.pdfImages,
             imageMapping: params.imageMapping,
-            stageInfo: params.stageInfo,
+            stageInfo: {
+              ...params.stageInfo,
+              themeId: useSettingsStore.getState().themeId,
+            },
             agents: params.agents,
           },
           signal,
@@ -425,6 +435,7 @@ export function useSceneGenerator(options: UseSceneGeneratorOptions = {}) {
             allOutlines: state.outlines,
             content: contentResult.content,
             stageId: state.stage.id,
+            slideTheme: contentResult.slideTheme,
             agents: params.agents,
             previousSpeeches,
             userProfile: params.userProfile,

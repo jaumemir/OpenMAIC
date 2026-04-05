@@ -22,6 +22,7 @@ import type {
   GeneratedInteractiveContent,
   GeneratedPBLContent,
 } from '@/lib/types/generation';
+import type { SlideTheme } from '@/lib/types/slides';
 import type { SpeechAction } from '@/lib/types/action';
 import { createLogger } from '@/lib/logger';
 import { apiError, apiSuccess } from '@/lib/server/api-response';
@@ -41,6 +42,7 @@ export async function POST(req: NextRequest) {
       allOutlines,
       content,
       stageId,
+      slideTheme,
       agents,
       previousSpeeches: incomingPreviousSpeeches,
       userProfile,
@@ -53,6 +55,7 @@ export async function POST(req: NextRequest) {
         | GeneratedInteractiveContent
         | GeneratedPBLContent;
       stageId: string;
+      slideTheme?: SlideTheme;
       agents?: AgentInfo[];
       previousSpeeches?: string[];
       userProfile?: string;
@@ -137,7 +140,7 @@ export async function POST(req: NextRequest) {
     log.info(`Generated ${actions.length} actions for: "${outline.title}"`);
 
     // ── Build complete scene ──
-    const scene = buildCompleteScene(outline, content, actions, stageId);
+    const scene = buildCompleteScene(outline, content, actions, stageId, slideTheme);
 
     if (!scene) {
       log.error(`Failed to build scene: "${outline.title}"`);
