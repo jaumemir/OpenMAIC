@@ -1,4 +1,5 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 40" role="img" aria-label="Generalitat de Catalunya">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 40" role="img" aria-labelledby="gencat-logo-title">
+  <title id="gencat-logo-title">Generalitat de Catalunya</title>
   <!-- Red senyal (4-part symbol, symmetric) -->
   <g fill="#cc0000">
     <!-- Upper left ramel -->

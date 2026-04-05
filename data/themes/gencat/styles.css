@@ -11,7 +11,6 @@
   --theme-font-family: 'Open Sans', Arial, sans-serif;
   --theme-heading-weight: 700;
   --theme-body-weight: 400;
-  --theme-border-color: #006699;
 }
 
 body {
@@ -54,3 +53,7 @@ button.theme-btn-primary {
   cursor: pointer;
 }
 button.theme-btn-primary:hover { background: var(--theme-secondary); }
+button.theme-btn-primary:focus-visible {
+  outline: 3px solid var(--theme-secondary);
+  outline-offset: 2px;
+}
