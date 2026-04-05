@@ -55,6 +55,7 @@ import { WebSearchSettings } from './web-search-settings';
 import { WEB_SEARCH_PROVIDERS } from '@/lib/web-search/constants';
 import type { WebSearchProviderId } from '@/lib/web-search/types';
 import { GeneralSettings } from './general-settings';
+import { isServerStorageEnabled } from '@/lib/utils/storage-backend';
 import { ModelEditDialog } from './model-edit-dialog';
 import { AddProviderDialog, type NewProviderData } from './add-provider-dialog';
 import type { SettingsSection, EditingModel } from '@/lib/types/settings';
@@ -503,7 +504,11 @@ export function SettingsDialog({ open, onOpenChange, initialSection }: SettingsD
   const getHeaderContent = () => {
     switch (activeSection) {
       case 'general':
-        return <h2 className="text-lg font-semibold">{t('settings.systemSettings')}</h2>;
+        return (
+          <h2 className="text-lg font-semibold">
+            {isServerStorageEnabled() ? t('settings.generatedCourses') : t('settings.systemSettings')}
+          </h2>
+        );
       case 'providers':
         if (selectedProvider) {
           return (
@@ -772,7 +777,9 @@ export function SettingsDialog({ open, onOpenChange, initialSection }: SettingsD
               )}
             >
               <Settings className="h-4 w-4 shrink-0" />
-              <span className="truncate">{t('settings.systemSettings')}</span>
+              <span className="truncate">
+                {isServerStorageEnabled() ? t('settings.generatedCourses') : t('settings.systemSettings')}
+              </span>
             </button>
           </div>
 

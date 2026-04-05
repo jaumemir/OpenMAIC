@@ -554,6 +554,15 @@ export const settingsZhCN = {
     clearCacheButton: '永久删除所有数据',
     clearCacheSuccess: '缓存已清空，页面即将刷新',
     clearCacheFailed: '清空缓存失败，请重试',
+    // Generated courses (server mode)
+    generatedCourses: '课程列表',
+    courseDirectory: '目录 ID',
+    courseScenes: '场景',
+    deleteCourse: '删除',
+    deleteCourseSuccess: '课程已删除',
+    deleteCourseFailed: '删除课程失败，请重试',
+    noCoursesFound: '暂无存储的课程',
+    loadCoursesFailed: '加载课程列表失败',
     // Web Search settings
     webSearchSettings: '网络搜索',
     webSearchApiKey: 'Tavily API Key',
@@ -1159,6 +1168,15 @@ export const settingsCa = {
     clearCacheButton: 'Eliminar permanentment totes les dades',
     clearCacheSuccess: 'Caché netejada, la pàgina s\'actualitzarà en breu',
     clearCacheFailed: 'Error en netejar la caché, torneu-ho a intentar',
+    // Generated courses (server mode)
+    generatedCourses: 'Cursos generats',
+    courseDirectory: 'ID de directori',
+    courseScenes: 'Escenes',
+    deleteCourse: 'Eliminar',
+    deleteCourseSuccess: 'Curs eliminat',
+    deleteCourseFailed: 'Error en eliminar el curs, torneu-ho a intentar',
+    noCoursesFound: 'No hi ha cursos emmagatzemats',
+    loadCoursesFailed: 'Error carregant els cursos',
     // Web Search settings
     webSearchSettings: 'Cerca web',
     webSearchApiKey: 'Clau API Tavily',
@@ -1764,6 +1782,15 @@ export const settingsEnUS = {
     clearCacheButton: 'Permanently Delete All Data',
     clearCacheSuccess: 'Cache cleared, page will refresh shortly',
     clearCacheFailed: 'Failed to clear cache, please try again',
+    // Generated courses (server mode)
+    generatedCourses: 'Generated Courses',
+    courseDirectory: 'Directory ID',
+    courseScenes: 'Scenes',
+    deleteCourse: 'Delete',
+    deleteCourseSuccess: 'Course deleted',
+    deleteCourseFailed: 'Failed to delete course, please try again',
+    noCoursesFound: 'No courses stored',
+    loadCoursesFailed: 'Failed to load courses',
     // Web Search settings
     webSearchSettings: 'Web Search',
     webSearchApiKey: 'Tavily API Key',
