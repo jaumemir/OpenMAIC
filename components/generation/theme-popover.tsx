@@ -15,16 +15,20 @@ export function ThemePopover() {
   const setTheme = useSettingsStore((s) => s.setTheme);
   const [themes, setThemes] = useState<ThemeListItem[]>([]);
   const [open, setOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(false);
 
   useEffect(() => {
     if (!open) return;
+    setLoading(true);
+    setError(false);
     fetch('/api/themes')
       .then((r) => r.json())
-      .then((data: ThemeListItem[]) => setThemes(data))
-      .catch(() => {});
+      .then((data: ThemeListItem[]) => { setThemes(data); setLoading(false); })
+      .catch(() => { setError(true); setLoading(false); });
   }, [open]);
 
-  const active = themes.find((t) => t.id === themeId);
+  const active = themes.find((th) => th.id === themeId);
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -32,6 +36,7 @@ export function ThemePopover() {
         <TooltipTrigger asChild>
           <PopoverTrigger asChild>
             <button
+              type="button"
               className={cn(
                 'flex items-center gap-1.5 px-2 py-1 rounded-md text-xs font-medium transition-colors',
                 'border border-transparent hover:border-border hover:bg-muted/50',
@@ -59,12 +64,16 @@ export function ThemePopover() {
         <p className="text-[10px] uppercase tracking-wide text-muted-foreground px-2 pb-1">
           {t('toolbar.selectTheme')}
         </p>
-        {themes.length === 0 && (
+        {loading && (
           <p className="text-xs text-muted-foreground px-2 py-1">{t('toolbar.loadingThemes')}</p>
+        )}
+        {error && (
+          <p className="text-xs text-destructive px-2 py-1">{t('toolbar.loadThemeError')}</p>
         )}
         {themes.map((theme) => (
           <button
             key={theme.id}
+            type="button"
             onClick={() => { setTheme(theme.id); setOpen(false); }}
             className={cn(
               'w-full flex items-center gap-2.5 px-2 py-1.5 rounded-md text-sm transition-colors text-left',

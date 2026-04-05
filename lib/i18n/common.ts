@@ -33,6 +33,7 @@ export const commonZhCN = {
     selectTheme: '主题',
     activeTheme: '当前',
     loadingThemes: '加载中...',
+    loadThemeError: '无法加载主题',
   },
   export: {
     pptx: '导出 PPTX',
@@ -86,6 +87,7 @@ export const commonCa = {
     selectTheme: 'Tema',
     activeTheme: 'actiu',
     loadingThemes: 'Carregant...',
+    loadThemeError: 'No s\'han pogut carregar els temes',
   },
   export: {
     pptx: 'Exportar PPTX',
@@ -132,6 +134,7 @@ export const commonEnUS = {
     selectTheme: 'Theme',
     activeTheme: 'active',
     loadingThemes: 'Loading...',
+    loadThemeError: 'Failed to load themes',
   },
   export: {
     pptx: 'Export PPTX',
