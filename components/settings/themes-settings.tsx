@@ -37,7 +37,7 @@ export function ThemesSettings() {
     if (res.ok || res.status === 204) {
       toast.success(t('settings.themes.deleted'));
       if (themeId === id) setTheme('sistema');
-      reload();
+      await reload();
     } else {
       const body = await res.json().catch(() => ({}));
       toast.error(body?.error ?? t('settings.themes.deleteError'));
@@ -68,7 +68,7 @@ export function ThemesSettings() {
       const res = await fetch('/api/themes/import', { method: 'POST', body: formData });
       if (res.ok || res.status === 201) {
         toast.success(t('settings.themes.imported'));
-        reload();
+        await reload();
       } else {
         const body = await res.json().catch(() => ({}));
         toast.error(body?.error ?? t('settings.themes.importError'));
@@ -85,7 +85,7 @@ export function ThemesSettings() {
           <p className="text-xs text-muted-foreground">{t('settings.themes.description')}</p>
         </div>
         <div className="flex gap-2">
-          <Button size="sm" variant="outline" onClick={handleImport}>
+          <Button type="button" size="sm" variant="outline" onClick={handleImport}>
             <Upload className="h-3.5 w-3.5 mr-1.5" />
             {t('settings.themes.upload')}
           </Button>
@@ -122,7 +122,7 @@ export function ThemesSettings() {
                 )}
                 {theme.builtIn && (
                   <span className="text-[10px] bg-muted text-muted-foreground px-1.5 py-0.5 rounded-full flex items-center gap-0.5">
-                    <Lock className="h-2.5 w-2.5" /> built-in
+                    <Lock className="h-2.5 w-2.5" /> {t('settings.themes.builtIn')}
                   </span>
                 )}
               </div>
@@ -132,18 +132,18 @@ export function ThemesSettings() {
             {/* Actions */}
             <div className="flex items-center gap-1.5 shrink-0">
               {theme.id !== themeId && (
-                <Button size="sm" variant="outline" className="h-7 text-xs px-2"
+                <Button type="button" size="sm" variant="outline" className="h-7 text-xs px-2"
                   onClick={() => setTheme(theme.id)}>
                   {t('settings.themes.activate')}
                 </Button>
               )}
-              <Button size="sm" variant="ghost" className="h-7 w-7 p-0"
+              <Button type="button" size="sm" variant="ghost" className="h-7 w-7 p-0"
                 onClick={() => handleExport(theme.id)}
                 title={t('settings.themes.export')}>
                 <Download className="h-3.5 w-3.5" />
               </Button>
               <Button
-                size="sm" variant="ghost"
+                type="button" size="sm" variant="ghost"
                 className={cn('h-7 w-7 p-0', theme.locked || theme.builtIn ? 'opacity-30 cursor-not-allowed' : 'hover:text-destructive')}
                 disabled={theme.locked || theme.builtIn}
                 onClick={() => handleDelete(theme.id)}

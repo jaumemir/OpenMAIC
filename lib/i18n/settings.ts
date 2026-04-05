@@ -590,6 +590,7 @@ export const settingsZhCN = {
       exportError: '无法导出主题',
       importError: '无法导入主题',
       loading: '加载中...',
+      builtIn: '内置',
     },
   },
   profile: {
@@ -1223,6 +1224,7 @@ export const settingsCa = {
       exportError: "No s'ha pogut exportar el tema",
       importError: "No s'ha pogut importar el tema",
       loading: 'Carregant...',
+      builtIn: 'incorporat',
     },
   },
   profile: {
@@ -1856,6 +1858,7 @@ export const settingsEnUS = {
       exportError: 'Failed to export theme',
       importError: 'Failed to import theme',
       loading: 'Loading...',
+      builtIn: 'built-in',
     },
   },
   profile: {
