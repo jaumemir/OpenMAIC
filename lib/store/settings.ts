@@ -251,6 +251,10 @@ export interface SettingsState {
     config: Partial<{ apiKey: string; baseUrl: string; enabled: boolean }>,
   ) => void;
 
+  // Theme
+  themeId: string;
+  setTheme: (themeId: string) => void;
+
   // Server provider actions
   fetchServerProviders: () => Promise<void>;
 }
@@ -581,6 +585,9 @@ export const useSettingsStore = create<SettingsState>()(
 
         autoConfigApplied: false,
 
+        // Theme
+        themeId: 'sistema',
+
         // Web Search settings (use defaults)
         ...defaultWebSearchConfig,
 
@@ -735,6 +742,9 @@ export const useSettingsStore = create<SettingsState>()(
         },
         setTTSEnabled: (enabled) => set({ ttsEnabled: enabled }),
         setASREnabled: (enabled) => set({ asrEnabled: enabled }),
+
+        // Theme actions
+        setTheme: (themeId) => set({ themeId }),
 
         // Web Search actions
         setWebSearchProvider: (providerId) => set({ webSearchProviderId: providerId }),
