@@ -24,21 +24,26 @@ export async function POST(req: Request) {
   if (builtIns.some((t) => t.id === body.id)) {
     return NextResponse.json({ error: 'Cannot overwrite a built-in theme' }, { status: 403 });
   }
-  const manifest: ThemeManifest = {
-    id: body.id,
-    name: body.name,
-    description: body.description ?? '',
-    locked: false,
-    builtIn: false,
-    version: body.version ?? '1.0.0',
-    typography: body.typography ?? { fontFamily: 'system-ui', headingWeight: '700', bodyWeight: '400' },
-    colors: body.colors ?? { primary: '#000000', secondary: '#333333', background: '#ffffff', text: '#333333', accent: '#ff0000', palette: [] },
-    modelInstructions: body.modelInstructions ?? '',
-    assets: body.assets ?? {},
-  };
-  await saveCustomTheme(manifest);
-  if (body.css && typeof body.css === 'string') {
-    await saveCustomThemeCSS(manifest.id, body.css);
+  try {
+    const manifest: ThemeManifest = {
+      id: body.id,
+      name: body.name,
+      description: body.description ?? '',
+      locked: false,
+      builtIn: false,
+      version: body.version ?? '1.0.0',
+      typography: body.typography ?? { fontFamily: 'system-ui', headingWeight: '700', bodyWeight: '400' },
+      colors: body.colors ?? { primary: '#000000', secondary: '#333333', background: '#ffffff', text: '#333333', accent: '#ff0000', palette: [] },
+      modelInstructions: body.modelInstructions ?? '',
+      assets: body.assets ?? {},
+    };
+    await saveCustomTheme(manifest);
+    if (body.css && typeof body.css === 'string') {
+      await saveCustomThemeCSS(manifest.id, body.css);
+    }
+    return NextResponse.json(manifest, { status: 201 });
+  } catch (err) {
+    console.error('[POST /api/themes]', err);
+    return NextResponse.json({ error: 'Failed to create theme' }, { status: 500 });
   }
-  return NextResponse.json(manifest, { status: 201 });
 }
