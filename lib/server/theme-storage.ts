@@ -7,6 +7,7 @@
 import { promises as fs } from 'fs';
 import path from 'path';
 import type { ThemeManifest, ThemeListItem } from '@/lib/types/theme';
+import { writeJsonFileAtomic } from '@/lib/server/classroom-storage';
 
 export const THEMES_DIR = path.join(process.cwd(), 'data', 'themes');
 
@@ -55,17 +56,21 @@ export async function loadCustomTheme(themeId: string): Promise<ThemeManifest | 
 }
 
 export async function saveCustomTheme(manifest: ThemeManifest): Promise<void> {
+  if (!/^[a-zA-Z0-9_-]{1,64}$/.test(manifest.id)) {
+    throw new Error(`Invalid theme id: ${manifest.id}`);
+  }
   const themeDir = path.join(THEMES_DIR, manifest.id);
   await ensureDir(themeDir);
-  const tmp = path.join(themeDir, `theme.json.${process.pid}.tmp`);
-  await fs.writeFile(tmp, JSON.stringify(manifest, null, 2), 'utf-8');
-  await fs.rename(tmp, path.join(themeDir, 'theme.json'));
+  await writeJsonFileAtomic(path.join(themeDir, 'theme.json'), manifest);
 }
 
 export async function saveCustomThemeCSS(themeId: string, css: string): Promise<void> {
   const themeDir = path.join(THEMES_DIR, themeId);
   await ensureDir(themeDir);
-  await fs.writeFile(path.join(themeDir, 'styles.css'), css, 'utf-8');
+  const filePath = path.join(themeDir, 'styles.css');
+  const tmp = `${filePath}.${process.pid}.${Date.now()}.tmp`;
+  await fs.writeFile(tmp, css, 'utf-8');
+  await fs.rename(tmp, filePath);
 }
 
 export async function loadCustomThemeCSS(themeId: string): Promise<string | null> {
@@ -82,7 +87,10 @@ export async function deleteCustomTheme(themeId: string): Promise<void> {
   await fs.rm(themeDir, { recursive: true, force: true });
 }
 
-export async function getThemeAssetPath(themeId: string, filename: string): Promise<string> {
+export function getThemeAssetPath(themeId: string, filename: string): string {
+  if (!/^[a-zA-Z0-9_.\-]{1,128}$/.test(filename) || filename.includes('..')) {
+    throw new Error(`Invalid asset filename: ${filename}`);
+  }
   return path.join(THEMES_DIR, themeId, 'assets', filename);
 }
 
@@ -91,7 +99,13 @@ export async function saveThemeAsset(
   filename: string,
   buffer: Buffer,
 ): Promise<void> {
+  if (!/^[a-zA-Z0-9_.\-]{1,128}$/.test(filename) || filename.includes('..')) {
+    throw new Error(`Invalid asset filename: ${filename}`);
+  }
   const assetDir = path.join(THEMES_DIR, themeId, 'assets');
   await ensureDir(assetDir);
-  await fs.writeFile(path.join(assetDir, filename), buffer);
+  const filePath = path.join(assetDir, filename);
+  const tmp = `${filePath}.${process.pid}.${Date.now()}.tmp`;
+  await fs.writeFile(tmp, buffer);
+  await fs.rename(tmp, filePath);
 }
