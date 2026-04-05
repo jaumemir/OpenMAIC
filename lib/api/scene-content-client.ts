@@ -2,6 +2,7 @@
 
 import type { AgentInfo } from '@/lib/generation/generation-pipeline';
 import type { ImageMapping, PdfImage, SceneOutline } from '@/lib/types/generation';
+import type { SlideTheme } from '@/lib/types/slides';
 
 export interface SceneContentRequestParams {
   outline: SceneOutline;
@@ -14,6 +15,7 @@ export interface SceneContentRequestParams {
     description?: string;
     language?: string;
     style?: string;
+    themeId?: string;
   };
   agents?: AgentInfo[];
 }
@@ -22,6 +24,7 @@ export interface SceneContentResult {
   success: boolean;
   content?: unknown;
   effectiveOutline?: SceneOutline;
+  slideTheme?: SlideTheme;
   error?: string;
 }
 

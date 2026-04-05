@@ -5,6 +5,8 @@ import {
   generateSceneContent,
   type AgentInfo,
 } from '@/lib/generation/generation-pipeline';
+import { resolveThemeManifest } from '@/lib/generation/theme-instructions';
+import { themeToSlideTheme } from '@/lib/generation/theme-utils';
 import { createLogger } from '@/lib/logger';
 import { resolveModel } from '@/lib/server/resolve-model';
 import type {
@@ -16,6 +18,7 @@ import type {
   PdfImage,
   SceneOutline,
 } from '@/lib/types/generation';
+import type { SlideTheme } from '@/lib/types/slides';
 
 const log = createLogger('Scene Content API');
 
@@ -37,6 +40,7 @@ export interface SceneContentGenerationInput {
     description?: string;
     language?: string;
     style?: string;
+    themeId?: string;
   };
   stageId: string;
   agents?: AgentInfo[];
@@ -50,6 +54,7 @@ export interface SceneContentGenerationResult {
     | GeneratedInteractiveContent
     | GeneratedPBLContent;
   effectiveOutline: SceneOutline;
+  slideTheme?: SlideTheme;
 }
 
 export async function generateSceneContentFromInput(
@@ -156,5 +161,8 @@ export async function generateSceneContentFromInput(
 
   log.info(`Content generated successfully: "${effectiveOutline.title}"`);
 
-  return { content, effectiveOutline };
+  const themeManifest = await resolveThemeManifest(stageInfo.themeId);
+  const slideTheme = themeManifest ? themeToSlideTheme(themeManifest) : undefined;
+
+  return { content, effectiveOutline, slideTheme };
 }
