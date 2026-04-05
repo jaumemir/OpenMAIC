@@ -26,6 +26,7 @@ import {
   Search,
   Volume2,
   Mic,
+  Paintbrush,
 } from 'lucide-react';
 import { useI18n } from '@/lib/hooks/use-i18n';
 import { useSettingsStore } from '@/lib/store/settings';
@@ -55,6 +56,7 @@ import { WebSearchSettings } from './web-search-settings';
 import { WEB_SEARCH_PROVIDERS } from '@/lib/web-search/constants';
 import type { WebSearchProviderId } from '@/lib/web-search/types';
 import { GeneralSettings } from './general-settings';
+import { ThemesSettings } from './themes-settings';
 import { isServerStorageEnabled } from '@/lib/utils/storage-backend';
 import { ModelEditDialog } from './model-edit-dialog';
 import { AddProviderDialog, type NewProviderData } from './add-provider-dialog';
@@ -663,6 +665,8 @@ export function SettingsDialog({ open, onOpenChange, initialSection }: SettingsD
           </>
         );
       }
+      case 'themes':
+        return <h2 className="text-lg font-semibold">{t('settings.themesSettings')}</h2>;
       default:
         return null;
     }
@@ -765,6 +769,19 @@ export function SettingsDialog({ open, onOpenChange, initialSection }: SettingsD
             >
               <Search className="h-4 w-4 shrink-0" />
               <span className="truncate">{t('settings.webSearchSettings')}</span>
+            </button>
+
+            <button
+              onClick={() => setActiveSection('themes')}
+              className={cn(
+                'w-full flex items-center gap-3 px-3 py-2 text-sm rounded-lg transition-colors text-left min-w-0',
+                activeSection === 'themes'
+                  ? 'bg-primary/10 text-primary font-medium'
+                  : 'hover:bg-muted',
+              )}
+            >
+              <Paintbrush className="h-4 w-4 shrink-0" />
+              <span className="truncate">{t('settings.themesSettings')}</span>
             </button>
 
             <button
@@ -1002,6 +1019,7 @@ export function SettingsDialog({ open, onOpenChange, initialSection }: SettingsD
               )}
               {activeSection === 'tts' && <TTSSettings selectedProviderId={ttsProviderId} />}
               {activeSection === 'asr' && <ASRSettings selectedProviderId={asrProviderId} />}
+              {activeSection === 'themes' && <ThemesSettings />}
             </div>
 
             {/* Footer */}
