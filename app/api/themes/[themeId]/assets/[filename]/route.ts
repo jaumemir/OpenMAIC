@@ -6,6 +6,10 @@ import { getBuiltInTheme } from '@/lib/themes/index';
 
 type Params = Promise<{ themeId: string; filename: string }>;
 
+function isValidThemeId(id: string): boolean {
+  return /^[a-zA-Z0-9_-]{1,64}$/.test(id);
+}
+
 // GET /api/themes/[themeId]/assets/[filename]
 export async function GET(
   _req: Request,
@@ -13,18 +17,21 @@ export async function GET(
 ) {
   const { themeId, filename } = await params;
 
-  // Sanitise filename — no path traversal
-  const safe = path.basename(filename);
-  let assetPath: string;
-
-  const builtIn = getBuiltInTheme(themeId);
-  if (builtIn) {
-    assetPath = path.join(process.cwd(), 'lib', 'themes', themeId, 'assets', safe);
-  } else {
-    assetPath = getThemeAssetPath(themeId, safe); // synchronous — no await
+  if (!isValidThemeId(themeId)) {
+    return NextResponse.json({ error: 'Invalid theme id' }, { status: 400 });
   }
 
+  const safe = path.basename(filename);
+
   try {
+    let assetPath: string;
+    const builtIn = getBuiltInTheme(themeId);
+    if (builtIn) {
+      assetPath = path.join(process.cwd(), 'lib', 'themes', themeId, 'assets', safe);
+    } else {
+      assetPath = getThemeAssetPath(themeId, safe); // may throw on invalid filename
+    }
+
     const buffer = await fs.readFile(assetPath);
     const ext = path.extname(safe).toLowerCase();
     const contentType =
@@ -34,10 +41,15 @@ export async function GET(
     return new NextResponse(buffer, {
       headers: {
         'Content-Type': contentType,
+        'Content-Length': String(buffer.length),
         'Cache-Control': 'public, max-age=31536000, immutable',
       },
     });
-  } catch {
-    return NextResponse.json({ error: 'Asset not found' }, { status: 404 });
+  } catch (err) {
+    if ((err as NodeJS.ErrnoException).code === 'ENOENT') {
+      return NextResponse.json({ error: 'Asset not found' }, { status: 404 });
+    }
+    console.error('[GET /api/themes/[themeId]/assets/[filename]]', err);
+    return NextResponse.json({ error: 'Failed to serve asset' }, { status: 500 });
   }
 }
