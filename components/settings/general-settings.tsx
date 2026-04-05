@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -13,18 +13,130 @@ import {
   AlertDialogFooter,
   AlertDialogCancel,
 } from '@/components/ui/alert-dialog';
-import { Loader2, Trash2, AlertTriangle } from 'lucide-react';
+import { Loader2, Trash2, AlertTriangle, BookOpen } from 'lucide-react';
 import { useI18n } from '@/lib/hooks/use-i18n';
 import { clearDatabase } from '@/lib/utils/database';
+import { isServerStorageEnabled } from '@/lib/utils/storage-backend';
 import { toast } from 'sonner';
 import { createLogger } from '@/lib/logger';
+import type { StageListItem } from '@/lib/utils/stage-storage';
 
 const log = createLogger('GeneralSettings');
 
-export function GeneralSettings() {
+// ── Server mode: course list ──────────────────────────────────────────────────
+
+function ServerCourseList() {
+  const { t } = useI18n();
+  const [courses, setCourses] = useState<StageListItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+
+  const fetchCourses = useCallback(async () => {
+    setLoading(true);
+    setError(false);
+    try {
+      const res = await fetch('/api/stages');
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      setCourses(data);
+    } catch (err) {
+      log.error('Failed to load courses:', err);
+      setError(true);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchCourses();
+  }, [fetchCourses]);
+
+  const handleDelete = useCallback(async (stageId: string) => {
+    setDeletingId(stageId);
+    try {
+      const res = await fetch(`/api/stages/${stageId}`, { method: 'DELETE' });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      toast.success(t('settings.deleteCourseSuccess'));
+      await fetchCourses();
+    } catch (err) {
+      log.error('Failed to delete course:', err);
+      toast.error(t('settings.deleteCourseFailed'));
+    } finally {
+      setDeletingId(null);
+    }
+  }, [fetchCourses, t]);
+
+  if (loading) {
+    return (
+      <div className="space-y-2">
+        {[1, 2, 3].map((i) => (
+          <div key={i} className="h-14 rounded-lg bg-muted/50 animate-pulse" />
+        ))}
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <p className="text-sm text-destructive">{t('settings.loadCoursesFailed')}</p>
+    );
+  }
+
+  if (courses.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center gap-2 py-10 text-muted-foreground">
+        <BookOpen className="w-8 h-8 opacity-40" />
+        <p className="text-sm">{t('settings.noCoursesFound')}</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-2">
+      {/* Header row */}
+      <div className="grid grid-cols-[1fr_auto_auto_auto] gap-3 px-3 pb-1 text-xs font-medium text-muted-foreground">
+        <span>{t('settings.courseDirectory')}</span>
+        <span className="text-right">{t('settings.courseScenes')}</span>
+        <span />
+      </div>
+      {courses.map((course) => (
+        <div
+          key={course.id}
+          className="grid grid-cols-[1fr_auto_auto] gap-3 items-center rounded-lg border bg-card px-3 py-2.5"
+        >
+          <div className="min-w-0">
+            <p className="text-sm font-medium truncate">{course.name}</p>
+            <p className="text-xs text-muted-foreground font-mono truncate">{course.id}</p>
+          </div>
+          <span className="text-xs text-muted-foreground tabular-nums shrink-0">
+            {course.sceneCount} {t('settings.courseScenes').toLowerCase()}
+          </span>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-7 px-2 text-destructive hover:text-destructive hover:bg-destructive/10 shrink-0"
+            disabled={deletingId === course.id}
+            onClick={() => handleDelete(course.id)}
+          >
+            {deletingId === course.id ? (
+              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+            ) : (
+              <Trash2 className="w-3.5 h-3.5" />
+            )}
+            <span className="ml-1">{t('settings.deleteCourse')}</span>
+          </Button>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ── Local mode: danger zone ───────────────────────────────────────────────────
+
+function DangerZone() {
   const { t } = useI18n();
 
-  // Clear cache state
   const [showClearDialog, setShowClearDialog] = useState(false);
   const [confirmInput, setConfirmInput] = useState('');
   const [clearing, setClearing] = useState(false);
@@ -36,16 +148,10 @@ export function GeneralSettings() {
     if (!isConfirmValid) return;
     setClearing(true);
     try {
-      // 1. Clear IndexedDB
       await clearDatabase();
-      // 2. Clear localStorage
       localStorage.clear();
-      // 3. Clear sessionStorage
       sessionStorage.clear();
-
       toast.success(t('settings.clearCacheSuccess'));
-
-      // Reload page after a short delay
       setTimeout(() => {
         window.location.reload();
       }, 1000);
@@ -62,10 +168,8 @@ export function GeneralSettings() {
       : t('settings.clearCacheConfirmItems').split(', ');
 
   return (
-    <div className="flex flex-col gap-8">
-      {/* Danger Zone - Clear Cache */}
+    <>
       <div className="relative rounded-xl border border-destructive/30 bg-destructive/[0.03] dark:bg-destructive/[0.06] overflow-hidden">
-        {/* Subtle diagonal stripe pattern for danger emphasis */}
         <div
           className="absolute inset-0 opacity-[0.015] dark:opacity-[0.03] pointer-events-none"
           style={{
@@ -80,7 +184,6 @@ export function GeneralSettings() {
         />
 
         <div className="relative p-4 space-y-4">
-          {/* Header */}
           <div className="flex items-center gap-2.5">
             <div className="p-1.5 rounded-md bg-destructive/10 text-destructive">
               <AlertTriangle className="w-4 h-4" />
@@ -88,7 +191,6 @@ export function GeneralSettings() {
             <h3 className="text-sm font-semibold text-destructive">{t('settings.dangerZone')}</h3>
           </div>
 
-          {/* Content */}
           <div className="flex items-center justify-between gap-4">
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium">{t('settings.clearCache')}</p>
@@ -112,7 +214,6 @@ export function GeneralSettings() {
         </div>
       </div>
 
-      {/* Clear Cache Confirmation Dialog */}
       <AlertDialog
         open={showClearDialog}
         onOpenChange={(open) => {
@@ -176,6 +277,16 @@ export function GeneralSettings() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+    </>
+  );
+}
+
+// ── Public export ─────────────────────────────────────────────────────────────
+
+export function GeneralSettings() {
+  return (
+    <div className="flex flex-col gap-8">
+      {isServerStorageEnabled() ? <ServerCourseList /> : <DangerZone />}
     </div>
   );
 }
