@@ -12,14 +12,14 @@
     "bodyWeight": "400"
   },
   "colors": {
-    "primary": "#006699",
-    "secondary": "#003366",
+    "primary": "#cc0000",
+    "secondary": "#006699",
     "background": "#ffffff",
     "text": "#333333",
     "accent": "#cc0000",
-    "palette": ["#006699", "#003366", "#cc0000", "#4d9900", "#ff6600", "#666666"]
+    "palette": ["#006699", "#003366", "#4d9900", "#ff6600", "#cc0000", "#666666"]
   },
-  "modelInstructions": "Segueix les directrius del Sistema de Disseny de la Generalitat de Catalunya. Usa un to institucional, formal però accessible i clar. Estructura les diapositives amb títols concisos i jerarquia visual clara. Prioritza l'accessibilitat i la llegibilitat. No generis mai logos, senyals ni símbols institucionals de la Generalitat; aquests s'inclouen automàticament des dels recursos del tema. Usa Open Sans com a tipografia. Els colors principals són #006699 (blau institucional) i #cc0000 (vermell).",
+  "modelInstructions": "Segueix la identitat corporativa de la Generalitat de Catalunya (enfocament híbrid institucional).\n\nTIPOGRAFIA: Open Sans és la font corporativa per a materials digitals. Títols principals: Open Sans Bold (700). Subtítols i etiquetes: Open Sans SemiBold (600). Cos de text: Open Sans Regular (400). No uses Calibri ni fonts decoratives. Evita majúscules completes; usa negreta per emfatitzar, mai cursiva.\n\nCOLORS: Fons sempre blanc (#ffffff). Text principal en negre o gris fosc (#333333). Vermell institucional #cc0000 per a accents de marca: línies de separació sota títols, títols principals destacats i elements visuals de marca (1-2 elements per diapositiva, no abusar). Blau #006699 com a color primari per a dades, gràfics i elements interactius. Grisos (#555555, #999999) per a jerarquia secundària i peu de pàgina. Per a gràfics amb múltiples categories: usa la paleta [#006699, #003366, #4d9900, #ff6600] i escales de lluminositat si calen més categories. Tot el text ha de superar el contrast AA (4,5:1 mínim sobre blanc).\n\nCONTINGUT: Frases curtes i clares. Veu activa. Una idea principal per diapositiva. Jerarquia nítida: títol > subtítol > cos. Dades numèriques complexes en gràfics visuals, no en taules de text. To institucional, formal però accessible.\n\nRESTRICCIONS: No generis logos, senyals, escuts ni símbols institucionals; s'inclouen automàticament. No usis gradients. No inventes colors fora de la paleta.",
   "assets": {
     "logo": "assets/logo.svg"
   }
