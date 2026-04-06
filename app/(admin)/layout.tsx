@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation';
 import { headers } from 'next/headers';
 import { getSessionFromHeaders } from '@/lib/auth/session';
 import type { ReactNode } from 'react';
+import AdminNav from './admin-nav';
 
 /**
  * Layout per al panel d'administració.
@@ -20,5 +21,13 @@ export default async function AdminLayout({ children }: { children: ReactNode })
     redirect('/');
   }
 
-  return <>{children}</>;
+  const user = session.user as { name?: string; email?: string };
+  const displayName = user.name ?? user.email ?? 'Admin';
+
+  return (
+    <div className="min-h-screen bg-background flex flex-col">
+      <AdminNav displayName={displayName} />
+      <main className="flex-1">{children}</main>
+    </div>
+  );
 }
