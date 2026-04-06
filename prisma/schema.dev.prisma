@@ -1,0 +1,191 @@
+// schema.dev.prisma — SQLite (development)
+// Diferències respecte schema.prod.prisma:
+//   - provider: sqlite
+//   - No @db.* annotations
+//   - DateTime (no Timestamptz)
+//   - String per a IDs (no @db.Uuid)
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ── Users ──────────────────────────────────────────────────────────────────
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  role      String   @default("user")     // "admin" | "user"
+  status    String   @default("pending")  // "active" | "pending"
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  profile            UserProfile?
+  sessions           Session[]
+  accounts           Account[]
+  invitationsSent    Invitation[]     @relation("InvitedBy")
+  stageOwnerships    StageOwnership[]
+  classroomJobs      ClassroomJob[]
+  adminConfigUpdates AdminConfig[]
+  auditLogs          AuditLog[]
+
+  @@map("users")
+}
+
+model UserProfile {
+  userId       String  @id @map("user_id")
+  firstName    String  @map("first_name")
+  lastName     String  @map("last_name")
+  organization String?
+  department   String?
+  jobTitle     String? @map("job_title")
+  city         String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_profiles")
+}
+
+// ── better-auth (noms exactes requerits per l'adapter) ────────────────────
+
+model Session {
+  id        String   @id
+  expiresAt DateTime @map("expires_at")
+  token     String   @unique
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  ipAddress String?  @map("ip_address")
+  userAgent String?  @map("user_agent")
+  userId    String   @map("user_id")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model Account {
+  id                    String    @id
+  accountId             String    @map("account_id")
+  providerId            String    @map("provider_id")
+  userId                String    @map("user_id")
+  password              String?
+  accessToken           String?   @map("access_token")
+  refreshToken          String?   @map("refresh_token")
+  idToken               String?   @map("id_token")
+  accessTokenExpiresAt  DateTime? @map("access_token_expires_at")
+  refreshTokenExpiresAt DateTime? @map("refresh_token_expires_at")
+  scope                 String?
+  createdAt             DateTime  @default(now()) @map("created_at")
+  updatedAt             DateTime  @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("accounts")
+}
+
+model Verification {
+  id         String    @id
+  identifier String
+  value      String
+  expiresAt  DateTime  @map("expires_at")
+  createdAt  DateTime? @default(now()) @map("created_at")
+  updatedAt  DateTime? @updatedAt @map("updated_at")
+
+  @@map("verifications")
+}
+
+// ── Invitació per email (flux custom, fora de better-auth) ───────────────
+
+model Invitation {
+  id          String    @id @default(uuid())
+  email       String
+  firstName   String    @map("first_name")
+  lastName    String    @map("last_name")
+  token       String    @unique
+  expiresAt   DateTime  @map("expires_at")
+  usedAt      DateTime? @map("used_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  invitedById String    @map("invited_by_id")
+
+  invitedBy User @relation("InvitedBy", fields: [invitedById], references: [id])
+
+  @@map("invitations")
+}
+
+// ── Propietat de stages (pont filesystem ↔ DB) ───────────────────────────
+
+model StageOwnership {
+  stageId   String   @id @map("stage_id")
+  userId    String   @map("user_id")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("stage_ownerships")
+}
+
+// ── Jobs de generació asíncrona ───────────────────────────────────────────
+
+model ClassroomJob {
+  id              String    @id
+  userId          String    @map("user_id")
+  status          String    // "queued" | "running" | "succeeded" | "failed"
+  step            String
+  progress        Int       @default(0)
+  message         String
+  inputSummary    String    @map("input_summary")
+  scenesGenerated Int       @default(0) @map("scenes_generated")
+  totalScenes     Int?      @map("total_scenes")
+  result          String?
+  error           String?
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+  startedAt       DateTime? @map("started_at")
+  completedAt     DateTime? @map("completed_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([status])
+  @@map("classroom_jobs")
+}
+
+// ── Configuració global d'admin ───────────────────────────────────────────
+
+model AdminConfig {
+  key         String   @id
+  value       String
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  updatedById String?  @map("updated_by_id")
+
+  updatedBy User? @relation(fields: [updatedById], references: [id])
+
+  @@map("admin_config")
+}
+
+// ── Taula d'auditoria ─────────────────────────────────────────────────────
+
+model AuditLog {
+  id         String   @id @default(uuid())
+  userId     String?  @map("user_id")
+  action     String
+  entityType String?  @map("entity_type")
+  entityId   String?  @map("entity_id")
+  details    String?
+  ipAddress  String?  @map("ip_address")
+  userAgent  String?  @map("user_agent")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([action])
+  @@index([entityType, entityId])
+  @@index([createdAt])
+  @@map("audit_logs")
+}

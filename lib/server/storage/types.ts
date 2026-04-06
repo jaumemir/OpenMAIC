@@ -55,9 +55,14 @@ export interface MediaMeta {
 
 // ── StorageBackend interface ─────────────────────────────────────────────────
 
+export interface StageListOptions {
+  /** Si s'especifica, retorna només els stages d'aquest usuari (per a rol 'user'). */
+  userId?: string;
+}
+
 export interface StorageBackend {
   // Stage CRUD
-  listStages(): Promise<StageListItem[]>;
+  listStages(options?: StageListOptions): Promise<StageListItem[]>;
   loadStage(stageId: string): Promise<StageStoreData | null>;
   saveStage(stageId: string, data: StageStoreData): Promise<void>;
   deleteStage(stageId: string): Promise<void>;

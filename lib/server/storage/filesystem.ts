@@ -14,10 +14,12 @@ import type {
   StorageBackend,
   StageStoreData,
   StageListItem,
+  StageListOptions,
   PlaybackSnapshot,
   MediaMeta,
 } from './types';
 import type { SceneOutline } from '@/lib/types/generation';
+import { prisma } from '@/lib/prisma';
 
 export const STAGES_DIR = path.join(process.cwd(), 'data', 'stages');
 
@@ -75,14 +77,27 @@ async function writeBinaryAtomic(filePath: string, buffer: Buffer): Promise<void
 export class FilesystemBackend implements StorageBackend {
   // ── Stage CRUD ──────────────────────────────────────────────────────────────
 
-  async listStages(): Promise<StageListItem[]> {
+  async listStages(options?: StageListOptions): Promise<StageListItem[]> {
     try {
       await ensureDir(STAGES_DIR);
+
+      // Si hi ha filtre per userId, obté els stageIds permesos via StageOwnership
+      let allowedIds: Set<string> | null = null;
+      if (options?.userId) {
+        const ownerships = await prisma.stageOwnership.findMany({
+          where: { userId: options.userId },
+          select: { stageId: true },
+        });
+        allowedIds = new Set(ownerships.map((o) => o.stageId));
+      }
+
       const entries = await fs.readdir(STAGES_DIR, { withFileTypes: true });
       const results: StageListItem[] = [];
 
       for (const entry of entries) {
         if (!entry.isDirectory()) continue;
+        // Filtre per propietat: si allowedIds és non-null, el stage ha d'estar inclòs
+        if (allowedIds !== null && !allowedIds.has(entry.name)) continue;
         const data = await readJson<StageStoreData>(stagePath(entry.name));
         if (!data?.stage) continue;
         results.push({
