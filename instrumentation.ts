@@ -32,7 +32,7 @@ export async function register() {
       return;
     }
 
-    const email = process.env.ADMIN_DEFAULT_EMAIL ?? 'admin@localhost';
+    const email = process.env.ADMIN_DEFAULT_EMAIL ?? 'admin@openmaic.local';
     const password = process.env.ADMIN_DEFAULT_PASSWORD ?? 'Admin123!';
     const firstName = process.env.ADMIN_DEFAULT_FIRSTNAME ?? 'Admin';
     const lastName = process.env.ADMIN_DEFAULT_LASTNAME ?? 'System';
