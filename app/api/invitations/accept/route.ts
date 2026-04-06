@@ -115,27 +115,36 @@ export async function POST(req: NextRequest) {
     ...meta,
   });
 
-  // 5. Fer sign-in automàtic via better-auth per obtenir la sessió
+  // 5. Fer sign-in automàtic via better-auth — asResponse:true retorna un Response real amb cookies
   const signInResponse = await auth.api.signInEmail({
     body: { email: invitation.email, password },
     headers: req.headers,
+    asResponse: true,
   });
 
-  if (!signInResponse || signInResponse.user == null) {
-    // L'usuari ja existeix i la contrasenya és correcta però better-auth no ha retornat sessió
-    return apiError('INTERNAL_ERROR', 500, 'Compte creat però no s\'ha pogut iniciar sessió automàticament. Prova d\'entrar manualment.');
+  if (!signInResponse.ok) {
+    return apiError(
+      'INTERNAL_ERROR',
+      500,
+      "Compte creat però no s'ha pogut iniciar sessió automàticament. Prova d'entrar manualment.",
+    );
   }
 
-  // Auditoria de login automàtic
-  await auditLog({
-    userId,
-    action: 'USER_LOGIN',
-    entityType: 'session',
-    entityId: (signInResponse as unknown as { session?: { id?: string } }).session?.id,
-    details: { method: 'invitation_accept' },
-    ...meta,
-  });
+  // Auditoria de login automàtic (llegim el body sense consumir el Response original)
+  try {
+    const body = await signInResponse.clone().json();
+    await auditLog({
+      userId,
+      action: 'USER_LOGIN',
+      entityType: 'session',
+      entityId: body?.session?.id,
+      details: { method: 'invitation_accept' },
+      ...meta,
+    });
+  } catch {
+    // Silenciem si no podem llegir el body per auditoria
+  }
 
-  // Retornem la resposta de better-auth directament per propagar les cookies de sessió
-  return signInResponse as unknown as Response;
+  // Retornem el Response de better-auth directament (inclou Set-Cookie)
+  return signInResponse;
 }
