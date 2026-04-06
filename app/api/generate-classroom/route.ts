@@ -1,6 +1,10 @@
+export const runtime = 'nodejs';
+export const maxDuration = 30;
+
 import { after, type NextRequest } from 'next/server';
+import { NextResponse } from 'next/server';
 import { nanoid } from 'nanoid';
-import { apiError, apiSuccess } from '@/lib/server/api-response';
+import { apiError, apiSuccess, requireAuth } from '@/lib/server/api-response';
 import { type GenerateClassroomInput } from '@/lib/server/classroom-generation';
 import { runClassroomGenerationJob } from '@/lib/server/classroom-job-runner';
 import { createClassroomGenerationJob } from '@/lib/server/classroom-job-store';
@@ -9,9 +13,10 @@ import { createLogger } from '@/lib/logger';
 
 const log = createLogger('GenerateClassroom API');
 
-export const maxDuration = 30;
-
 export async function POST(req: NextRequest) {
+  const user = await requireAuth(req);
+  if (user instanceof NextResponse) return user;
+
   let requirementSnippet: string | undefined;
   try {
     const rawBody = (await req.json()) as Partial<GenerateClassroomInput>;
@@ -41,7 +46,7 @@ export async function POST(req: NextRequest) {
     const job = await createClassroomGenerationJob(jobId, body);
     const pollUrl = `${baseUrl}/api/generate-classroom/${jobId}`;
 
-    after(() => runClassroomGenerationJob(jobId, body, baseUrl));
+    after(() => runClassroomGenerationJob(jobId, body, baseUrl, user.id));
 
     return apiSuccess(
       {

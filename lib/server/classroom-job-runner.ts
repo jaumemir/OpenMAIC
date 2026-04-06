@@ -6,6 +6,7 @@ import {
   markClassroomGenerationJobSucceeded,
   updateClassroomGenerationJobProgress,
 } from '@/lib/server/classroom-job-store';
+import { auditLog } from '@/lib/audit';
 
 const log = createLogger('ClassroomJob');
 const runningJobs = new Map<string, Promise<void>>();
@@ -14,6 +15,7 @@ export function runClassroomGenerationJob(
   jobId: string,
   input: GenerateClassroomInput,
   baseUrl: string,
+  userId?: string,
 ): Promise<void> {
   const existing = runningJobs.get(jobId);
   if (existing) {
@@ -26,17 +28,34 @@ export function runClassroomGenerationJob(
 
       const result = await generateClassroom(input, {
         baseUrl,
+        userId,
         onProgress: async (progress) => {
           await updateClassroomGenerationJobProgress(jobId, progress);
         },
       });
 
       await markClassroomGenerationJobSucceeded(jobId, result);
+
+      // Auditoria: generació completada
+      await auditLog({
+        userId: userId ?? null,
+        action: 'COURSE_GENERATED',
+        entityType: 'course',
+        entityId: result.id,
+        details: { jobId, scenesCount: result.scenesCount, url: result.url },
+      });
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       log.error(`Classroom generation job ${jobId} failed:`, error);
       try {
         await markClassroomGenerationJobFailed(jobId, message);
+        await auditLog({
+          userId: userId ?? null,
+          action: 'GENERATION_JOB_FAILED',
+          entityType: 'course',
+          entityId: jobId,
+          details: { error: message },
+        });
       } catch (markFailedError) {
         log.error(`Failed to persist failed status for job ${jobId}:`, markFailedError);
       }

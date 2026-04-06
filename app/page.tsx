@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { motion, AnimatePresence } from 'motion/react';
 import {
   ArrowUp,
@@ -15,12 +16,15 @@ import {
   Pencil,
   Trash2,
   Settings,
+  Settings2,
   Sun,
   Moon,
   Monitor,
   BotOff,
   ChevronUp,
+  LogOut,
 } from 'lucide-react';
+import { useSession, signOut } from '@/lib/auth/client';
 import { useI18n } from '@/lib/hooks/use-i18n';
 import { createLogger } from '@/lib/logger';
 import { Button } from '@/components/ui/button';
@@ -78,6 +82,10 @@ function HomePage() {
   const { t, locale, setLocale } = useI18n();
   const { theme, setTheme } = useTheme();
   const router = useRouter();
+  const { data: authSession } = useSession();
+  const sessionUser = authSession?.user as
+    | { id?: string; name?: string; email?: string; role?: string }
+    | undefined;
   const [form, setForm] = useState<FormState>(initialFormState);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [settingsSection, setSettingsSection] = useState<
@@ -518,6 +526,35 @@ function HomePage() {
             <Settings className="w-4 h-4 group-hover:rotate-90 transition-transform duration-500" />
           </button>
         </div>
+
+        {/* Auth: admin link + user info + logout */}
+        {sessionUser && (
+          <>
+            {sessionUser.role === 'admin' && (
+              <Link href="/admin">
+                <button className="flex items-center gap-1 px-2 py-1.5 rounded-full text-xs font-medium text-gray-500 dark:text-gray-400 hover:bg-white dark:hover:bg-gray-700 hover:text-gray-800 dark:hover:text-gray-200 hover:shadow-sm transition-all">
+                  <Settings2 className="w-3.5 h-3.5" />
+                  <span className="hidden sm:inline">Admin</span>
+                </button>
+              </Link>
+            )}
+            <div className="flex items-center gap-1 px-2 py-1.5">
+              <div className="w-5 h-5 rounded-full bg-primary/20 text-primary flex items-center justify-center text-[10px] font-semibold">
+                {(sessionUser.name ?? sessionUser.email ?? '?')[0]?.toUpperCase()}
+              </div>
+              <span className="hidden md:inline text-xs text-gray-600 dark:text-gray-400 max-w-[80px] truncate">
+                {sessionUser.name ?? sessionUser.email}
+              </span>
+            </div>
+            <button
+              onClick={() => signOut({ fetchOptions: { onSuccess: () => { router.push('/login'); router.refresh(); } } })}
+              className="p-2 rounded-full text-gray-400 dark:text-gray-500 hover:bg-white dark:hover:bg-gray-700 hover:text-gray-800 dark:hover:text-gray-200 hover:shadow-sm transition-all"
+              title="Tancar sessió"
+            >
+              <LogOut className="w-4 h-4" />
+            </button>
+          </>
+        )}
       </div>
       <SettingsDialog
         open={settingsOpen}

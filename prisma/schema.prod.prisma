@@ -1,0 +1,191 @@
+// schema.prod.prisma — PostgreSQL (production)
+// Diferències respecte schema.dev.prisma:
+//   - provider: postgresql
+//   - @db.Uuid als IDs
+//   - @db.Timestamptz(3) als timestamps
+//   - @db.Text als strings llargs
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ── Users ──────────────────────────────────────────────────────────────────
+
+model User {
+  id        String   @id @default(uuid()) @db.Uuid
+  email     String   @unique @db.VarChar(255)
+  role      String   @default("user") @db.VarChar(20)
+  status    String   @default("pending") @db.VarChar(20)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  profile            UserProfile?
+  sessions           Session[]
+  accounts           Account[]
+  invitationsSent    Invitation[]     @relation("InvitedBy")
+  stageOwnerships    StageOwnership[]
+  classroomJobs      ClassroomJob[]
+  adminConfigUpdates AdminConfig[]
+  auditLogs          AuditLog[]
+
+  @@map("users")
+}
+
+model UserProfile {
+  userId       String  @id @map("user_id") @db.Uuid
+  firstName    String  @map("first_name") @db.VarChar(100)
+  lastName     String  @map("last_name") @db.VarChar(100)
+  organization String? @db.VarChar(200)
+  department   String? @db.VarChar(200)
+  jobTitle     String? @map("job_title") @db.VarChar(200)
+  city         String? @db.VarChar(100)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_profiles")
+}
+
+// ── better-auth (noms exactes requerits per l'adapter) ────────────────────
+
+model Session {
+  id        String   @id @db.VarChar(255)
+  expiresAt DateTime @map("expires_at") @db.Timestamptz(3)
+  token     String   @unique @db.VarChar(255)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+  ipAddress String?  @map("ip_address") @db.VarChar(45)
+  userAgent String?  @map("user_agent") @db.Text
+  userId    String   @map("user_id") @db.Uuid
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model Account {
+  id                    String    @id @db.VarChar(255)
+  accountId             String    @map("account_id") @db.VarChar(255)
+  providerId            String    @map("provider_id") @db.VarChar(50)
+  userId                String    @map("user_id") @db.Uuid
+  password              String?   @db.Text
+  accessToken           String?   @map("access_token") @db.Text
+  refreshToken          String?   @map("refresh_token") @db.Text
+  idToken               String?   @map("id_token") @db.Text
+  accessTokenExpiresAt  DateTime? @map("access_token_expires_at") @db.Timestamptz(3)
+  refreshTokenExpiresAt DateTime? @map("refresh_token_expires_at") @db.Timestamptz(3)
+  scope                 String?   @db.VarChar(255)
+  createdAt             DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt             DateTime  @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("accounts")
+}
+
+model Verification {
+  id         String    @id @db.VarChar(255)
+  identifier String    @db.VarChar(255)
+  value      String    @db.Text
+  expiresAt  DateTime  @map("expires_at") @db.Timestamptz(3)
+  createdAt  DateTime? @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt  DateTime? @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  @@map("verifications")
+}
+
+// ── Invitació per email (flux custom) ────────────────────────────────────
+
+model Invitation {
+  id          String    @id @default(uuid()) @db.Uuid
+  email       String    @db.VarChar(255)
+  firstName   String    @map("first_name") @db.VarChar(100)
+  lastName    String    @map("last_name") @db.VarChar(100)
+  token       String    @unique @db.VarChar(36)
+  expiresAt   DateTime  @map("expires_at") @db.Timestamptz(3)
+  usedAt      DateTime? @map("used_at") @db.Timestamptz(3)
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+  invitedById String    @map("invited_by_id") @db.Uuid
+
+  invitedBy User @relation("InvitedBy", fields: [invitedById], references: [id])
+
+  @@map("invitations")
+}
+
+// ── Propietat de stages ───────────────────────────────────────────────────
+
+model StageOwnership {
+  stageId   String   @id @map("stage_id") @db.VarChar(20)
+  userId    String   @map("user_id") @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("stage_ownerships")
+}
+
+// ── Jobs de generació asíncrona ───────────────────────────────────────────
+
+model ClassroomJob {
+  id              String    @id @db.VarChar(20)
+  userId          String    @map("user_id") @db.Uuid
+  status          String    @db.VarChar(20)
+  step            String    @db.VarChar(50)
+  progress        Int       @default(0)
+  message         String    @db.Text
+  inputSummary    String    @map("input_summary") @db.Text
+  scenesGenerated Int       @default(0) @map("scenes_generated")
+  totalScenes     Int?      @map("total_scenes")
+  result          String?   @db.Text
+  error           String?   @db.Text
+  createdAt       DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt       DateTime  @updatedAt @map("updated_at") @db.Timestamptz(3)
+  startedAt       DateTime? @map("started_at") @db.Timestamptz(3)
+  completedAt     DateTime? @map("completed_at") @db.Timestamptz(3)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([status])
+  @@map("classroom_jobs")
+}
+
+// ── Configuració global d'admin ───────────────────────────────────────────
+
+model AdminConfig {
+  key         String   @id @db.VarChar(100)
+  value       String   @db.Text
+  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+  updatedById String?  @map("updated_by_id") @db.Uuid
+
+  updatedBy User? @relation(fields: [updatedById], references: [id])
+
+  @@map("admin_config")
+}
+
+// ── Taula d'auditoria ─────────────────────────────────────────────────────
+
+model AuditLog {
+  id         String   @id @default(uuid()) @db.Uuid
+  userId     String?  @map("user_id") @db.Uuid
+  action     String   @db.VarChar(50)
+  entityType String?  @map("entity_type") @db.VarChar(30)
+  entityId   String?  @map("entity_id") @db.VarChar(100)
+  details    String?  @db.Text
+  ipAddress  String?  @map("ip_address") @db.VarChar(45)
+  userAgent  String?  @map("user_agent") @db.Text
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([action])
+  @@index([entityType, entityId])
+  @@index([createdAt])
+  @@map("audit_logs")
+}

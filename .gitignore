@@ -69,5 +69,11 @@ next-env.d.ts
 /data
 /logs
 
+# Prisma SQLite database (dev)
+/prisma/data/
+/prisma/*.db
+/prisma/*.db-journal
+/prisma/.migrations-sqlite-bak
+
 # docs
 /docs
