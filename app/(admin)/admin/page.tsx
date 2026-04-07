@@ -38,6 +38,7 @@ export default async function AdminDashboardPage() {
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-10">
           <AdminNavCard href="/admin/users" title="Usuaris" description="Gestiona usuaris i invitacions" />
           <AdminNavCard href="/admin/config" title="Configuració" description="Models permesos i paràmetres globals" />
+          <AdminNavCard href="/admin/courses" title="Cursos generats" description="Tots els cursos del sistema amb propietari" />
           <AdminNavCard href="/admin/audit" title="Auditoria" description="Log complet d'accions del sistema" />
         </div>
 
