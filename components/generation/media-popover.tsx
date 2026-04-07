@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useCallback, useMemo, useEffect, Fragment } from 'react';
+import { useSession } from '@/lib/auth/client';
 import type { LucideIcon } from 'lucide-react';
 import {
   Image as ImageIcon,
@@ -29,6 +30,7 @@ import { Switch } from '@/components/ui/switch';
 import { cn } from '@/lib/utils';
 import { useI18n } from '@/lib/hooks/use-i18n';
 import { useSettingsStore } from '@/lib/store/settings';
+import { useUserPrefsStore } from '@/lib/store/user-prefs';
 import { useTTSPreview } from '@/lib/audio/use-tts-preview';
 import { IMAGE_PROVIDERS } from '@/lib/media/image-providers';
 import { VIDEO_PROVIDERS } from '@/lib/media/video-providers';
@@ -108,19 +110,21 @@ function getVoiceDisplayName(name: string, lang: string): string {
 
 export function MediaPopover({ onSettingsOpen }: MediaPopoverProps) {
   const { t, locale } = useI18n();
+  const { data: session } = useSession();
+  const isAdmin = (session?.user as { role?: string } | undefined)?.role === 'admin';
   const [open, setOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<TabId>('image');
   const { previewing, startPreview, stopPreview } = useTTSPreview();
 
   // ─── Store ───
-  const imageGenerationEnabled = useSettingsStore((s) => s.imageGenerationEnabled);
-  const videoGenerationEnabled = useSettingsStore((s) => s.videoGenerationEnabled);
-  const ttsEnabled = useSettingsStore((s) => s.ttsEnabled);
-  const asrEnabled = useSettingsStore((s) => s.asrEnabled);
-  const setImageGenerationEnabled = useSettingsStore((s) => s.setImageGenerationEnabled);
-  const setVideoGenerationEnabled = useSettingsStore((s) => s.setVideoGenerationEnabled);
-  const setTTSEnabled = useSettingsStore((s) => s.setTTSEnabled);
-  const setASREnabled = useSettingsStore((s) => s.setASREnabled);
+  const imageGenerationEnabled = useUserPrefsStore((s) => s.imageGenerationEnabled);
+  const videoGenerationEnabled = useUserPrefsStore((s) => s.videoGenerationEnabled);
+  const ttsEnabled = useUserPrefsStore((s) => s.ttsEnabled);
+  const asrEnabled = useUserPrefsStore((s) => s.asrEnabled);
+  const setImageGenerationEnabled = useUserPrefsStore((s) => s.setImageGenerationEnabled);
+  const setVideoGenerationEnabled = useUserPrefsStore((s) => s.setVideoGenerationEnabled);
+  const setTTSEnabled = useUserPrefsStore((s) => s.setTTSEnabled);
+  const setASREnabled = useUserPrefsStore((s) => s.setASREnabled);
 
   const imageProviderId = useSettingsStore((s) => s.imageProviderId);
   const imageModelId = useSettingsStore((s) => s.imageModelId);
@@ -143,10 +147,10 @@ export function MediaPopover({ onSettingsOpen }: MediaPopoverProps) {
   const setTTSSpeed = useSettingsStore((s) => s.setTTSSpeed);
 
   const asrProviderId = useSettingsStore((s) => s.asrProviderId);
-  const asrLanguage = useSettingsStore((s) => s.asrLanguage);
+  const asrLanguage = useUserPrefsStore((s) => s.asrLanguage);
   const asrProvidersConfig = useSettingsStore((s) => s.asrProvidersConfig);
   const setASRProvider = useSettingsStore((s) => s.setASRProvider);
-  const setASRLanguage = useSettingsStore((s) => s.setASRLanguage);
+  const setASRLanguage = useUserPrefsStore((s) => s.setASRLanguage);
 
   const enabledMap: Record<TabId, boolean> = {
     image: imageGenerationEnabled,
@@ -446,19 +450,21 @@ export function MediaPopover({ onSettingsOpen }: MediaPopoverProps) {
           )}
         </div>
 
-        {/* ── Footer ── */}
-        <div className="border-t border-border/40">
-          <button
-            onClick={() => {
-              setOpen(false);
-              onSettingsOpen(activeTab);
-            }}
-            className="w-full flex items-center justify-between px-3.5 py-2.5 text-[11px] text-muted-foreground/60 hover:text-muted-foreground transition-colors"
-          >
-            <span>{t('toolbar.advancedSettings')}</span>
-            <ChevronRight className="size-3" />
-          </button>
-        </div>
+        {/* ── Footer: Configuració avançada — exclusiu per a admin ── */}
+        {(!session || isAdmin) && (
+          <div className="border-t border-border/40">
+            <button
+              onClick={() => {
+                setOpen(false);
+                onSettingsOpen(activeTab);
+              }}
+              className="w-full flex items-center justify-between px-3.5 py-2.5 text-[11px] text-muted-foreground/60 hover:text-muted-foreground transition-colors"
+            >
+              <span>{t('toolbar.advancedSettings')}</span>
+              <ChevronRight className="size-3" />
+            </button>
+          </div>
+        )}
       </PopoverContent>
     </Popover>
   );

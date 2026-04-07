@@ -38,6 +38,7 @@ import { nanoid } from 'nanoid';
 import { storePdfBlob } from '@/lib/utils/image-storage';
 import type { UserRequirements } from '@/lib/types/generation';
 import { useSettingsStore } from '@/lib/store/settings';
+import { useUserPrefsStore, setUserPrefsUserId } from '@/lib/store/user-prefs';
 import { useUserProfileStore, AVATAR_OPTIONS } from '@/lib/store/user-profile';
 import {
   StageListItem,
@@ -97,7 +98,7 @@ function HomePage() {
     useDraftCache<string>({ key: 'requirementDraft' });
 
   // Model setup state
-  const currentModelId = useSettingsStore((s) => s.modelId);
+  const currentModelId = useUserPrefsStore((s) => s.modelId);
   const themeId = useSettingsStore((state) => state.themeId);
   const [recentOpen, setRecentOpen] = useState(true);
 
@@ -177,13 +178,30 @@ function HomePage() {
 
   useEffect(() => {
     // Clear stale media store to prevent cross-course thumbnail contamination.
-    // The store may hold tasks from a previously visited classroom whose elementIds
-    // (gen_img_1, etc.) collide with other courses' placeholders.
     useMediaGenerationStore.getState().revokeObjectUrls();
     useMediaGenerationStore.setState({ tasks: {} });
-
     loadClassrooms();
   }, []);
+
+  // Namespace les preferències de Zustand per userId → cada usuari té les seves preferències
+  useEffect(() => {
+    setUserPrefsUserId(sessionUser?.id ?? null);
+  }, [sessionUser?.id]);
+
+  // Hidratar el nickname des del perfil de l'usuari autenticat (si no n'hi ha un de configurat)
+  useEffect(() => {
+    if (!sessionUser?.id) return;
+    const currentNickname = useUserProfileStore.getState().nickname;
+    if (currentNickname) return; // L'usuari ja té un nickname configurat manualment
+    fetch('/api/user/me')
+      .then((r) => r.ok ? r.json() : null)
+      .then((profile: { firstName?: string; lastName?: string } | null) => {
+        if (!profile) return;
+        const name = [profile.firstName, profile.lastName].filter(Boolean).join(' ');
+        if (name) useUserProfileStore.getState().setNickname(name);
+      })
+      .catch(() => { /* silenci */ });
+  }, [sessionUser?.id]);
 
   const handleDelete = (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
@@ -231,8 +249,9 @@ function HomePage() {
         });
 
         if (
-          err.code === 'BROWSER_NATIVE_UNSUPPORTED' ||
-          err.code === 'TTS_NOT_CONFIGURED'
+          (err.code === 'BROWSER_NATIVE_UNSUPPORTED' ||
+            err.code === 'TTS_NOT_CONFIGURED') &&
+          (!sessionUser || sessionUser.role === 'admin')
         ) {
           setSettingsSection('tts');
           setSettingsOpen(true);
@@ -267,13 +286,14 @@ function HomePage() {
   };
 
   const showSetupToast = (icon: React.ReactNode, title: string, desc: string) => {
+    const canOpenSettings = !sessionUser || sessionUser.role === 'admin';
     toast.custom(
       (id) => (
         <div
           className="w-[356px] rounded-xl border border-amber-200/60 dark:border-amber-800/40 bg-gradient-to-r from-amber-50 via-white to-amber-50 dark:from-amber-950/60 dark:via-slate-900 dark:to-amber-950/60 shadow-lg shadow-amber-500/8 dark:shadow-amber-900/20 p-4 flex items-start gap-3 cursor-pointer"
           onClick={() => {
             toast.dismiss(id);
-            setSettingsOpen(true);
+            if (canOpenSettings) setSettingsOpen(true);
           }}
         >
           <div className="shrink-0 mt-0.5 size-9 rounded-lg bg-amber-100 dark:bg-amber-900/40 flex items-center justify-center ring-1 ring-amber-200/50 dark:ring-amber-800/30">
@@ -304,7 +324,7 @@ function HomePage() {
         t('settings.modelNotConfigured'),
         t('settings.setupNeeded'),
       );
-      setSettingsOpen(true);
+      if (!sessionUser || sessionUser.role === 'admin') setSettingsOpen(true);
       return;
     }
 
@@ -515,17 +535,20 @@ function HomePage() {
           )}
         </div>
 
-        <div className="w-[1px] h-4 bg-gray-200 dark:bg-gray-700" />
-
-        {/* Settings Button */}
-        <div className="relative">
-          <button
-            onClick={() => setSettingsOpen(true)}
-            className="p-2 rounded-full text-gray-400 dark:text-gray-500 hover:bg-white dark:hover:bg-gray-700 hover:text-gray-800 dark:hover:text-gray-200 hover:shadow-sm transition-all group"
-          >
-            <Settings className="w-4 h-4 group-hover:rotate-90 transition-transform duration-500" />
-          </button>
-        </div>
+        {/* Settings Button — exclusiu per a admin */}
+        {(!sessionUser || sessionUser.role === 'admin') && (
+          <>
+            <div className="w-[1px] h-4 bg-gray-200 dark:bg-gray-700" />
+            <div className="relative">
+              <button
+                onClick={() => setSettingsOpen(true)}
+                className="p-2 rounded-full text-gray-400 dark:text-gray-500 hover:bg-white dark:hover:bg-gray-700 hover:text-gray-800 dark:hover:text-gray-200 hover:shadow-sm transition-all group"
+              >
+                <Settings className="w-4 h-4 group-hover:rotate-90 transition-transform duration-500" />
+              </button>
+            </div>
+          </>
+        )}
 
         {/* Auth: admin link + user info + logout */}
         {sessionUser && (

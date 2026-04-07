@@ -14,6 +14,7 @@ import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
 import { useI18n } from '@/lib/hooks/use-i18n';
 import { useSettingsStore } from '@/lib/store/settings';
+import { useUserPrefsStore } from '@/lib/store/user-prefs';
 import {
   TTS_PROVIDERS,
   getTTSVoices,
@@ -79,16 +80,16 @@ export function AudioSettings({ onSave }: AudioSettingsProps = {}) {
 
   // ASR state
   const asrProviderId = useSettingsStore((state) => state.asrProviderId);
-  const asrLanguage = useSettingsStore((state) => state.asrLanguage);
+  const asrLanguage = useUserPrefsStore((state) => state.asrLanguage);
   const asrProvidersConfig = useSettingsStore((state) => state.asrProvidersConfig);
   const setASRProvider = useSettingsStore((state) => state.setASRProvider);
-  const setASRLanguage = useSettingsStore((state) => state.setASRLanguage);
+  const setASRLanguage = useUserPrefsStore((state) => state.setASRLanguage);
   const setASRProviderConfig = useSettingsStore((state) => state.setASRProviderConfig);
 
-  const ttsEnabled = useSettingsStore((state) => state.ttsEnabled);
-  const asrEnabled = useSettingsStore((state) => state.asrEnabled);
-  const setTTSEnabled = useSettingsStore((state) => state.setTTSEnabled);
-  const setASREnabled = useSettingsStore((state) => state.setASREnabled);
+  const ttsEnabled = useUserPrefsStore((state) => state.ttsEnabled);
+  const asrEnabled = useUserPrefsStore((state) => state.asrEnabled);
+  const setTTSEnabled = useUserPrefsStore((state) => state.setTTSEnabled);
+  const setASREnabled = useUserPrefsStore((state) => state.setASREnabled);
 
   const ttsProvider = TTS_PROVIDERS[ttsProviderId] ?? TTS_PROVIDERS['openai-tts'];
 

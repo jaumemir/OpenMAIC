@@ -2,6 +2,7 @@ import { promises as fs } from 'fs';
 import path from 'path';
 import type { NextRequest } from 'next/server';
 import type { Scene, Stage } from '@/lib/types/stage';
+import { getStorageBackend } from '@/lib/server/storage';
 
 export const CLASSROOMS_DIR = path.join(process.cwd(), 'data', 'classrooms');
 export const CLASSROOM_JOBS_DIR = path.join(process.cwd(), 'data', 'classroom-jobs');
@@ -77,6 +78,17 @@ export async function persistClassroom(
   await ensureClassroomsDir();
   const filePath = path.join(CLASSROOMS_DIR, `${data.id}.json`);
   await writeJsonFileAtomic(filePath, classroomData);
+
+  // Escriure a data/stages/ perquè el curs aparegui al llistat de GET /api/stages
+  const backend = getStorageBackend();
+  await backend.saveStage(data.id, {
+    stage: data.stage,
+    scenes: data.scenes,
+    currentSceneId: data.scenes[0]?.id ?? null,
+    chats: [],
+  }).catch((err) => {
+    console.error('[persistClassroom] Error escrivint stage al backend:', err);
+  });
 
   // Registrar propietat del stage a la BD si hi ha userId
   if (data.userId) {

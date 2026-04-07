@@ -5,7 +5,7 @@ import { useAnimate } from 'motion/react';
 import type { PPTVideoElement } from '@/lib/types/slides';
 import { useCanvasStore } from '@/lib/store/canvas';
 import { useMediaGenerationStore, isMediaPlaceholder } from '@/lib/store/media-generation';
-import { useSettingsStore } from '@/lib/store/settings';
+import { useUserPrefsStore } from '@/lib/store/user-prefs';
 import { useMediaStageId } from '@/lib/contexts/media-stage-context';
 import { retryMediaTask } from '@/lib/media/media-orchestrator';
 import { RotateCcw, Film, ShieldAlert, VideoOff } from 'lucide-react';
@@ -39,7 +39,7 @@ export function BaseVideoElement({ elementInfo }: BaseVideoElementProps) {
     if (t && t.stageId !== stageId) return undefined;
     return t;
   });
-  const videoGenerationEnabled = useSettingsStore((s) => s.videoGenerationEnabled);
+  const videoGenerationEnabled = useUserPrefsStore((s) => s.videoGenerationEnabled);
   const resolvedSrc = task?.status === 'done' && task.objectUrl ? task.objectUrl : elementInfo.src;
   const showDisabled = isPlaceholder && !task && !videoGenerationEnabled;
   const showSkeleton =

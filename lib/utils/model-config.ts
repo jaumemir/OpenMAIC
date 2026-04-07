@@ -1,10 +1,12 @@
 import { useSettingsStore } from '@/lib/store/settings';
+import { useUserPrefsStore } from '@/lib/store/user-prefs';
 
 /**
  * Get current model configuration from settings store
  */
 export function getCurrentModelConfig() {
-  const { providerId, modelId, providersConfig } = useSettingsStore.getState();
+  const { providerId, modelId } = useUserPrefsStore.getState();
+  const { providersConfig } = useSettingsStore.getState();
   const modelString = `${providerId}:${modelId}`;
 
   // Get current provider's config

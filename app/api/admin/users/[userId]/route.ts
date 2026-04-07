@@ -1,5 +1,5 @@
 /**
- * PATCH  /api/admin/users/[userId] — Canviar rol o estat
+ * PATCH  /api/admin/users/[userId] — Canviar rol, estat o camps de perfil
  * DELETE /api/admin/users/[userId] — Esborrar usuari
  */
 export const runtime = 'nodejs';
@@ -10,6 +10,10 @@ import { requireAuth, apiError, apiSuccess } from '@/lib/server/api-response';
 import { auditLog, extractRequestMeta } from '@/lib/audit';
 
 type Params = { params: Promise<{ userId: string }> };
+
+const ALLOWED_ROLES = ['admin', 'user'];
+const ALLOWED_STATUSES = ['active', 'pending', 'inactive'];
+const PROFILE_FIELDS = ['firstName', 'lastName', 'organization', 'department', 'jobTitle', 'city'] as const;
 
 // ── PATCH /api/admin/users/[userId] ───────────────────────────────────────
 
@@ -22,14 +26,16 @@ export async function PATCH(req: NextRequest, { params }: Params) {
 
   const { userId } = await params;
 
-  const target = await prisma.user.findUnique({ where: { id: userId } });
+  const target = await prisma.user.findUnique({
+    where: { id: userId },
+    include: { profile: true },
+  });
   if (!target) {
     return apiError('NOT_FOUND', 404, 'Usuari no trobat.');
   }
 
-  // No permetre canviar el propi rol (per evitar bloquejos)
   if (userId === (currentUser as { id: string }).id) {
-    return apiError('INVALID_REQUEST', 400, 'No pots modificar el teu propi rol.');
+    return apiError('INVALID_REQUEST', 400, 'No pots modificar el teu propi compte des del panell.');
   }
 
   let body: unknown;
@@ -39,34 +45,64 @@ export async function PATCH(req: NextRequest, { params }: Params) {
     return apiError('INVALID_REQUEST', 400, 'Cos de la petició invàlid.');
   }
 
-  const { role, status } = body as Record<string, unknown>;
-  const allowedRoles = ['admin', 'user'];
-  const allowedStatuses = ['active', 'pending'];
+  const payload = body as Record<string, unknown>;
+  const { role, status } = payload;
+  const meta = extractRequestMeta(req);
 
-  const updates: Record<string, string> = {};
+  // ── Canvis de rol/estat ──────────────────────────────────────────────────
+  const userUpdates: Record<string, string> = {};
   if (role !== undefined) {
-    if (typeof role !== 'string' || !allowedRoles.includes(role)) {
-      return apiError('INVALID_REQUEST', 400, `Rol invàlid. Valors permesos: ${allowedRoles.join(', ')}.`);
+    if (typeof role !== 'string' || !ALLOWED_ROLES.includes(role)) {
+      return apiError('INVALID_REQUEST', 400, `Rol invàlid. Permesos: ${ALLOWED_ROLES.join(', ')}.`);
     }
-    updates.role = role;
+    userUpdates.role = role;
   }
   if (status !== undefined) {
-    if (typeof status !== 'string' || !allowedStatuses.includes(status)) {
-      return apiError('INVALID_REQUEST', 400, `Estat invàlid. Valors permesos: ${allowedStatuses.join(', ')}.`);
+    if (typeof status !== 'string' || !ALLOWED_STATUSES.includes(status)) {
+      return apiError('INVALID_REQUEST', 400, `Estat invàlid. Permesos: ${ALLOWED_STATUSES.join(', ')}.`);
     }
-    updates.status = status;
+    userUpdates.status = status;
   }
 
-  if (Object.keys(updates).length === 0) {
-    return apiError('MISSING_REQUIRED_FIELD', 400, 'Cal especificar "role" o "status".');
+  // ── Camps de perfil editables ────────────────────────────────────────────
+  const profileUpdates: Record<string, string | null> = {};
+  for (const field of PROFILE_FIELDS) {
+    if (field in payload) {
+      const val = payload[field];
+      profileUpdates[field] = typeof val === 'string' ? val : null;
+    }
   }
 
-  const updated = await prisma.user.update({
-    where: { id: userId },
-    data: updates,
-  });
+  const hasUserChanges = Object.keys(userUpdates).length > 0;
+  const hasProfileChanges = Object.keys(profileUpdates).length > 0;
 
-  const meta = extractRequestMeta(req);
+  if (!hasUserChanges && !hasProfileChanges) {
+    return apiError('MISSING_REQUIRED_FIELD', 400, 'Cap camp a actualitzar.');
+  }
+
+  // ── Aplicar canvis ───────────────────────────────────────────────────────
+  const [updated] = await Promise.all([
+    hasUserChanges ? prisma.user.update({ where: { id: userId }, data: userUpdates }) : Promise.resolve(target),
+    hasProfileChanges
+      ? prisma.userProfile.upsert({
+          where: { userId },
+          update: profileUpdates,
+          create: {
+            userId,
+            firstName: (profileUpdates.firstName ?? target.profile?.firstName) || '',
+            lastName: (profileUpdates.lastName ?? target.profile?.lastName) || '',
+            ...profileUpdates,
+          },
+        })
+      : Promise.resolve(null),
+  ]);
+
+  // Invalida sessions si l'usuari queda inactiu
+  if (status === 'inactive') {
+    await prisma.session.deleteMany({ where: { userId } }).catch(() => {});
+  }
+
+  // ── Auditoria ────────────────────────────────────────────────────────────
   if (role !== undefined && role !== target.role) {
     await auditLog({
       userId: (currentUser as { id: string }).id,
@@ -77,8 +113,44 @@ export async function PATCH(req: NextRequest, { params }: Params) {
       ...meta,
     });
   }
+  if (status !== undefined && status !== target.status) {
+    await auditLog({
+      userId: (currentUser as { id: string }).id,
+      action: status === 'inactive' ? 'USER_DISABLED' : 'USER_ENABLED',
+      entityType: 'user',
+      entityId: userId,
+      details: { old: target.status, new: status },
+      ...meta,
+    });
+  }
+  if (hasProfileChanges) {
+    await auditLog({
+      userId: (currentUser as { id: string }).id,
+      action: 'USER_PROFILE_UPDATED',
+      entityType: 'user',
+      entityId: userId,
+      details: { changes: profileUpdates },
+      ...meta,
+    });
+  }
 
-  return apiSuccess({ user: { id: updated.id, email: updated.email, role: updated.role, status: updated.status } });
+  // Recarregar perfil per retornar dades actualitzades
+  const finalProfile = await prisma.userProfile.findUnique({ where: { userId } });
+
+  return apiSuccess({
+    user: {
+      id: (updated as typeof target).id,
+      email: (updated as typeof target).email,
+      role: (updated as typeof target).role,
+      status: (updated as typeof target).status,
+      firstName: finalProfile?.firstName ?? null,
+      lastName: finalProfile?.lastName ?? null,
+      organization: finalProfile?.organization ?? null,
+      department: finalProfile?.department ?? null,
+      jobTitle: finalProfile?.jobTitle ?? null,
+      city: finalProfile?.city ?? null,
+    },
+  });
 }
 
 // ── DELETE /api/admin/users/[userId] ──────────────────────────────────────

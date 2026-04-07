@@ -75,9 +75,10 @@ export default function ClassroomDetailPage() {
         await import('@/lib/orchestration/registry/store');
       const generatedAgentIds = await loadGeneratedAgentsForStage(classroomId);
       const { useSettingsStore } = await import('@/lib/store/settings');
+      const { useUserPrefsStore } = await import('@/lib/store/user-prefs');
       if (generatedAgentIds.length > 0) {
         // Auto mode — use generated agents from IndexedDB
-        useSettingsStore.getState().setAgentMode('auto');
+        useUserPrefsStore.getState().setAgentMode('auto');
         useSettingsStore.getState().setSelectedAgentIds(generatedAgentIds);
       } else {
         // Preset mode — restore agent IDs saved in the stage at creation time.
@@ -90,7 +91,7 @@ export default function ClassroomDetailPage() {
           const a = registry.getAgent(id);
           return a && !a.isGenerated;
         });
-        useSettingsStore.getState().setAgentMode('preset');
+        useUserPrefsStore.getState().setAgentMode('preset');
         useSettingsStore
           .getState()
           .setSelectedAgentIds(

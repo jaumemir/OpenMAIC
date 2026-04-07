@@ -7,6 +7,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { cn } from '@/lib/utils';
 import { useI18n } from '@/lib/hooks/use-i18n';
 import { useSettingsStore } from '@/lib/store/settings';
+import { useUserPrefsStore } from '@/lib/store/user-prefs';
 import { useAgentRegistry } from '@/lib/orchestration/registry/store';
 import { resolveAgentVoice, getAvailableProvidersWithVoices } from '@/lib/audio/voice-resolver';
 import { playBrowserTTSPreview } from '@/lib/audio/browser-tts-preview';
@@ -181,8 +182,8 @@ function AgentVoicePill({
         onPointerDown={(e) => e.stopPropagation()}
       >
         {availableProviders.map((provider) =>
-          provider.modelGroups.map((group) => (
-            <div key={`${provider.providerId}::${group.modelId}`}>
+          provider.modelGroups.map((group, groupIdx) => (
+            <div key={`${provider.providerId}::${groupIdx}::${group.modelId}`}>
               <div className="text-[11px] text-muted-foreground/60 font-medium px-2 py-1 sticky top-0 bg-popover">
                 {group.modelId
                   ? `${provider.providerName} · ${group.modelName}`
@@ -193,7 +194,7 @@ function AgentVoicePill({
                   resolved.providerId === provider.providerId &&
                   resolved.voiceId === voice.id &&
                   (resolved.modelId || '') === (group.modelId || '');
-                const previewKey = `${provider.providerId}::${voice.id}`;
+                const previewKey = `${provider.providerId}::${groupIdx}::${group.modelId ?? ''}::${voice.id}`;
                 const isPreviewing = previewingId === previewKey;
                 return (
                   <div
@@ -406,8 +407,8 @@ function TeacherVoicePill({
         onPointerDown={(e) => e.stopPropagation()}
       >
         {availableProviders.map((provider) =>
-          provider.modelGroups.map((group) => (
-            <div key={`${provider.providerId}::${group.modelId}`}>
+          provider.modelGroups.map((group, groupIdx) => (
+            <div key={`${provider.providerId}::${groupIdx}::${group.modelId}`}>
               <div className="text-[11px] text-muted-foreground/60 font-medium px-2 py-1 sticky top-0 bg-popover">
                 {group.modelId
                   ? `${provider.providerName} · ${group.modelName}`
@@ -419,7 +420,7 @@ function TeacherVoicePill({
                   ttsProviderId === provider.providerId &&
                   ttsVoice === voice.id &&
                   currentModelId === (group.modelId || '');
-                const previewKey = `${provider.providerId}::${voice.id}`;
+                const previewKey = `${provider.providerId}::${groupIdx}::${group.modelId ?? ''}::${voice.id}`;
                 const isPreviewing = previewingId === previewKey;
                 return (
                   <div
@@ -483,10 +484,10 @@ export function AgentBar() {
   const setSelectedAgentIds = useSettingsStore((s) => s.setSelectedAgentIds);
   const maxTurns = useSettingsStore((s) => s.maxTurns);
   const setMaxTurns = useSettingsStore((s) => s.setMaxTurns);
-  const agentMode = useSettingsStore((s) => s.agentMode);
-  const setAgentMode = useSettingsStore((s) => s.setAgentMode);
+  const agentMode = useUserPrefsStore((s) => s.agentMode);
+  const setAgentMode = useUserPrefsStore((s) => s.setAgentMode);
   const ttsProvidersConfig = useSettingsStore((s) => s.ttsProvidersConfig);
-  const ttsEnabled = useSettingsStore((s) => s.ttsEnabled);
+  const ttsEnabled = useUserPrefsStore((s) => s.ttsEnabled);
 
   const [open, setOpen] = useState(false);
   const [browserVoices, setBrowserVoices] = useState<SpeechSynthesisVoice[]>([]);

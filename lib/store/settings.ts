@@ -27,11 +27,8 @@ export const PLAYBACK_SPEEDS = [1, 1.25, 1.5, 2] as const;
 export type PlaybackSpeed = (typeof PLAYBACK_SPEEDS)[number];
 
 export interface SettingsState {
-  // Model selection
-  providerId: ProviderId;
-  modelId: string;
-
   // Provider configurations (unified JSON storage)
+  // Model selection i preferències per-usuari → useUserPrefsStore
   providersConfig: ProvidersConfig;
 
   // TTS settings (legacy, kept for backward compatibility)
@@ -42,7 +39,7 @@ export interface SettingsState {
   ttsVoice: string;
   ttsSpeed: number;
   asrProviderId: ASRProviderId;
-  asrLanguage: string;
+  // asrLanguage → useUserPrefsStore (per-usuari)
 
   // Audio provider configurations
   ttsProvidersConfig: Record<
@@ -116,9 +113,7 @@ export interface SettingsState {
     }
   >;
 
-  // Media generation toggles
-  imageGenerationEnabled: boolean;
-  videoGenerationEnabled: boolean;
+  // imageGenerationEnabled / videoGenerationEnabled → useUserPrefsStore (per-usuari)
 
   // Web Search settings
   webSearchProviderId: WebSearchProviderId;
@@ -133,9 +128,7 @@ export interface SettingsState {
     }
   >;
 
-  // Global TTS/ASR toggles
-  ttsEnabled: boolean;
-  asrEnabled: boolean;
+  // ttsEnabled / asrEnabled → useUserPrefsStore (per-usuari)
 
   // Auto-config lifecycle flag (persisted)
   autoConfigApplied: boolean;
@@ -149,7 +142,7 @@ export interface SettingsState {
   // Agent settings
   selectedAgentIds: string[];
   maxTurns: string;
-  agentMode: 'preset' | 'auto';
+  // agentMode → useUserPrefsStore (per-usuari)
   autoAgentCount: number;
 
   // Layout preferences (persisted via localStorage)
@@ -157,8 +150,7 @@ export interface SettingsState {
   chatAreaCollapsed: boolean;
   chatAreaWidth: number;
 
-  // Actions
-  setModel: (providerId: ProviderId, modelId: string) => void;
+  // Actions (setModel → useUserPrefsStore)
   setProviderConfig: (providerId: ProviderId, config: Partial<ProvidersConfig[ProviderId]>) => void;
   setProvidersConfig: (config: ProvidersConfig) => void;
   setTtsModel: (model: string) => void;
@@ -168,7 +160,7 @@ export interface SettingsState {
   setPlaybackSpeed: (speed: PlaybackSpeed) => void;
   setSelectedAgentIds: (ids: string[]) => void;
   setMaxTurns: (turns: string) => void;
-  setAgentMode: (mode: 'preset' | 'auto') => void;
+  // setAgentMode → useUserPrefsStore
   setAutoAgentCount: (count: number) => void;
 
   // Layout actions
@@ -181,7 +173,7 @@ export interface SettingsState {
   setTTSVoice: (voice: string) => void;
   setTTSSpeed: (speed: number) => void;
   setASRProvider: (providerId: ASRProviderId) => void;
-  setASRLanguage: (language: string) => void;
+  // setASRLanguage → useUserPrefsStore
   setTTSProviderConfig: (
     providerId: TTSProviderId,
     config: Partial<{
@@ -204,8 +196,7 @@ export interface SettingsState {
       providerOptions: Record<string, unknown>;
     }>,
   ) => void;
-  setTTSEnabled: (enabled: boolean) => void;
-  setASREnabled: (enabled: boolean) => void;
+  // setTTSEnabled / setASREnabled → useUserPrefsStore
 
   // PDF actions
   setPDFProvider: (providerId: PDFProviderId) => void;
@@ -240,9 +231,7 @@ export interface SettingsState {
     }>,
   ) => void;
 
-  // Media generation toggle actions
-  setImageGenerationEnabled: (enabled: boolean) => void;
-  setVideoGenerationEnabled: (enabled: boolean) => void;
+  // setImageGenerationEnabled / setVideoGenerationEnabled → useUserPrefsStore
 
   // Web Search actions
   setWebSearchProvider: (providerId: WebSearchProviderId) => void;
@@ -285,7 +274,7 @@ const getDefaultAudioConfig = () => ({
   ttsVoice: 'default',
   ttsSpeed: 1.0,
   asrProviderId: 'browser-native' as ASRProviderId,
-  asrLanguage: 'zh',
+  // asrLanguage → useUserPrefsStore
   ttsProvidersConfig: {
     'openai-tts': { apiKey: '', baseUrl: '', enabled: true },
     'azure-tts': { apiKey: '', baseUrl: '', enabled: false },
@@ -543,13 +532,10 @@ export const useSettingsStore = create<SettingsState>()(
 
       return {
         // Initial state (use migrated data if available)
-        providerId: migratedData?.providerId || 'openai',
-        modelId: migratedData?.modelId || '',
         providersConfig: migratedData?.providersConfig || getDefaultProvidersConfig(),
         ttsModel: migratedData?.ttsModel || 'openai-tts',
         selectedAgentIds: migratedData?.selectedAgentIds || ['default-1', 'default-2', 'default-3'],
         maxTurns: migratedData?.maxTurns?.toString() || '10',
-        agentMode: 'auto' as const,
         autoAgentCount: 3,
 
         // Playback controls
@@ -575,14 +561,6 @@ export const useSettingsStore = create<SettingsState>()(
         // Video settings (use defaults)
         ...defaultVideoConfig,
 
-        // Media generation toggles (off by default)
-        imageGenerationEnabled: false,
-        videoGenerationEnabled: false,
-
-        // Audio feature toggles (on by default)
-        ttsEnabled: true,
-        asrEnabled: true,
-
         autoConfigApplied: false,
 
         // Theme
@@ -592,8 +570,6 @@ export const useSettingsStore = create<SettingsState>()(
         ...defaultWebSearchConfig,
 
         // Actions
-        setModel: (providerId, modelId) => set({ providerId, modelId }),
-
         setProviderConfig: (providerId, config) =>
           set((state) => ({
             providersConfig: {
@@ -620,7 +596,6 @@ export const useSettingsStore = create<SettingsState>()(
         setSelectedAgentIds: (ids) => set({ selectedAgentIds: ids }),
 
         setMaxTurns: (turns) => set({ maxTurns: turns }),
-        setAgentMode: (mode) => set({ agentMode: mode }),
         setAutoAgentCount: (count) => set({ autoAgentCount: count }),
 
         // Layout actions
@@ -645,17 +620,18 @@ export const useSettingsStore = create<SettingsState>()(
 
         // Reset language when switching providers, since language code formats differ
         // (e.g. browser-native uses BCP-47 "en-US", OpenAI Whisper uses ISO 639-1 "en")
-        setASRProvider: (providerId) =>
-          set((state) => {
-            const supportedLanguages = ASR_PROVIDERS[providerId]?.supportedLanguages || [];
-            const isLanguageValid = supportedLanguages.includes(state.asrLanguage);
-            return {
-              asrProviderId: providerId,
-              ...(isLanguageValid ? {} : { asrLanguage: supportedLanguages[0] || 'auto' }),
-            };
-          }),
-
-        setASRLanguage: (language) => set({ asrLanguage: language }),
+        setASRProvider: (providerId) => {
+          set({ asrProviderId: providerId });
+          // Reseta asrLanguage al user-prefs store si l'idioma actual no és vàlid
+          const supportedLanguages = ASR_PROVIDERS[providerId]?.supportedLanguages || [];
+          // eslint-disable-next-line @typescript-eslint/no-require-imports
+          const { useUserPrefsStore } = require('@/lib/store/user-prefs') as typeof import('@/lib/store/user-prefs');
+          const currentLang = useUserPrefsStore.getState().asrLanguage;
+          if (!supportedLanguages.includes(currentLang)) {
+            useUserPrefsStore.getState().setASRLanguage(supportedLanguages[0] || 'auto');
+          }
+        },
+        // setASRLanguage → useUserPrefsStore
 
         setTTSProviderConfig: (providerId, config) =>
           set((state) => ({
@@ -723,26 +699,6 @@ export const useSettingsStore = create<SettingsState>()(
             },
           })),
 
-        // Media generation toggle actions
-        setImageGenerationEnabled: (enabled) => {
-          if (enabled) {
-            const cfg = get().imageProvidersConfig;
-            const hasUsable = Object.values(cfg).some((c) => c.isServerConfigured || c.apiKey);
-            if (!hasUsable) return;
-          }
-          set({ imageGenerationEnabled: enabled });
-        },
-        setVideoGenerationEnabled: (enabled) => {
-          if (enabled) {
-            const cfg = get().videoProvidersConfig;
-            const hasUsable = Object.values(cfg).some((c) => c.isServerConfigured || c.apiKey);
-            if (!hasUsable) return;
-          }
-          set({ videoGenerationEnabled: enabled });
-        },
-        setTTSEnabled: (enabled) => set({ ttsEnabled: enabled }),
-        setASREnabled: (enabled) => set({ asrEnabled: enabled }),
-
         // Theme actions
         setTheme: (themeId) => set({ themeId }),
 
@@ -764,6 +720,9 @@ export const useSettingsStore = create<SettingsState>()(
           try {
             const res = await fetch('/api/server-providers');
             if (!res.ok) return;
+            // eslint-disable-next-line @typescript-eslint/no-require-imports
+            const { useUserPrefsStore } = require('@/lib/store/user-prefs') as typeof import('@/lib/store/user-prefs');
+            const userPrefs = useUserPrefsStore.getState();
             const data = (await res.json()) as {
               providers: Record<string, { models?: string[]; baseUrl?: string }>;
               tts: Record<string, { baseUrl?: string }>;
@@ -773,6 +732,14 @@ export const useSettingsStore = create<SettingsState>()(
               video: Record<string, { baseUrl?: string }>;
               webSearch: Record<string, { baseUrl?: string }>;
             };
+
+            // Declared outside set() so it's accessible after the call
+            let userPrefsUpdates: {
+              providerId?: ProviderId;
+              modelId?: string;
+              imageGenerationEnabled?: boolean;
+              videoGenerationEnabled?: boolean;
+            } = {};
 
             set((state) => {
               // Merge LLM providers
@@ -968,7 +935,7 @@ export const useSettingsStore = create<SettingsState>()(
               const videoFallback = buildFallback<VideoProviderId>(newVideoConfig);
 
               const validLLMProvider = validateProvider(
-                state.providerId,
+                userPrefs.providerId,
                 newProvidersConfig,
                 llmFallback,
               );
@@ -1017,7 +984,7 @@ export const useSettingsStore = create<SettingsState>()(
 
               const validLLMModel = validLLMProvider
                 ? validateModel(
-                    state.modelId,
+                    userPrefs.modelId,
                     newProvidersConfig[validLLMProvider as ProviderId]?.models ?? [],
                   )
                 : '';
@@ -1045,8 +1012,8 @@ export const useSettingsStore = create<SettingsState>()(
                   : state.ttsVoice;
 
               // Auto-disable image/video generation when no provider is usable
-              const shouldDisableImage = !validImageProvider && state.imageGenerationEnabled;
-              const shouldDisableVideo = !validVideoProvider && state.videoGenerationEnabled;
+              const shouldDisableImage = !validImageProvider && userPrefs.imageGenerationEnabled;
+              const shouldDisableVideo = !validVideoProvider && userPrefs.videoGenerationEnabled;
 
               // === Auto-select / auto-enable (only on first run) ===
               let autoTtsProvider: TTSProviderId | undefined;
@@ -1095,7 +1062,7 @@ export const useSettingsStore = create<SettingsState>()(
                   const models = IMAGE_PROVIDERS[autoImageProvider]?.models;
                   if (models?.length) autoImageModel = models[0].id;
                 }
-                if (serverImageIds.length > 0 && !state.imageGenerationEnabled) {
+                if (serverImageIds.length > 0 && !userPrefs.imageGenerationEnabled) {
                   autoImageEnabled = true;
                 }
 
@@ -1109,7 +1076,7 @@ export const useSettingsStore = create<SettingsState>()(
                   const models = VIDEO_PROVIDERS[autoVideoProvider]?.models;
                   if (models?.length) autoVideoModel = models[0].id;
                 }
-                if (serverVideoIds.length > 0 && !state.videoGenerationEnabled) {
+                if (serverVideoIds.length > 0 && !userPrefs.videoGenerationEnabled) {
                   autoVideoEnabled = true;
                 }
               }
@@ -1117,7 +1084,7 @@ export const useSettingsStore = create<SettingsState>()(
               // LLM auto-select: only on true first load (no provider selected yet)
               let autoProviderId: ProviderId | undefined;
               let autoModelId: string | undefined;
-              if (!state.providerId && !state.modelId) {
+              if (!userPrefs.providerId && !userPrefs.modelId) {
                 for (const [pid, cfg] of Object.entries(newProvidersConfig)) {
                   if (cfg.isServerConfigured) {
                     // Prefer server-restricted models, fall back to built-in list
@@ -1134,6 +1101,20 @@ export const useSettingsStore = create<SettingsState>()(
                 }
               }
 
+              // Recollir actualitzacions per al user-prefs store (model + habilitació)
+              userPrefsUpdates = {};
+              if (validLLMProvider !== userPrefs.providerId)
+                userPrefsUpdates.providerId = validLLMProvider as ProviderId;
+              if (validLLMModel !== userPrefs.modelId) userPrefsUpdates.modelId = validLLMModel;
+              if (shouldDisableImage) userPrefsUpdates.imageGenerationEnabled = false;
+              if (shouldDisableVideo) userPrefsUpdates.videoGenerationEnabled = false;
+              if (autoImageEnabled !== undefined)
+                userPrefsUpdates.imageGenerationEnabled = autoImageEnabled;
+              if (autoVideoEnabled !== undefined)
+                userPrefsUpdates.videoGenerationEnabled = autoVideoEnabled;
+              if (autoProviderId) userPrefsUpdates.providerId = autoProviderId;
+              if (autoModelId) userPrefsUpdates.modelId = autoModelId;
+
               return {
                 providersConfig: newProvidersConfig,
                 ttsProvidersConfig: newTTSConfig,
@@ -1143,11 +1124,7 @@ export const useSettingsStore = create<SettingsState>()(
                 videoProvidersConfig: newVideoConfig,
                 webSearchProvidersConfig: newWebSearchConfig,
                 autoConfigApplied: true,
-                // Validated selections
-                ...(validLLMProvider !== state.providerId && {
-                  providerId: validLLMProvider as ProviderId,
-                }),
-                ...(validLLMModel !== state.modelId && { modelId: validLLMModel }),
+                // Validated TTS/ASR/PDF/Image/Video selections (settings store)
                 ...(validTTSProvider !== state.ttsProviderId && {
                   ttsProviderId: validTTSProvider as TTSProviderId,
                   ttsVoice: validTTSVoice,
@@ -1170,35 +1147,34 @@ export const useSettingsStore = create<SettingsState>()(
                 ...(validVideoModel !== state.videoModelId && {
                   videoModelId: validVideoModel,
                 }),
-                ...(shouldDisableImage && { imageGenerationEnabled: false }),
-                ...(shouldDisableVideo && { videoGenerationEnabled: false }),
-                // First-run auto-select overrides validation (autoConfigApplied guard).
-                // On first sync, auto-select picks the best provider. On subsequent syncs,
-                // auto* variables stay undefined so only validation spreads take effect.
+                // First-run auto-select for TTS/ASR/PDF/Image/Video
                 ...(autoPdfProvider && { pdfProviderId: autoPdfProvider }),
                 ...(autoTtsProvider && {
                   ttsProviderId: autoTtsProvider,
                   ttsVoice: autoTtsVoice,
                 }),
                 ...(autoAsrProvider && { asrProviderId: autoAsrProvider }),
-                ...(autoImageProvider && {
-                  imageProviderId: autoImageProvider,
-                }),
+                ...(autoImageProvider && { imageProviderId: autoImageProvider }),
                 ...(autoImageModel && { imageModelId: autoImageModel }),
-                ...(autoVideoProvider && {
-                  videoProviderId: autoVideoProvider,
-                }),
+                ...(autoVideoProvider && { videoProviderId: autoVideoProvider }),
                 ...(autoVideoModel && { videoModelId: autoVideoModel }),
-                ...(autoImageEnabled !== undefined && {
-                  imageGenerationEnabled: autoImageEnabled,
-                }),
-                ...(autoVideoEnabled !== undefined && {
-                  videoGenerationEnabled: autoVideoEnabled,
-                }),
-                ...(autoProviderId && { providerId: autoProviderId }),
-                ...(autoModelId && { modelId: autoModelId }),
               };
             });
+
+            // Aplicar actualitzacions de model/habilitació al user-prefs store
+            const up = userPrefs; // referència per a comparació
+            if (userPrefsUpdates.providerId !== undefined || userPrefsUpdates.modelId !== undefined) {
+              useUserPrefsStore.getState().setModel(
+                userPrefsUpdates.providerId ?? up.providerId,
+                userPrefsUpdates.modelId ?? up.modelId,
+              );
+            }
+            if (userPrefsUpdates.imageGenerationEnabled !== undefined) {
+              useUserPrefsStore.getState().setImageGenerationEnabled(userPrefsUpdates.imageGenerationEnabled);
+            }
+            if (userPrefsUpdates.videoGenerationEnabled !== undefined) {
+              useUserPrefsStore.getState().setVideoGenerationEnabled(userPrefsUpdates.videoGenerationEnabled);
+            }
           } catch (e) {
             // Silently fail — server providers are optional
             log.warn('Failed to fetch server providers:', e);
@@ -1213,10 +1189,11 @@ export const useSettingsStore = create<SettingsState>()(
       migrate: (persistedState: unknown, version: number) => {
         const state = persistedState as Partial<SettingsState>;
 
-        // v0 → v1: clear hardcoded default model so user must actively select
+        // v0 → v1: clear hardcoded default model so user must actively select (legacy fields)
         if (version === 0) {
-          if (state.providerId === 'openai' && state.modelId === 'gpt-4o-mini') {
-            state.modelId = '';
+          const rec = state as Record<string, unknown>;
+          if (rec.providerId === 'openai' && rec.modelId === 'gpt-4o-mini') {
+            rec.modelId = '';
           }
         }
 
@@ -1298,20 +1275,14 @@ export const useSettingsStore = create<SettingsState>()(
           delete (state as Record<string, unknown>).deepResearchProvidersConfig;
         }
 
-        // Add default media generation toggles if missing
-        if (state.imageGenerationEnabled === undefined) {
-          state.imageGenerationEnabled = false;
-        }
-        if (state.videoGenerationEnabled === undefined) {
-          state.videoGenerationEnabled = false;
-        }
-
-        // Add default audio toggles if missing
-        if ((state as Record<string, unknown>).ttsEnabled === undefined) {
-          (state as Record<string, unknown>).ttsEnabled = true;
-        }
-        if ((state as Record<string, unknown>).asrEnabled === undefined) {
-          (state as Record<string, unknown>).asrEnabled = true;
+        // imageGenerationEnabled/videoGenerationEnabled/ttsEnabled/asrEnabled → useUserPrefsStore
+        // Elimina camps obsolets del settings store per evitar contaminació
+        {
+          const rec = state as Record<string, unknown>;
+          delete rec.imageGenerationEnabled;
+          delete rec.videoGenerationEnabled;
+          delete rec.ttsEnabled;
+          delete rec.asrEnabled;
         }
 
         // Existing users already have their config set up — mark auto-config as done
@@ -1319,9 +1290,8 @@ export const useSettingsStore = create<SettingsState>()(
           (state as Record<string, unknown>).autoConfigApplied = true;
         }
 
-        if ((state as Record<string, unknown>).agentMode === undefined) {
-          (state as Record<string, unknown>).agentMode = 'preset';
-        }
+        // agentMode → useUserPrefsStore (elimina camp obsolet)
+        delete (state as Record<string, unknown>).agentMode;
         if ((state as Record<string, unknown>).autoAgentCount === undefined) {
           (state as Record<string, unknown>).autoAgentCount = 3;
         }

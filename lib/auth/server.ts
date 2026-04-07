@@ -50,7 +50,7 @@ export const auth = betterAuth({
       role: {
         type: 'string',
         defaultValue: 'user',
-        input: false, // No modificable via API pública
+        input: false,
       },
       status: {
         type: 'string',
@@ -59,6 +59,7 @@ export const auth = betterAuth({
       },
     },
   },
+
 
   // Configuració de cookies
   advanced: {

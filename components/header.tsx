@@ -16,6 +16,7 @@ import { useI18n } from '@/lib/hooks/use-i18n';
 import { useTheme } from '@/lib/hooks/use-theme';
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import { useSession } from '@/lib/auth/client';
 import { SettingsDialog } from './settings';
 import { ScormExportDialog } from './scorm-export-dialog';
 import { cn } from '@/lib/utils';
@@ -32,6 +33,8 @@ export function Header({ currentSceneTitle }: HeaderProps) {
   const { t, locale, setLocale } = useI18n();
   const { theme, setTheme } = useTheme();
   const router = useRouter();
+  const { data: session } = useSession();
+  const isAdmin = (session?.user as { role?: string } | undefined)?.role === 'admin';
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [languageOpen, setLanguageOpen] = useState(false);
   const [themeOpen, setThemeOpen] = useState(false);
@@ -225,17 +228,20 @@ export function Header({ currentSceneTitle }: HeaderProps) {
             )}
           </div>
 
-          <div className="w-[1px] h-4 bg-gray-200 dark:bg-gray-700" />
-
-          {/* Settings Button */}
-          <div className="relative">
-            <button
-              onClick={() => setSettingsOpen(true)}
-              className="p-2 rounded-full text-gray-400 dark:text-gray-500 hover:bg-white dark:hover:bg-gray-700 hover:text-gray-800 dark:hover:text-gray-200 hover:shadow-sm transition-all group"
-            >
-              <Settings className="w-4 h-4 group-hover:rotate-90 transition-transform duration-500" />
-            </button>
-          </div>
+          {/* Settings Button — exclusiu per a admin */}
+          {(!session || isAdmin) && (
+            <>
+              <div className="w-[1px] h-4 bg-gray-200 dark:bg-gray-700" />
+              <div className="relative">
+                <button
+                  onClick={() => setSettingsOpen(true)}
+                  className="p-2 rounded-full text-gray-400 dark:text-gray-500 hover:bg-white dark:hover:bg-gray-700 hover:text-gray-800 dark:hover:text-gray-200 hover:shadow-sm transition-all group"
+                >
+                  <Settings className="w-4 h-4 group-hover:rotate-90 transition-transform duration-500" />
+                </button>
+              </div>
+            </>
+          )}
         </div>
 
         {/* Export Dropdown */}

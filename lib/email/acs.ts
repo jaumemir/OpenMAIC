@@ -262,3 +262,117 @@ function escapeHtml(str: string): string {
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#39;');
 }
+
+// ── Email de recuperació de contrasenya ────────────────────────────────────
+
+export interface PasswordResetEmailParams {
+  to: string;
+  firstName: string;
+  resetUrl: string;
+  expiresInHours: number;
+}
+
+export async function sendPasswordResetEmail(params: PasswordResetEmailParams): Promise<void> {
+  const senderAddress = process.env.ACS_SENDER_ADDRESS;
+  const senderDisplayName = process.env.ACS_SENDER_DISPLAY_NAME ?? 'OpenMAIC';
+
+  if (!senderAddress) {
+    throw new Error("ACS_SENDER_ADDRESS ha d'estar configurat.");
+  }
+
+  const firstName = escapeHtml(params.firstName);
+  const resetUrl = escapeHtml(params.resetUrl);
+
+  const html = `<!DOCTYPE html>
+<html lang="ca">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;padding:0;background-color:#f9f9f9;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0">
+    <tr>
+      <td align="center" style="padding:40px 16px;">
+        <table width="100%" style="max-width:520px;background:#ffffff;border-radius:8px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.1);">
+
+          <!-- Capçalera -->
+          <tr>
+            <td style="padding:32px 40px 24px;border-bottom:1px solid #f4f4f5;">
+              <h1 style="margin:0;font-size:20px;font-weight:700;color:#18181b;">OpenMAIC</h1>
+            </td>
+          </tr>
+
+          <!-- Cos -->
+          <tr>
+            <td style="padding:32px 40px 24px;">
+              <p style="margin:0 0 16px;font-size:16px;color:#18181b;">Hola, ${firstName}!</p>
+              <p style="margin:0 0 24px;font-size:14px;color:#71717a;line-height:1.6;">
+                Hem rebut una sol·licitud per canviar la contrasenya del teu compte d'OpenMAIC.
+                Si no has estat tu, pots ignorar aquest correu i la contrasenya no canviarà.
+              </p>
+              <p style="margin:0 0 32px;text-align:center;">
+                <a href="${resetUrl}"
+                   style="display:inline-block;background-color:#18181b;color:#ffffff;text-decoration:none;padding:12px 28px;border-radius:6px;font-size:14px;font-weight:500;">
+                  Canviar la contrasenya
+                </a>
+              </p>
+              <p style="margin:0;font-size:13px;color:#a1a1aa;">
+                Aquest enllaç és vàlid durant <strong>${params.expiresInHours} hora${params.expiresInHours !== 1 ? 's' : ''}</strong>.
+              </p>
+            </td>
+          </tr>
+
+          <!-- URL alternativa -->
+          <tr>
+            <td style="padding:0 40px 32px;">
+              <div style="background-color:#f4f4f5;border-radius:6px;padding:16px;">
+                <p style="margin:0 0 8px;color:#71717a;font-size:12px;">Si el botó no funciona, copia aquest URL al teu navegador:</p>
+                <p style="margin:0;font-size:12px;word-break:break-all;">
+                  <a href="${resetUrl}" style="color:#18181b;">${resetUrl}</a>
+                </p>
+              </div>
+            </td>
+          </tr>
+
+          <!-- Peu -->
+          <tr>
+            <td style="padding:24px 40px;border-top:1px solid #f4f4f5;text-align:center;">
+              <p style="margin:0;color:#a1a1aa;font-size:12px;">
+                Si no has sol·licitat cap canvi de contrasenya, pots ignorar aquest missatge.
+              </p>
+              <p style="margin:8px 0 0;color:#a1a1aa;font-size:12px;">
+                OpenMAIC — Plataforma open source sota llicència AGPL-3.0
+              </p>
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`;
+
+  const plainText = `Hola, ${params.firstName}!
+
+Hem rebut una sol·licitud per canviar la contrasenya del teu compte d'OpenMAIC.
+
+Per canviar la contrasenya, accedeix a:
+${params.resetUrl}
+
+Aquest enllaç és vàlid durant ${params.expiresInHours} hora${params.expiresInHours !== 1 ? 's' : ''}.
+
+Si no has sol·licitat cap canvi de contrasenya, pots ignorar aquest missatge.
+
+OpenMAIC — Plataforma open source sota llicència AGPL-3.0
+`;
+
+  await sendEmail({
+    senderAddress,
+    recipients: {
+      to: [{ address: params.to, displayName: params.firstName }],
+    },
+    content: {
+      subject: "OpenMAIC — Sol·licitud de canvi de contrasenya",
+      html,
+      plainText,
+    },
+  });
+}

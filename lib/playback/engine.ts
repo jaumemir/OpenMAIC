@@ -37,6 +37,7 @@ import type { AudioPlayer } from '@/lib/utils/audio-player';
 import { ActionEngine } from '@/lib/action/engine';
 import { useCanvasStore } from '@/lib/store/canvas';
 import { useSettingsStore } from '@/lib/store/settings';
+import { useUserPrefsStore } from '@/lib/store/user-prefs';
 import { createLogger } from '@/lib/logger';
 
 const log = createLogger('PlaybackEngine');
@@ -497,7 +498,7 @@ export class PlaybackEngine {
               // No pre-generated audio — try browser-native TTS if selected
               const settings = useSettingsStore.getState();
               if (
-                settings.ttsEnabled &&
+                useUserPrefsStore.getState().ttsEnabled &&
                 settings.ttsProviderId === 'browser-native-tts' &&
                 typeof window !== 'undefined' &&
                 window.speechSynthesis
