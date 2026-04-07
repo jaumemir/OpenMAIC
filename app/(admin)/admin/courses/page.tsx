@@ -83,6 +83,7 @@ export default function AdminCoursesPage() {
               <thead className="bg-muted/50">
                 <tr>
                   <th className="text-left px-4 py-2 font-medium text-muted-foreground">Nom</th>
+                  <th className="text-left px-4 py-2 font-medium text-muted-foreground">Stage ID</th>
                   <th className="text-left px-4 py-2 font-medium text-muted-foreground">Escenes</th>
                   <th className="text-left px-4 py-2 font-medium text-muted-foreground">
                     Propietari
@@ -98,6 +99,9 @@ export default function AdminCoursesPage() {
                   <tr key={stage.id} className="border-t hover:bg-muted/20">
                     <td className="px-4 py-2 font-medium max-w-xs truncate" title={stage.name}>
                       {stage.name || <span className="text-muted-foreground italic">Sense títol</span>}
+                    </td>
+                    <td className="px-4 py-2 font-mono text-xs text-muted-foreground select-all">
+                      {stage.id}
                     </td>
                     <td className="px-4 py-2 text-muted-foreground">{stage.sceneCount}</td>
                     <td className="px-4 py-2 text-muted-foreground">
