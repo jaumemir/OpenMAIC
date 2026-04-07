@@ -9,8 +9,6 @@
 import { useMediaGenerationStore } from '@/lib/store/media-generation';
 import { useSettingsStore } from '@/lib/store/settings';
 import { useUserPrefsStore } from '@/lib/store/user-prefs';
-import { db, mediaFileKey } from '@/lib/utils/database';
-import { isServerStorageEnabled } from '@/lib/utils/storage-backend';
 import type { SceneOutline } from '@/lib/types/generation';
 import type { MediaGenerationRequest } from '@/lib/media/types';
 import { createLogger } from '@/lib/logger';
@@ -85,12 +83,7 @@ export async function retryMediaTask(elementId: string): Promise<void> {
   }
 
   // Remove persisted failure record so a fresh result can be written
-  if (isServerStorageEnabled()) {
-    await fetch(`/api/stages/${task.stageId}/media/${elementId}`, { method: 'DELETE' }).catch(() => {});
-  } else {
-    const dbKey = mediaFileKey(task.stageId, elementId);
-    await db.mediaFiles.delete(dbKey).catch(() => {});
-  }
+  await fetch(`/api/stages/${task.stageId}/media/${elementId}`, { method: 'DELETE' }).catch(() => {});
 
   store.markPendingForRetry(elementId);
   await generateSingleMedia(
@@ -137,61 +130,37 @@ async function generateSingleMedia(
     const blob = await fetchAsBlob(resultUrl);
     const posterBlob = posterUrl ? await fetchAsBlob(posterUrl).catch(() => undefined) : undefined;
 
-    let objectUrl: string;
-    let posterObjectUrl: string | undefined;
+    // Upload to server — use the returned HTTP URLs directly (no createObjectURL)
+    const toBase64 = async (b: Blob): Promise<string> => {
+      const buf = await b.arrayBuffer();
+      const bytes = new Uint8Array(buf);
+      let binary = '';
+      bytes.forEach((byte) => { binary += String.fromCharCode(byte); });
+      return btoa(binary);
+    };
 
-    if (isServerStorageEnabled()) {
-      // Upload to server — use the returned HTTP URLs directly (no createObjectURL)
-      const toBase64 = async (b: Blob): Promise<string> => {
-        const buf = await b.arrayBuffer();
-        const bytes = new Uint8Array(buf);
-        let binary = '';
-        bytes.forEach((byte) => { binary += String.fromCharCode(byte); });
-        return btoa(binary);
-      };
+    const res = await fetch(`/api/stages/${stageId}/media`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        elementId: req.elementId,
+        base64: await toBase64(blob),
+        posterBase64: posterBlob ? await toBase64(posterBlob) : undefined,
+        meta: {
+          type: req.type,
+          mimeType,
+          size: blob.size,
+          prompt: req.prompt,
+          params: JSON.stringify({ aspectRatio: req.aspectRatio, style: req.style }),
+          createdAt: Date.now(),
+        },
+      }),
+    });
 
-      const res = await fetch(`/api/stages/${stageId}/media`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          elementId: req.elementId,
-          base64: await toBase64(blob),
-          posterBase64: posterBlob ? await toBase64(posterBlob) : undefined,
-          meta: {
-            type: req.type,
-            mimeType,
-            size: blob.size,
-            prompt: req.prompt,
-            params: JSON.stringify({ aspectRatio: req.aspectRatio, style: req.style }),
-            createdAt: Date.now(),
-          },
-        }),
-      });
-
-      if (!res.ok) throw new Error(`Failed to upload media to server: ${res.status}`);
-      const result = await res.json();
-      objectUrl = result.url as string;
-      posterObjectUrl = result.posterUrl as string | undefined;
-    } else {
-      // Store in IndexedDB
-      await db.mediaFiles.put({
-        id: mediaFileKey(stageId, req.elementId),
-        stageId,
-        type: req.type,
-        blob,
-        mimeType,
-        size: blob.size,
-        poster: posterBlob,
-        prompt: req.prompt,
-        params: JSON.stringify({
-          aspectRatio: req.aspectRatio,
-          style: req.style,
-        }),
-        createdAt: Date.now(),
-      });
-      objectUrl = URL.createObjectURL(blob);
-      posterObjectUrl = posterBlob ? URL.createObjectURL(posterBlob) : undefined;
-    }
+    if (!res.ok) throw new Error(`Failed to upload media to server: ${res.status}`);
+    const result = await res.json();
+    const objectUrl = result.url as string;
+    const posterObjectUrl = result.posterUrl as string | undefined;
 
     useMediaGenerationStore.getState().markDone(req.elementId, objectUrl, posterObjectUrl);
   } catch (err) {
@@ -203,32 +172,14 @@ async function generateSingleMedia(
 
     // Persist non-retryable failures so they survive page refresh
     if (errorCode) {
-      if (isServerStorageEnabled()) {
-        fetch(`/api/stages/${stageId}/media`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            elementId: req.elementId,
-            base64: '',
-            meta: {
-              type: req.type,
-              mimeType: req.type === 'image' ? 'image/png' : 'video/mp4',
-              size: 0,
-              prompt: req.prompt,
-              params: JSON.stringify({ aspectRatio: req.aspectRatio, style: req.style }),
-              error: message,
-              errorCode,
-              createdAt: Date.now(),
-            },
-          }),
-        }).catch(() => {});
-      } else {
-        await db.mediaFiles
-          .put({
-            id: mediaFileKey(stageId, req.elementId),
-            stageId,
+      fetch(`/api/stages/${stageId}/media`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          elementId: req.elementId,
+          base64: '',
+          meta: {
             type: req.type,
-            blob: new Blob(),
             mimeType: req.type === 'image' ? 'image/png' : 'video/mp4',
             size: 0,
             prompt: req.prompt,
@@ -236,9 +187,9 @@ async function generateSingleMedia(
             error: message,
             errorCode,
             createdAt: Date.now(),
-          })
-          .catch(() => {});
-      }
+          },
+        }),
+      }).catch(() => {});
     }
   }
 }
