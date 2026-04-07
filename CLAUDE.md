@@ -162,9 +162,6 @@ OPENAI_API_KEY=
 ANTHROPIC_API_KEY=
 GOOGLE_API_KEY=
 
-# Storage (default: IndexedDB al browser)
-NEXT_PUBLIC_STORAGE_BACKEND=server  # activa filesystem server-side
-
 # Model per defecte (servidor)
 DEFAULT_MODEL=google:gemini-2.5-flash-preview
 
@@ -265,4 +262,4 @@ Els tests d'integració amb proveïdors LLM reals requereixen API keys al `.env.
 
 5. **`postinstall` necessari:** `pnpm install` builda `packages/pptxgenjs` i `packages/mathml2omml`. Si falten, fer `pnpm postinstall` manualment.
 
-6. **Server vs. Browser storage:** Per defecte, tot s'emmagatzema a IndexedDB del navegador. Activar `NEXT_PUBLIC_STORAGE_BACKEND=server` per a persistència servidor (necessari per a classrooms generats via API).
+6. **Storage sempre al servidor:** Tot el contingut de cursos (stages, escenes, media, TTS) es persisteix al servidor via `/api/stages/*`. En dev: filesystem `/data/`. En producció: object store + PostgreSQL.

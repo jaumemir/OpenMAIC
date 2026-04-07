@@ -18,7 +18,6 @@ import {
   X,
   Trash2,
   Box,
-  Settings,
   CheckCircle2,
   XCircle,
   FileText,
@@ -57,9 +56,7 @@ import type { ASRProviderId } from '@/lib/audio/types';
 import { WebSearchSettings } from './web-search-settings';
 import { WEB_SEARCH_PROVIDERS } from '@/lib/web-search/constants';
 import type { WebSearchProviderId } from '@/lib/web-search/types';
-import { GeneralSettings } from './general-settings';
 import { ThemesSettings } from './themes-settings';
-import { isServerStorageEnabled } from '@/lib/utils/storage-backend';
 import { ModelEditDialog } from './model-edit-dialog';
 import { AddProviderDialog, type NewProviderData } from './add-provider-dialog';
 import type { SettingsSection, EditingModel } from '@/lib/types/settings';
@@ -517,12 +514,6 @@ export function SettingsDialog({ open, onOpenChange, initialSection }: SettingsD
   // Get header content based on section
   const getHeaderContent = () => {
     switch (activeSection) {
-      case 'general':
-        return (
-          <h2 className="text-lg font-semibold">
-            {isServerStorageEnabled() ? t('settings.generatedCourses') : t('settings.systemSettings')}
-          </h2>
-        );
       case 'providers':
         if (selectedProvider) {
           return (
@@ -801,20 +792,6 @@ export function SettingsDialog({ open, onOpenChange, initialSection }: SettingsD
               <span className="truncate">{t('settings.themesSettings')}</span>
             </button>
 
-            <button
-              onClick={() => setActiveSection('general')}
-              className={cn(
-                'w-full flex items-center gap-3 px-3 py-2 text-sm rounded-lg transition-colors text-left min-w-0',
-                activeSection === 'general'
-                  ? 'bg-primary/10 text-primary font-medium'
-                  : 'hover:bg-muted',
-              )}
-            >
-              <Settings className="h-4 w-4 shrink-0" />
-              <span className="truncate">
-                {isServerStorageEnabled() ? t('settings.generatedCourses') : t('settings.systemSettings')}
-              </span>
-            </button>
           </div>
 
           {/* Sidebar resize handle */}
@@ -999,8 +976,6 @@ export function SettingsDialog({ open, onOpenChange, initialSection }: SettingsD
 
             {/* Content */}
             <div className="flex-1 overflow-y-auto p-5">
-              {activeSection === 'general' && <GeneralSettings />}
-
               {activeSection === 'providers' && selectedProvider && (
                 <ProviderConfigPanel
                   provider={selectedProvider}
