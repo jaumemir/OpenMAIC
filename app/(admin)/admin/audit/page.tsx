@@ -53,9 +53,8 @@ export default function AdminAuditPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="max-w-6xl mx-auto px-6 py-10">
-        <h1 className="text-2xl font-semibold mb-6">Log d&apos;auditoria</h1>
+    <div className="max-w-6xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-10">
+        <h1 className="text-2xl font-semibold tracking-tight mb-6">Log d&apos;auditoria</h1>
 
         {/* Filtres */}
         <form onSubmit={handleFilter} className="flex flex-wrap gap-4 mb-6 items-end">
@@ -84,23 +83,23 @@ export default function AdminAuditPage() {
 
         <p className="text-sm text-muted-foreground mb-4">{total} registres</p>
 
-        <div className="border rounded-lg overflow-x-auto">
+        <div className="rounded-xl border border-border/60 overflow-x-auto bg-white/60 dark:bg-slate-900/50 shadow-sm">
           <table className="w-full text-sm min-w-[700px]">
-            <thead className="bg-muted/50">
-              <tr>
-                <th className="text-left px-3 py-2 font-medium text-muted-foreground">Acció</th>
-                <th className="text-left px-3 py-2 font-medium text-muted-foreground">Usuari</th>
-                <th className="text-left px-3 py-2 font-medium text-muted-foreground">Entitat</th>
-                <th className="text-left px-3 py-2 font-medium text-muted-foreground">IP</th>
-                <th className="text-left px-3 py-2 font-medium text-muted-foreground">Data</th>
+            <thead>
+              <tr className="border-b border-border/60 bg-muted/40">
+                <th className="text-left px-3 py-2.5 font-medium text-muted-foreground">Acció</th>
+                <th className="text-left px-3 py-2.5 font-medium text-muted-foreground">Usuari</th>
+                <th className="text-left px-3 py-2.5 font-medium text-muted-foreground">Entitat</th>
+                <th className="text-left px-3 py-2.5 font-medium text-muted-foreground">IP</th>
+                <th className="text-left px-3 py-2.5 font-medium text-muted-foreground">Data</th>
               </tr>
             </thead>
             <tbody>
               {loading && (
-                <tr><td colSpan={5} className="px-4 py-8 text-center text-muted-foreground">Carregant...</td></tr>
+                <tr><td colSpan={5} className="px-4 py-10 text-center text-muted-foreground">Carregant...</td></tr>
               )}
               {!loading && logs.map((log) => (
-                <tr key={log.id} className="border-t hover:bg-muted/20">
+                <tr key={log.id} className="border-t border-border/40 hover:bg-muted/20 transition-colors">
                   <td className="px-3 py-2 font-mono text-xs">{log.action}</td>
                   <td className="px-3 py-2 text-muted-foreground text-xs">
                     {log.user
@@ -129,7 +128,6 @@ export default function AdminAuditPage() {
           <span className="text-sm text-muted-foreground">Pàgina {page}</span>
           <Button variant="ghost" size="sm" disabled={page * 50 >= total} onClick={() => setPage((p) => p + 1)}>Següent →</Button>
         </div>
-      </div>
     </div>
   );
 }

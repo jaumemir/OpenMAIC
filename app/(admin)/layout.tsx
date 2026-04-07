@@ -25,7 +25,7 @@ export default async function AdminLayout({ children }: { children: ReactNode })
   const displayName = user.name ?? user.email ?? 'Admin';
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100 dark:from-slate-950 dark:to-slate-900 flex flex-col">
       <AdminNav displayName={displayName} />
       <main className="flex-1">{children}</main>
     </div>
