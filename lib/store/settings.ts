@@ -1,10 +1,10 @@
 /**
  * Settings Store
- * Global settings state synchronized with localStorage
+ * Global settings state — hidratat des del servidor en cada sessió (sense localStorage persist).
+ * La configuració es guarda a AdminConfig (BD) via /api/admin/config/providers.
  */
 
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
 import type { ProviderId } from '@/lib/ai/providers';
 import type { ProvidersConfig } from '@/lib/types/settings';
 import { PROVIDERS } from '@/lib/ai/providers';
@@ -133,11 +133,7 @@ export interface SettingsState {
   // Auto-config lifecycle flag (persisted)
   autoConfigApplied: boolean;
 
-  // Playback controls
-  ttsMuted: boolean;
-  ttsVolume: number; // 0-1, actual volume level
-  autoPlayLecture: boolean;
-  playbackSpeed: PlaybackSpeed;
+  // Playback controls → useLayoutStore (per-sessió, localStorage)
 
   // Agent settings
   selectedAgentIds: string[];
@@ -145,28 +141,19 @@ export interface SettingsState {
   // agentMode → useUserPrefsStore (per-usuari)
   autoAgentCount: number;
 
-  // Layout preferences (persisted via localStorage)
-  sidebarCollapsed: boolean;
-  chatAreaCollapsed: boolean;
-  chatAreaWidth: number;
+  // Layout preferences → useLayoutStore (per-sessió, localStorage)
 
   // Actions (setModel → useUserPrefsStore)
   setProviderConfig: (providerId: ProviderId, config: Partial<ProvidersConfig[ProviderId]>) => void;
   setProvidersConfig: (config: ProvidersConfig) => void;
   setTtsModel: (model: string) => void;
-  setTTSMuted: (muted: boolean) => void;
-  setTTSVolume: (volume: number) => void;
-  setAutoPlayLecture: (autoPlay: boolean) => void;
-  setPlaybackSpeed: (speed: PlaybackSpeed) => void;
+  // setTTSMuted / setTTSVolume / setAutoPlayLecture / setPlaybackSpeed → useLayoutStore
   setSelectedAgentIds: (ids: string[]) => void;
   setMaxTurns: (turns: string) => void;
   // setAgentMode → useUserPrefsStore
   setAutoAgentCount: (count: number) => void;
 
-  // Layout actions
-  setSidebarCollapsed: (collapsed: boolean) => void;
-  setChatAreaCollapsed: (collapsed: boolean) => void;
-  setChatAreaWidth: (width: number) => void;
+  // Layout actions → useLayoutStore
 
   // Audio actions
   setTTSProvider: (providerId: TTSProviderId) => void;
@@ -246,6 +233,12 @@ export interface SettingsState {
 
   // Server provider actions
   fetchServerProviders: () => Promise<void>;
+
+  /**
+   * Hidrata el store amb dades rebudes del servidor (GET /api/admin/config/providers).
+   * Substitueix tots els camps de config; els camps de layout no es toquen.
+   */
+  hydrate: (config: Record<string, unknown>) => void;
 }
 
 // Initialize default providers config
@@ -520,34 +513,22 @@ const migrateFromOldStorage = () => {
 };
 
 export const useSettingsStore = create<SettingsState>()(
-  persist(
-    (set, get) => {
-      // Try to migrate from old storage
-      const migratedData = migrateFromOldStorage();
-      const defaultAudioConfig = getDefaultAudioConfig();
-      const defaultPDFConfig = getDefaultPDFConfig();
-      const defaultImageConfig = getDefaultImageConfig();
-      const defaultVideoConfig = getDefaultVideoConfig();
-      const defaultWebSearchConfig = getDefaultWebSearchConfig();
+  (set, get) => {
+    const defaultAudioConfig = getDefaultAudioConfig();
+    const defaultPDFConfig = getDefaultPDFConfig();
+    const defaultImageConfig = getDefaultImageConfig();
+    const defaultVideoConfig = getDefaultVideoConfig();
+    const defaultWebSearchConfig = getDefaultWebSearchConfig();
 
-      return {
-        // Initial state (use migrated data if available)
-        providersConfig: migratedData?.providersConfig || getDefaultProvidersConfig(),
-        ttsModel: migratedData?.ttsModel || 'openai-tts',
-        selectedAgentIds: migratedData?.selectedAgentIds || ['default-1', 'default-2', 'default-3'],
-        maxTurns: migratedData?.maxTurns?.toString() || '10',
-        autoAgentCount: 3,
+    return {
+      // Initial state — buit fins que hydrate() rebi dades del servidor
+      providersConfig: getDefaultProvidersConfig(),
+      ttsModel: 'openai-tts',
+      selectedAgentIds: ['default-1', 'default-2', 'default-3'],
+      maxTurns: '10',
+      autoAgentCount: 3,
 
-        // Playback controls
-        ttsMuted: false,
-        ttsVolume: 1,
-        autoPlayLecture: false,
-        playbackSpeed: 1,
-
-        // Layout preferences
-        sidebarCollapsed: true,
-        chatAreaCollapsed: true,
-        chatAreaWidth: 320,
+        // Playback controls + Layout preferences → useLayoutStore
 
         // Audio settings (use defaults)
         ...defaultAudioConfig,
@@ -585,23 +566,13 @@ export const useSettingsStore = create<SettingsState>()(
 
         setTtsModel: (model) => set({ ttsModel: model }),
 
-        setTTSMuted: (muted) => set({ ttsMuted: muted }),
-
-        setTTSVolume: (volume) => set({ ttsVolume: Math.max(0, Math.min(1, volume)) }),
-
-        setAutoPlayLecture: (autoPlay) => set({ autoPlayLecture: autoPlay }),
-
-        setPlaybackSpeed: (speed) => set({ playbackSpeed: speed }),
+        // setTTSMuted / setTTSVolume / setAutoPlayLecture / setPlaybackSpeed → useLayoutStore
+        // setSidebarCollapsed / setChatAreaCollapsed / setChatAreaWidth → useLayoutStore
 
         setSelectedAgentIds: (ids) => set({ selectedAgentIds: ids }),
 
         setMaxTurns: (turns) => set({ maxTurns: turns }),
         setAutoAgentCount: (count) => set({ autoAgentCount: count }),
-
-        // Layout actions
-        setSidebarCollapsed: (collapsed) => set({ sidebarCollapsed: collapsed }),
-        setChatAreaCollapsed: (collapsed) => set({ chatAreaCollapsed: collapsed }),
-        setChatAreaWidth: (width) => set({ chatAreaWidth: width }),
 
         // Audio actions
         setTTSProvider: (providerId) =>
@@ -1180,155 +1151,131 @@ export const useSettingsStore = create<SettingsState>()(
             log.warn('Failed to fetch server providers:', e);
           }
         },
+
+        hydrate: (config) => {
+          // Accepta qualsevol subconjunt de SettingsState serialitzable
+          // Exclou funcions i camps de layout/playback (gestió independent)
+          const {
+            providersConfig, ttsModel, ttsProviderId, ttsVoice, ttsSpeed,
+            asrProviderId, ttsProvidersConfig, asrProvidersConfig,
+            pdfProviderId, pdfProvidersConfig,
+            imageProviderId, imageModelId, imageProvidersConfig,
+            videoProviderId, videoModelId, videoProvidersConfig,
+            webSearchProviderId, webSearchProvidersConfig,
+            autoConfigApplied, selectedAgentIds, maxTurns, autoAgentCount, themeId,
+          } = config as Partial<SettingsState>;
+
+          set((state) => ({
+            ...(providersConfig !== undefined && { providersConfig }),
+            ...(ttsModel !== undefined && { ttsModel }),
+            ...(ttsProviderId !== undefined && { ttsProviderId }),
+            ...(ttsVoice !== undefined && { ttsVoice }),
+            ...(ttsSpeed !== undefined && { ttsSpeed }),
+            ...(asrProviderId !== undefined && { asrProviderId }),
+            ...(ttsProvidersConfig !== undefined && {
+              ttsProvidersConfig: { ...state.ttsProvidersConfig, ...ttsProvidersConfig },
+            }),
+            ...(asrProvidersConfig !== undefined && {
+              asrProvidersConfig: { ...state.asrProvidersConfig, ...asrProvidersConfig },
+            }),
+            ...(pdfProviderId !== undefined && { pdfProviderId }),
+            ...(pdfProvidersConfig !== undefined && {
+              pdfProvidersConfig: { ...state.pdfProvidersConfig, ...pdfProvidersConfig },
+            }),
+            ...(imageProviderId !== undefined && { imageProviderId }),
+            ...(imageModelId !== undefined && { imageModelId }),
+            ...(imageProvidersConfig !== undefined && {
+              imageProvidersConfig: { ...state.imageProvidersConfig, ...imageProvidersConfig },
+            }),
+            ...(videoProviderId !== undefined && { videoProviderId }),
+            ...(videoModelId !== undefined && { videoModelId }),
+            ...(videoProvidersConfig !== undefined && {
+              videoProvidersConfig: { ...state.videoProvidersConfig, ...videoProvidersConfig },
+            }),
+            ...(webSearchProviderId !== undefined && { webSearchProviderId }),
+            ...(webSearchProvidersConfig !== undefined && {
+              webSearchProvidersConfig: { ...state.webSearchProvidersConfig, ...webSearchProvidersConfig },
+            }),
+            ...(autoConfigApplied !== undefined && { autoConfigApplied }),
+            ...(selectedAgentIds !== undefined && { selectedAgentIds }),
+            ...(maxTurns !== undefined && { maxTurns }),
+            ...(autoAgentCount !== undefined && { autoAgentCount }),
+            ...(themeId !== undefined && { themeId }),
+          }));
+        },
       };
     },
-    {
-      name: 'settings-storage',
-      version: 2,
-      // Migrate persisted state
-      migrate: (persistedState: unknown, version: number) => {
-        const state = persistedState as Partial<SettingsState>;
-
-        // v0 → v1: clear hardcoded default model so user must actively select (legacy fields)
-        if (version === 0) {
-          const rec = state as Record<string, unknown>;
-          if (rec.providerId === 'openai' && rec.modelId === 'gpt-4o-mini') {
-            rec.modelId = '';
-          }
-        }
-
-        // Ensure providersConfig has all built-in providers (also in merge below)
-        ensureBuiltInProviders(state);
-
-        // Ensure image/video configs have all built-in providers
-        ensureBuiltInImageProviders(state);
-        ensureBuiltInVideoProviders(state);
-
-        // Migrate from old ttsModel to new ttsProviderId
-        if (state.ttsModel && !state.ttsProviderId) {
-          // Map old ttsModel values to new ttsProviderId
-          if (state.ttsModel === 'openai-tts') {
-            state.ttsProviderId = 'openai-tts';
-          } else if (state.ttsModel === 'azure-tts') {
-            state.ttsProviderId = 'azure-tts';
-          } else {
-            // Default to OpenAI
-            state.ttsProviderId = 'openai-tts';
-          }
-        }
-
-        // Add default audio config if missing
-        if (!state.ttsProvidersConfig || !state.asrProvidersConfig) {
-          const defaultAudioConfig = getDefaultAudioConfig();
-          Object.assign(state, defaultAudioConfig);
-        }
-
-        // Migrate global ttsModelId to per-provider
-        if ((state as Record<string, unknown>).ttsModelId) {
-          const pid = state.ttsProviderId;
-          if (pid && state.ttsProvidersConfig?.[pid]) {
-            state.ttsProvidersConfig[pid].modelId = (state as Record<string, unknown>)
-              .ttsModelId as string;
-          }
-          delete (state as Record<string, unknown>).ttsModelId;
-        }
-        // Same for asrModelId
-        if ((state as Record<string, unknown>).asrModelId) {
-          const pid = state.asrProviderId;
-          if (pid && state.asrProvidersConfig?.[pid]) {
-            state.asrProvidersConfig[pid].modelId = (state as Record<string, unknown>)
-              .asrModelId as string;
-          }
-          delete (state as Record<string, unknown>).asrModelId;
-        }
-        // Migrate MiniMax's model field to modelId
-        for (const [, cfg] of Object.entries(
-          (state.ttsProvidersConfig as Record<string, Record<string, unknown>>) || {},
-        )) {
-          if (cfg.model && !cfg.modelId) {
-            cfg.modelId = cfg.model;
-            delete cfg.model;
-          }
-        }
-
-        // Add default PDF config if missing
-        if (!state.pdfProvidersConfig) {
-          const defaultPDFConfig = getDefaultPDFConfig();
-          Object.assign(state, defaultPDFConfig);
-        }
-
-        // Add default Image config if missing
-        if (!state.imageProvidersConfig) {
-          const defaultImageConfig = getDefaultImageConfig();
-          Object.assign(state, defaultImageConfig);
-        }
-
-        // Add default Video config if missing
-        if (!state.videoProvidersConfig) {
-          const defaultVideoConfig = getDefaultVideoConfig();
-          Object.assign(state, defaultVideoConfig);
-        }
-
-        // v1 → v2: Replace deep research with web search
-        if (version < 2) {
-          delete (state as Record<string, unknown>).deepResearchProviderId;
-          delete (state as Record<string, unknown>).deepResearchProvidersConfig;
-        }
-
-        // imageGenerationEnabled/videoGenerationEnabled/ttsEnabled/asrEnabled → useUserPrefsStore
-        // Elimina camps obsolets del settings store per evitar contaminació
-        {
-          const rec = state as Record<string, unknown>;
-          delete rec.imageGenerationEnabled;
-          delete rec.videoGenerationEnabled;
-          delete rec.ttsEnabled;
-          delete rec.asrEnabled;
-        }
-
-        // Existing users already have their config set up — mark auto-config as done
-        if ((state as Record<string, unknown>).autoConfigApplied === undefined) {
-          (state as Record<string, unknown>).autoConfigApplied = true;
-        }
-
-        // agentMode → useUserPrefsStore (elimina camp obsolet)
-        delete (state as Record<string, unknown>).agentMode;
-        if ((state as Record<string, unknown>).autoAgentCount === undefined) {
-          (state as Record<string, unknown>).autoAgentCount = 3;
-        }
-
-        // Migrate Web Search: old flat fields → new provider-based config
-        if (!state.webSearchProvidersConfig) {
-          const stateRecord = state as Record<string, unknown>;
-          const oldApiKey = (stateRecord.webSearchApiKey as string) || '';
-          const oldIsServerConfigured =
-            (stateRecord.webSearchIsServerConfigured as boolean) || false;
-          state.webSearchProviderId = 'tavily' as WebSearchProviderId;
-          state.webSearchProvidersConfig = {
-            tavily: {
-              apiKey: oldApiKey,
-              baseUrl: '',
-              enabled: true,
-              isServerConfigured: oldIsServerConfigured,
-            },
-          } as SettingsState['webSearchProvidersConfig'];
-          delete stateRecord.webSearchApiKey;
-          delete stateRecord.webSearchIsServerConfigured;
-        }
-
-        ensureValidProviderSelections(state);
-
-        return state;
-      },
-      // Custom merge: always sync built-in providers on every rehydrate,
-      // so newly added providers/models appear without clearing cache.
-      merge: (persistedState, currentState) => {
-        const merged = { ...currentState, ...(persistedState as object) };
-        ensureBuiltInProviders(merged as Partial<SettingsState>);
-        ensureBuiltInImageProviders(merged as Partial<SettingsState>);
-        ensureBuiltInVideoProviders(merged as Partial<SettingsState>);
-        ensureValidProviderSelections(merged as Partial<SettingsState>);
-        return merged as SettingsState;
-      },
-    },
-  ),
 );
+
+// Neteja claus obsoletes de localStorage al primer càrrega
+// (migració transparent: les dades ara viuen a la BD)
+if (typeof window !== 'undefined') {
+  try {
+    const legacyKeys = Object.keys(localStorage).filter(
+      (k) => k === 'settings-storage' || k.startsWith('user-prefs-storage'),
+    );
+    for (const key of legacyKeys) {
+      localStorage.removeItem(key);
+    }
+  } catch {
+    // Ignorar errors d'accés a localStorage
+  }
+}
+
+// ── Auto-save a BD (admin only, debounced) ───────────────────────────────────
+// Quan l'admin canvia la configuració via el Settings panel, es desa automàticament
+// a AdminConfig (BD) via PUT /api/admin/config/providers.
+
+let _configSaveTimer: ReturnType<typeof setTimeout> | null = null;
+let _configSaveInitialized = false;
+
+function scheduleConfigSave(state: SettingsState) {
+  if (typeof window === 'undefined') return;
+  if (_configSaveTimer) clearTimeout(_configSaveTimer);
+  _configSaveTimer = setTimeout(() => {
+    _configSaveTimer = null;
+    // Serialitzar camps de config (excloure funcions i camps de layout)
+    const payload = {
+      providersConfig: state.providersConfig,
+      ttsModel: state.ttsModel,
+      ttsProviderId: state.ttsProviderId,
+      ttsVoice: state.ttsVoice,
+      ttsSpeed: state.ttsSpeed,
+      asrProviderId: state.asrProviderId,
+      ttsProvidersConfig: state.ttsProvidersConfig,
+      asrProvidersConfig: state.asrProvidersConfig,
+      pdfProviderId: state.pdfProviderId,
+      pdfProvidersConfig: state.pdfProvidersConfig,
+      imageProviderId: state.imageProviderId,
+      imageModelId: state.imageModelId,
+      imageProvidersConfig: state.imageProvidersConfig,
+      videoProviderId: state.videoProviderId,
+      videoModelId: state.videoModelId,
+      videoProvidersConfig: state.videoProvidersConfig,
+      webSearchProviderId: state.webSearchProviderId,
+      webSearchProvidersConfig: state.webSearchProvidersConfig,
+      autoConfigApplied: state.autoConfigApplied,
+      selectedAgentIds: state.selectedAgentIds,
+      maxTurns: state.maxTurns,
+      autoAgentCount: state.autoAgentCount,
+      themeId: state.themeId,
+    };
+    fetch('/api/admin/config/providers', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    }).catch(() => {
+      // Silenciar errors — el proper canvi tornarà a intentar-ho
+    });
+  }, 800);
+}
+
+// Inicialitzar subscripció auto-save (es fa una sola vegada al client)
+if (typeof window !== 'undefined' && !_configSaveInitialized) {
+  _configSaveInitialized = true;
+  useSettingsStore.subscribe((state) => {
+    scheduleConfigSave(state);
+  });
+}
+
+// Les funcions ensureBuiltIn* es conserven perquè fetchServerProviders les usa.

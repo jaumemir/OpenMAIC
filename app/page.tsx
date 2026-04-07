@@ -38,7 +38,7 @@ import { nanoid } from 'nanoid';
 import { storePdfBlob } from '@/lib/utils/image-storage';
 import type { UserRequirements } from '@/lib/types/generation';
 import { useSettingsStore } from '@/lib/store/settings';
-import { useUserPrefsStore, setUserPrefsUserId } from '@/lib/store/user-prefs';
+import { useUserPrefsStore } from '@/lib/store/user-prefs';
 import { useUserProfileStore, AVATAR_OPTIONS } from '@/lib/store/user-profile';
 import {
   StageListItem,
@@ -183,10 +183,35 @@ function HomePage() {
     loadClassrooms();
   }, []);
 
-  // Namespace les preferències de Zustand per userId → cada usuari té les seves preferències
+  // Hidratar stores des de la BD quan canvia l'usuari de sessió
   useEffect(() => {
-    setUserPrefsUserId(sessionUser?.id ?? null);
-  }, [sessionUser?.id]);
+    if (!sessionUser?.id) return;
+
+    // Preferències per-usuari
+    fetch('/api/user/preferences')
+      .then((r) => r.json())
+      .then((data) => {
+        if (data?.preferences) {
+          useUserPrefsStore.getState().hydrate(data.preferences);
+        }
+      })
+      .catch(() => {});
+
+    // Config global (admin only)
+    if (sessionUser.role === 'admin') {
+      fetch('/api/admin/config/providers')
+        .then((r) => r.json())
+        .then((data) => {
+          if (data?.config) {
+            useSettingsStore.getState().hydrate(data.config);
+          }
+        })
+        .catch(() => {});
+    } else {
+      // Usuaris normals: fetchServerProviders filtra models per allowedModels
+      useSettingsStore.getState().fetchServerProviders();
+    }
+  }, [sessionUser?.id, sessionUser?.role]);
 
   // Hidratar el nickname des del perfil de l'usuari autenticat (si no n'hi ha un de configurat)
   useEffect(() => {

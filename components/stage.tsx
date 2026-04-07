@@ -6,6 +6,7 @@ import { PENDING_SCENE_ID } from '@/lib/store/stage';
 import { useCanvasStore } from '@/lib/store/canvas';
 import { useSettingsStore } from '@/lib/store/settings';
 import { useUserPrefsStore } from '@/lib/store/user-prefs';
+import { useLayoutStore } from '@/lib/store/layout';
 import { useI18n } from '@/lib/hooks/use-i18n';
 import { SceneSidebar } from './stage/scene-sidebar';
 import { Header } from './header';
@@ -53,15 +54,15 @@ export function Stage({
 
   const currentScene = getCurrentScene();
 
-  // Layout state from settings store (persisted via localStorage)
-  const sidebarCollapsed = useSettingsStore((s) => s.sidebarCollapsed);
-  const setSidebarCollapsed = useSettingsStore((s) => s.setSidebarCollapsed);
-  const chatAreaWidth = useSettingsStore((s) => s.chatAreaWidth);
-  const setChatAreaWidth = useSettingsStore((s) => s.setChatAreaWidth);
-  const chatAreaCollapsed = useSettingsStore((s) => s.chatAreaCollapsed);
-  const setChatAreaCollapsed = useSettingsStore((s) => s.setChatAreaCollapsed);
-  const setTTSMuted = useSettingsStore((s) => s.setTTSMuted);
-  const setTTSVolume = useSettingsStore((s) => s.setTTSVolume);
+  // Layout state from layout store (persisted via localStorage)
+  const sidebarCollapsed = useLayoutStore((s) => s.sidebarCollapsed);
+  const setSidebarCollapsed = useLayoutStore((s) => s.setSidebarCollapsed);
+  const chatAreaWidth = useLayoutStore((s) => s.chatAreaWidth);
+  const setChatAreaWidth = useLayoutStore((s) => s.setChatAreaWidth);
+  const chatAreaCollapsed = useLayoutStore((s) => s.chatAreaCollapsed);
+  const setChatAreaCollapsed = useLayoutStore((s) => s.setChatAreaCollapsed);
+  const setTTSMuted = useLayoutStore((s) => s.setTTSMuted);
+  const setTTSVolume = useLayoutStore((s) => s.setTTSVolume);
 
   // PlaybackEngine state
   const [engineMode, setEngineMode] = useState<EngineMode>('idle');
@@ -109,7 +110,7 @@ export function Stage({
 
   // Selected agents from settings store (Zustand)
   const selectedAgentIds = useSettingsStore((s) => s.selectedAgentIds);
-  const ttsMuted = useSettingsStore((s) => s.ttsMuted);
+  const ttsMuted = useLayoutStore((s) => s.ttsMuted);
   const ttsEnabled = useUserPrefsStore((s) => s.ttsEnabled);
 
   // Generate participants from selected agents
@@ -481,7 +482,7 @@ export function Stage({
         const ids = useSettingsStore.getState().selectedAgentIds;
         return ids.includes(agentId);
       },
-      getPlaybackSpeed: () => useSettingsStore.getState().playbackSpeed || 1,
+      getPlaybackSpeed: () => useLayoutStore.getState().playbackSpeed || 1,
       onComplete: () => {
         // lectureSpeech intentionally NOT cleared — last sentence stays visible
         // until scene transition (auto-play) or user restarts. Scene change
@@ -494,11 +495,11 @@ export function Stage({
           lectureSessionIdRef.current = null;
         }
         // Auto-play: advance to next scene after a short pause
-        const { autoPlayLecture } = useSettingsStore.getState();
+        const { autoPlayLecture } = useLayoutStore.getState();
         if (autoPlayLecture) {
           setTimeout(() => {
             const stageState = useStageStore.getState();
-            if (!useSettingsStore.getState().autoPlayLecture) return;
+            if (!useLayoutStore.getState().autoPlayLecture) return;
             const allScenes = stageState.scenes;
             const curId = stageState.currentSceneId;
             const idx = allScenes.findIndex((s) => s.id === curId);
@@ -574,8 +575,8 @@ export function Stage({
     audioPlayerRef.current.setMuted(ttsMuted);
   }, [ttsMuted]);
 
-  // Sync volume from settings store to audioPlayer
-  const ttsVolume = useSettingsStore((s) => s.ttsVolume);
+  // Sync volume from layout store to audioPlayer
+  const ttsVolume = useLayoutStore((s) => s.ttsVolume);
   useEffect(() => {
     if (!ttsMuted) {
       audioPlayerRef.current.setVolume(ttsVolume);
@@ -583,7 +584,7 @@ export function Stage({
   }, [ttsVolume, ttsMuted]);
 
   // Sync playback speed to audio player (for live-updating current audio)
-  const playbackSpeed = useSettingsStore((s) => s.playbackSpeed);
+  const playbackSpeed = useLayoutStore((s) => s.playbackSpeed);
   useEffect(() => {
     audioPlayerRef.current.setPlaybackRate(playbackSpeed);
   }, [playbackSpeed]);

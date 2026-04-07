@@ -22,7 +22,8 @@ import { CanvasToolbar } from '@/components/canvas/canvas-toolbar';
 import { useAudioRecorder } from '@/lib/hooks/use-audio-recorder';
 import { useI18n } from '@/lib/hooks/use-i18n';
 import { toast } from 'sonner';
-import { useSettingsStore, PLAYBACK_SPEEDS } from '@/lib/store/settings';
+import { PLAYBACK_SPEEDS } from '@/lib/store/settings';
+import { useLayoutStore } from '@/lib/store/layout';
 import { useUserPrefsStore } from '@/lib/store/user-prefs';
 import { ProactiveCard } from '@/components/chat/proactive-card';
 import { PresentationSpeechOverlay } from '@/components/roundtable/presentation-speech-overlay';
@@ -177,17 +178,17 @@ export function Roundtable({
   fullscreenContainerRef,
 }: RoundtableProps) {
   const { t } = useI18n();
-  const ttsMuted = useSettingsStore((s) => s.ttsMuted);
-  const setTTSMuted = useSettingsStore((s) => s.setTTSMuted);
+  const ttsMuted = useLayoutStore((s) => s.ttsMuted);
+  const setTTSMuted = useLayoutStore((s) => s.setTTSMuted);
   const ttsEnabled = useUserPrefsStore((state) => state.ttsEnabled);
   const asrEnabled = useUserPrefsStore((state) => state.asrEnabled);
-  const chatAreaWidth = useSettingsStore((s) => s.chatAreaWidth);
-  const ttsVolume = useSettingsStore((s) => s.ttsVolume);
-  const setTTSVolume = useSettingsStore((s) => s.setTTSVolume);
-  const autoPlayLecture = useSettingsStore((s) => s.autoPlayLecture);
-  const setAutoPlayLecture = useSettingsStore((s) => s.setAutoPlayLecture);
-  const playbackSpeed = useSettingsStore((s) => s.playbackSpeed);
-  const setPlaybackSpeed = useSettingsStore((s) => s.setPlaybackSpeed);
+  const chatAreaWidth = useLayoutStore((s) => s.chatAreaWidth);
+  const ttsVolume = useLayoutStore((s) => s.ttsVolume);
+  const setTTSVolume = useLayoutStore((s) => s.setTTSVolume);
+  const autoPlayLecture = useLayoutStore((s) => s.autoPlayLecture);
+  const setAutoPlayLecture = useLayoutStore((s) => s.setAutoPlayLecture);
+  const playbackSpeed = useLayoutStore((s) => s.playbackSpeed);
+  const setPlaybackSpeed = useLayoutStore((s) => s.setPlaybackSpeed);
   const [isInputOpen, setIsInputOpen] = useState(false);
   const [isVoiceOpen, setIsVoiceOpen] = useState(false);
   const [inputValue, setInputValue] = useState('');
