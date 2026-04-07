@@ -13,6 +13,7 @@ export const supportedLocales = [
   { code: 'en-US', label: 'English', shortLabel: 'EN' },
   { code: 'ca', label: 'Català', shortLabel: 'CA' },
   { code: 'ja-JP', label: '日本語', shortLabel: 'JA' },
+  { code: 'ru-RU', label: 'Русский', shortLabel: 'RU' },
 ] as const satisfies readonly LocaleEntry[];
 
 export type Locale = (typeof supportedLocales)[number]['code'];
