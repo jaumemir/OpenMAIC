@@ -32,6 +32,7 @@ model User {
   classroomJobs        ClassroomJob[]
   adminConfigUpdates   AdminConfig[]
   auditLogs            AuditLog[]
+  preferences          UserPreferences?
   passwordResetTokens  PasswordResetToken[]
 
   @@map("users")
@@ -205,4 +206,23 @@ model AuditLog {
   @@index([entityType, entityId])
   @@index([createdAt])
   @@map("audit_logs")
+}
+
+// ── Preferències per-usuari ───────────────────────────────────────────────
+
+model UserPreferences {
+  userId                  String   @id @map("user_id")
+  providerId              String   @default("openai") @map("provider_id")
+  modelId                 String   @default("") @map("model_id")
+  ttsEnabled              Boolean  @default(true) @map("tts_enabled")
+  asrEnabled              Boolean  @default(true) @map("asr_enabled")
+  imageGenerationEnabled  Boolean  @default(false) @map("image_generation_enabled")
+  videoGenerationEnabled  Boolean  @default(false) @map("video_generation_enabled")
+  asrLanguage             String   @default("zh-CN") @map("asr_language")
+  agentMode               String   @default("auto") @map("agent_mode")
+  updatedAt               DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_preferences")
 }

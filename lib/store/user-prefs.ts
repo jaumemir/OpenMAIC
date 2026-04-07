@@ -2,14 +2,15 @@
  * User Preferences Store
  *
  * Preferències per-usuari: model seleccionat + activació de funcionalitats.
- * Namespaced per userId → cada usuari té les seves preferències independents.
+ * La font de veritat és la BD (UserPreferences via /api/user/preferences).
+ * Zustand actua com a cache en memòria per a la sessió actual — sense persist.
  *
- * La configuració de proveïdors (API keys, models disponibles) roman
- * al store global `useSettingsStore` (configurada per l'admin, aplica a tots).
+ * Flux:
+ *   Login → GET /api/user/preferences → hydrate()
+ *   Canvi  → setter → auto-save a BD (debounced, fire-and-forget)
  */
 
 import { create } from 'zustand';
-import { persist, createJSONStorage } from 'zustand/middleware';
 import type { ProviderId } from '@/lib/ai/providers';
 
 export interface UserPrefsState {
@@ -29,7 +30,7 @@ export interface UserPrefsState {
   // Mode d'agents (per-usuari)
   agentMode: 'preset' | 'auto';
 
-  // Setters
+  // Setters (auto-desen a BD en background)
   setModel: (providerId: ProviderId, modelId: string) => void;
   setTTSEnabled: (enabled: boolean) => void;
   setASREnabled: (enabled: boolean) => void;
@@ -37,94 +38,89 @@ export interface UserPrefsState {
   setVideoGenerationEnabled: (enabled: boolean) => void;
   setASRLanguage: (language: string) => void;
   setAgentMode: (mode: 'preset' | 'auto') => void;
+
+  /**
+   * Hidrata el store amb dades rebudes del servidor (GET /api/user/preferences).
+   * Crida-la al login i al canvi d'usuari.
+   */
+  hydrate: (prefs: Partial<UserPrefsState>) => void;
 }
 
-// ── Storage namespaced per userId ─────────────────────────────────────────────
+// ── Debounced save ────────────────────────────────────────────────────────────
 
-let _currentUserId: string | null = null;
+let _saveTimer: ReturnType<typeof setTimeout> | null = null;
 
-/**
- * Invoca aquesta funció quan la sessió canvia (login/logout).
- * Recarrega el store de preferències amb la clau de l'usuari.
- */
-export function setUserPrefsUserId(userId: string | null) {
-  _currentUserId = userId;
-  if (typeof window !== 'undefined') {
-    useUserPrefsStore.persist.rehydrate();
-  }
+function scheduleSave(data: Partial<UserPrefsState>) {
+  if (typeof window === 'undefined') return;
+  if (_saveTimer) clearTimeout(_saveTimer);
+  _saveTimer = setTimeout(() => {
+    _saveTimer = null;
+    fetch('/api/user/preferences', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    }).catch(() => {
+      // Silenciar errors de xarxa — les prefs es tornaran a desar al proper canvi
+    });
+  }, 600);
 }
-
-const userScopedLocalStorage = {
-  getItem: (name: string): string | null => {
-    if (typeof window === 'undefined') return null;
-    if (!_currentUserId) return localStorage.getItem(name);
-    const scopedKey = `${name}__${_currentUserId}`;
-    // Migració transparent: si la clau per usuari no existeix, llegeix la legacy
-    return localStorage.getItem(scopedKey) ?? localStorage.getItem(name);
-  },
-  setItem: (name: string, value: string): void => {
-    if (typeof window === 'undefined') return;
-    const key = _currentUserId ? `${name}__${_currentUserId}` : name;
-    localStorage.setItem(key, value);
-  },
-  removeItem: (name: string): void => {
-    if (typeof window === 'undefined') return;
-    const key = _currentUserId ? `${name}__${_currentUserId}` : name;
-    localStorage.removeItem(key);
-  },
-};
 
 // ── Store ─────────────────────────────────────────────────────────────────────
 
-export const useUserPrefsStore = create<UserPrefsState>()(
-  persist(
-    (set) => ({
-      providerId: 'openai' as ProviderId,
-      modelId: '',
-      ttsEnabled: true,
-      asrEnabled: true,
-      imageGenerationEnabled: false,
-      videoGenerationEnabled: false,
-      asrLanguage: 'zh-CN',
-      agentMode: 'auto' as const,
+export const useUserPrefsStore = create<UserPrefsState>()((set) => ({
+  providerId: 'openai' as ProviderId,
+  modelId: '',
+  ttsEnabled: true,
+  asrEnabled: true,
+  imageGenerationEnabled: false,
+  videoGenerationEnabled: false,
+  asrLanguage: 'zh-CN',
+  agentMode: 'auto' as const,
 
-      setModel: (providerId, modelId) => set({ providerId, modelId }),
-      setTTSEnabled: (enabled) => set({ ttsEnabled: enabled }),
-      setASREnabled: (enabled) => set({ asrEnabled: enabled }),
-      setImageGenerationEnabled: (enabled) => set({ imageGenerationEnabled: enabled }),
-      setVideoGenerationEnabled: (enabled) => set({ videoGenerationEnabled: enabled }),
-      setASRLanguage: (language) => set({ asrLanguage: language }),
-      setAgentMode: (mode) => set({ agentMode: mode }),
-    }),
-    {
-      name: 'user-prefs-storage',
-      storage: createJSONStorage(() => userScopedLocalStorage),
-      version: 1,
-      // Migració: en la primera càrrega intenta heretar valors del settings-storage antic
-      migrate: (persistedState: unknown, _version: number) => {
-        const state = (persistedState ?? {}) as Partial<UserPrefsState>;
-        if (!state.providerId && typeof window !== 'undefined') {
-          try {
-            const old = localStorage.getItem('settings-storage');
-            if (old) {
-              const s = (JSON.parse(old) as { state?: Partial<UserPrefsState> })?.state ?? {};
-              if (s.providerId) state.providerId = s.providerId;
-              if (s.modelId !== undefined) state.modelId = s.modelId;
-              if (s.ttsEnabled !== undefined) state.ttsEnabled = s.ttsEnabled;
-              if (s.asrEnabled !== undefined) state.asrEnabled = s.asrEnabled;
-              if (s.imageGenerationEnabled !== undefined)
-                state.imageGenerationEnabled = s.imageGenerationEnabled;
-              if (s.videoGenerationEnabled !== undefined)
-                state.videoGenerationEnabled = s.videoGenerationEnabled;
-              if (s.asrLanguage) state.asrLanguage = s.asrLanguage;
-              if (s.agentMode) state.agentMode = s.agentMode;
-            }
-          } catch {
-            /* ignorar errors de parsing */
-          }
-        }
-        return state as UserPrefsState;
-      },
-    },
-  ),
-);
+  setModel: (providerId, modelId) => {
+    set({ providerId, modelId });
+    scheduleSave({ providerId, modelId });
+  },
+  setTTSEnabled: (ttsEnabled) => {
+    set({ ttsEnabled });
+    scheduleSave({ ttsEnabled });
+  },
+  setASREnabled: (asrEnabled) => {
+    set({ asrEnabled });
+    scheduleSave({ asrEnabled });
+  },
+  setImageGenerationEnabled: (imageGenerationEnabled) => {
+    set({ imageGenerationEnabled });
+    scheduleSave({ imageGenerationEnabled });
+  },
+  setVideoGenerationEnabled: (videoGenerationEnabled) => {
+    set({ videoGenerationEnabled });
+    scheduleSave({ videoGenerationEnabled });
+  },
+  setASRLanguage: (asrLanguage) => {
+    set({ asrLanguage });
+    scheduleSave({ asrLanguage });
+  },
+  setAgentMode: (agentMode) => {
+    set({ agentMode });
+    scheduleSave({ agentMode });
+  },
+
+  hydrate: (prefs) => {
+    const {
+      providerId, modelId, ttsEnabled, asrEnabled,
+      imageGenerationEnabled, videoGenerationEnabled,
+      asrLanguage, agentMode,
+    } = prefs;
+    set({
+      ...(providerId !== undefined && { providerId }),
+      ...(modelId !== undefined && { modelId }),
+      ...(ttsEnabled !== undefined && { ttsEnabled }),
+      ...(asrEnabled !== undefined && { asrEnabled }),
+      ...(imageGenerationEnabled !== undefined && { imageGenerationEnabled }),
+      ...(videoGenerationEnabled !== undefined && { videoGenerationEnabled }),
+      ...(asrLanguage !== undefined && { asrLanguage }),
+      ...(agentMode !== undefined && { agentMode }),
+    });
+  },
+}));

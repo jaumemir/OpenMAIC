@@ -38,6 +38,7 @@ import { ActionEngine } from '@/lib/action/engine';
 import { useCanvasStore } from '@/lib/store/canvas';
 import { useSettingsStore } from '@/lib/store/settings';
 import { useUserPrefsStore } from '@/lib/store/user-prefs';
+import { useLayoutStore } from '@/lib/store/layout';
 import { createLogger } from '@/lib/logger';
 
 const log = createLogger('PlaybackEngine');
@@ -635,13 +636,14 @@ export class PlaybackEngine {
     }
 
     const settings = useSettingsStore.getState();
+    const layoutSettings = useLayoutStore.getState();
     const chunkText = this.browserTTSChunks[this.browserTTSChunkIndex];
     const utterance = new SpeechSynthesisUtterance(chunkText);
 
     // Apply settings
     const speed = this.callbacks.getPlaybackSpeed?.() ?? 1;
     utterance.rate = (settings.ttsSpeed ?? 1) * speed;
-    utterance.volume = settings.ttsMuted ? 0 : (settings.ttsVolume ?? 1);
+    utterance.volume = layoutSettings.ttsMuted ? 0 : (layoutSettings.ttsVolume ?? 1);
 
     // Ensure voices are loaded (Chrome loads them asynchronously)
     const voices = await this.ensureVoicesLoaded();

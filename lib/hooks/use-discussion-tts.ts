@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef } from 'react';
 import { useSettingsStore } from '@/lib/store/settings';
+import { useLayoutStore } from '@/lib/store/layout';
 import { useBrowserTTS } from '@/lib/hooks/use-browser-tts';
 import {
   resolveAgentVoice,
@@ -31,9 +32,9 @@ interface QueueItem {
 export function useDiscussionTTS({ enabled, agents, onAudioStateChange }: DiscussionTTSOptions) {
   const ttsProvidersConfig = useSettingsStore((s) => s.ttsProvidersConfig);
   const ttsSpeed = useSettingsStore((s) => s.ttsSpeed);
-  const ttsMuted = useSettingsStore((s) => s.ttsMuted);
-  const ttsVolume = useSettingsStore((s) => s.ttsVolume);
-  const playbackSpeed = useSettingsStore((s) => s.playbackSpeed);
+  const ttsMuted = useLayoutStore((s) => s.ttsMuted);
+  const ttsVolume = useLayoutStore((s) => s.ttsVolume);
+  const playbackSpeed = useLayoutStore((s) => s.playbackSpeed);
   // Global lecture voice — used as fallback for teacher agent
   const globalTtsProviderId = useSettingsStore((s) => s.ttsProviderId);
   const globalTtsVoice = useSettingsStore((s) => s.ttsVoice);
