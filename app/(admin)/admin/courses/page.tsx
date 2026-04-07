@@ -59,14 +59,13 @@ export default function AdminCoursesPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="max-w-5xl mx-auto px-6 py-10">
-        <div className="mb-8">
-          <h1 className="text-2xl font-semibold">Cursos generats</h1>
-          <p className="text-muted-foreground mt-1">
-            Tots els cursos del sistema amb el seu propietari.
-          </p>
-        </div>
+    <div className="max-w-6xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-10">
+      <div className="mb-8">
+        <h1 className="text-2xl font-semibold tracking-tight">Cursos generats</h1>
+        <p className="text-muted-foreground mt-1">
+          Tots els cursos del sistema amb el seu propietari.
+        </p>
+      </div>
 
         {loading ? (
           <div className="flex items-center justify-center py-16 text-muted-foreground">
@@ -74,47 +73,43 @@ export default function AdminCoursesPage() {
             Carregant…
           </div>
         ) : stages.length === 0 ? (
-          <div className="border rounded-lg py-12 text-center text-muted-foreground text-sm">
+          <div className="rounded-xl border border-border/60 py-14 text-center text-muted-foreground text-sm bg-white/60 dark:bg-slate-900/50 shadow-sm">
             Encara no hi ha cap curs generat.
           </div>
         ) : (
-          <div className="border rounded-lg overflow-hidden">
+          <div className="rounded-xl border border-border/60 overflow-hidden bg-white/60 dark:bg-slate-900/50 shadow-sm">
             <table className="w-full text-sm">
-              <thead className="bg-muted/50">
-                <tr>
-                  <th className="text-left px-4 py-2 font-medium text-muted-foreground">Nom</th>
-                  <th className="text-left px-4 py-2 font-medium text-muted-foreground">Stage ID</th>
-                  <th className="text-left px-4 py-2 font-medium text-muted-foreground">Escenes</th>
-                  <th className="text-left px-4 py-2 font-medium text-muted-foreground">
-                    Propietari
-                  </th>
-                  <th className="text-left px-4 py-2 font-medium text-muted-foreground">
-                    Data creació
-                  </th>
-                  <th className="px-4 py-2" />
+              <thead>
+                <tr className="border-b border-border/60 bg-muted/40">
+                  <th className="text-left px-4 py-2.5 font-medium text-muted-foreground">Nom</th>
+                  <th className="text-left px-4 py-2.5 font-medium text-muted-foreground hidden lg:table-cell">Stage ID</th>
+                  <th className="text-left px-4 py-2.5 font-medium text-muted-foreground">Escenes</th>
+                  <th className="text-left px-4 py-2.5 font-medium text-muted-foreground">Propietari</th>
+                  <th className="text-left px-4 py-2.5 font-medium text-muted-foreground hidden sm:table-cell">Data creació</th>
+                  <th className="px-4 py-2.5" />
                 </tr>
               </thead>
               <tbody>
                 {stages.map((stage) => (
-                  <tr key={stage.id} className="border-t hover:bg-muted/20">
-                    <td className="px-4 py-2 font-medium max-w-xs truncate" title={stage.name}>
+                  <tr key={stage.id} className="border-t border-border/40 hover:bg-muted/20 transition-colors">
+                    <td className="px-4 py-2.5 font-medium max-w-xs truncate" title={stage.name}>
                       {stage.name || <span className="text-muted-foreground italic">Sense títol</span>}
                     </td>
-                    <td className="px-4 py-2 font-mono text-xs text-muted-foreground select-all">
+                    <td className="px-4 py-2.5 font-mono text-xs text-muted-foreground select-all hidden lg:table-cell">
                       {stage.id}
                     </td>
-                    <td className="px-4 py-2 text-muted-foreground">{stage.sceneCount}</td>
-                    <td className="px-4 py-2 text-muted-foreground">
+                    <td className="px-4 py-2.5 text-muted-foreground text-xs tabular-nums">{stage.sceneCount}</td>
+                    <td className="px-4 py-2.5 text-muted-foreground text-xs">
                       {stage.owner ? (
                         <span title={stage.owner.userId}>{stage.owner.email}</span>
                       ) : (
-                        <span className="italic text-muted-foreground/60">Desconegut</span>
+                        <span className="italic text-muted-foreground/50">Desconegut</span>
                       )}
                     </td>
-                    <td className="px-4 py-2 text-muted-foreground text-xs">
+                    <td className="px-4 py-2.5 text-muted-foreground text-xs whitespace-nowrap hidden sm:table-cell">
                       {new Date(stage.createdAt).toLocaleString('ca-ES')}
                     </td>
-                    <td className="px-4 py-2 text-right">
+                    <td className="px-4 py-2.5 text-right">
                       <Button
                         variant="ghost"
                         size="icon"
@@ -131,7 +126,6 @@ export default function AdminCoursesPage() {
             </table>
           </div>
         )}
-      </div>
 
       <AlertDialog open={!!deleteId} onOpenChange={(open) => !open && setDeleteId(null)}>
         <AlertDialogContent>

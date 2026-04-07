@@ -161,12 +161,11 @@ export default function AdminUsersPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="max-w-5xl mx-auto px-6 py-10">
-        <h1 className="text-2xl font-semibold mb-8">Gestió d&apos;usuaris</h1>
+    <div className="max-w-6xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-10">
+        <h1 className="text-2xl font-semibold tracking-tight mb-8">Gestió d&apos;usuaris</h1>
 
         {/* Formulari invitació */}
-        <Card className="mb-8">
+        <Card className="mb-8 rounded-2xl border-border/60 bg-white/60 dark:bg-slate-900/50 shadow-sm">
           <CardHeader><CardTitle>Convidar nou usuari</CardTitle></CardHeader>
           <CardContent>
             <form onSubmit={handleInvite} className="grid grid-cols-1 sm:grid-cols-4 gap-4">
@@ -203,24 +202,24 @@ export default function AdminUsersPage() {
         </Card>
 
         {/* Taula d'usuaris */}
-        <div className="border rounded-lg overflow-hidden">
+        <div className="rounded-xl border border-border/60 overflow-hidden bg-white/60 dark:bg-slate-900/50 shadow-sm">
           <table className="w-full text-sm">
-            <thead className="bg-muted/50">
-              <tr>
-                <th className="text-left px-4 py-2 font-medium text-muted-foreground">Usuari</th>
-                <th className="text-left px-4 py-2 font-medium text-muted-foreground">Email</th>
-                <th className="text-left px-4 py-2 font-medium text-muted-foreground">Rol</th>
-                <th className="text-left px-4 py-2 font-medium text-muted-foreground">Estat</th>
-                <th className="text-left px-4 py-2 font-medium text-muted-foreground">Creat</th>
-                <th className="px-4 py-2" />
+            <thead>
+              <tr className="border-b border-border/60 bg-muted/40">
+                <th className="text-left px-4 py-2.5 font-medium text-muted-foreground">Usuari</th>
+                <th className="text-left px-4 py-2.5 font-medium text-muted-foreground hidden sm:table-cell">Email</th>
+                <th className="text-left px-4 py-2.5 font-medium text-muted-foreground">Rol</th>
+                <th className="text-left px-4 py-2.5 font-medium text-muted-foreground">Estat</th>
+                <th className="text-left px-4 py-2.5 font-medium text-muted-foreground hidden md:table-cell">Creat</th>
+                <th className="px-4 py-2.5" />
               </tr>
             </thead>
             <tbody>
               {loading && (
-                <tr><td colSpan={6} className="px-4 py-8 text-center text-muted-foreground">Carregant...</td></tr>
+                <tr><td colSpan={6} className="px-4 py-10 text-center text-muted-foreground">Carregant...</td></tr>
               )}
               {!loading && users.map((u) => (
-                <tr key={u.id} className={`border-t transition-colors ${u.status === 'inactive' ? 'opacity-60 bg-muted/30' : 'hover:bg-muted/20'}`}>
+                <tr key={u.id} className={`border-t border-border/40 transition-colors ${u.status === 'inactive' ? 'opacity-60 bg-muted/30' : 'hover:bg-muted/20'}`}>
                   <td className="px-4 py-2 font-medium">
                     {u.firstName && u.lastName ? `${u.firstName} ${u.lastName}` : '—'}
                     {u.organization && <span className="ml-1 text-xs text-muted-foreground">· {u.organization}</span>}
@@ -263,12 +262,11 @@ export default function AdminUsersPage() {
                 </tr>
               ))}
               {!loading && users.length === 0 && (
-                <tr><td colSpan={6} className="px-4 py-8 text-center text-muted-foreground">Sense usuaris</td></tr>
+                <tr><td colSpan={6} className="px-4 py-10 text-center text-muted-foreground">Sense usuaris</td></tr>
               )}
             </tbody>
           </table>
         </div>
-      </div>
 
       {/* Diàleg d'edició d'usuari */}
       <Dialog open={!!editUser} onOpenChange={(open) => { if (!open) setEditUser(null); }}>

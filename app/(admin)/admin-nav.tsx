@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { signOut } from '@/lib/auth/client';
-import { ChevronRight, Home, LogOut } from 'lucide-react';
+import { ChevronRight, LayoutDashboard, LogOut } from 'lucide-react';
 
 interface AdminNavProps {
   displayName: string;
@@ -20,10 +20,7 @@ export default function AdminNav({ displayName }: AdminNavProps) {
   const pathname = usePathname();
   const router = useRouter();
 
-  // Construir breadcrumb des del pathname
-  // p.ex. /admin/users → ['admin', 'users']
   const segments = pathname.split('/').filter(Boolean);
-  // segments[0] = 'admin', segments[1] = secció (opcional)
   const section = segments[1] as string | undefined;
 
   async function handleLogout() {
@@ -38,40 +35,37 @@ export default function AdminNav({ displayName }: AdminNavProps) {
   }
 
   return (
-    <nav className="border-b bg-background/95 backdrop-blur-sm sticky top-0 z-40">
-      <div className="max-w-5xl mx-auto px-6 h-12 flex items-center justify-between gap-4">
+    <nav className="border-b border-border/50 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl sticky top-0 z-40">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between gap-4">
 
         {/* Esquerra: breadcrumb */}
-        <div className="flex items-center gap-1 text-sm min-w-0">
-          {/* Botó tornada a l'app */}
+        <div className="flex items-center gap-1.5 text-sm min-w-0">
           <Link
             href="/"
-            className="flex items-center gap-1 text-muted-foreground hover:text-foreground transition-colors shrink-0"
+            className="flex items-center gap-1.5 text-muted-foreground hover:text-foreground transition-colors shrink-0 px-2 py-1 rounded-md hover:bg-muted/50"
             title="Tornar a l'aplicació"
           >
-            <Home className="h-3.5 w-3.5" />
+            <LayoutDashboard className="h-4 w-4" />
             <span className="hidden sm:inline">App</span>
           </Link>
 
-          <ChevronRight className="h-3.5 w-3.5 text-muted-foreground/50 shrink-0" />
+          <ChevronRight className="h-3.5 w-3.5 text-muted-foreground/40 shrink-0" />
 
-          {/* Arrel del panell */}
           {section ? (
             <Link
               href="/admin"
-              className="text-muted-foreground hover:text-foreground transition-colors shrink-0"
+              className="text-muted-foreground hover:text-foreground transition-colors shrink-0 px-2 py-1 rounded-md hover:bg-muted/50"
             >
               Panel
             </Link>
           ) : (
-            <span className="font-medium text-foreground">Panel</span>
+            <span className="font-semibold text-foreground px-2 py-1">Panel</span>
           )}
 
-          {/* Secció actual */}
           {section && (
             <>
-              <ChevronRight className="h-3.5 w-3.5 text-muted-foreground/50 shrink-0" />
-              <span className="font-medium text-foreground truncate">
+              <ChevronRight className="h-3.5 w-3.5 text-muted-foreground/40 shrink-0" />
+              <span className="font-semibold text-foreground truncate px-2 py-1">
                 {SECTION_LABELS[section] ?? section}
               </span>
             </>
@@ -79,16 +73,16 @@ export default function AdminNav({ displayName }: AdminNavProps) {
         </div>
 
         {/* Dreta: usuari + logout */}
-        <div className="flex items-center gap-2 shrink-0">
-          <span className="text-sm text-muted-foreground hidden sm:block max-w-[140px] truncate">
+        <div className="flex items-center gap-1 shrink-0">
+          <span className="text-sm text-muted-foreground hidden md:block max-w-[180px] truncate px-2">
             {displayName}
           </span>
           <button
             onClick={handleLogout}
-            className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors px-2 py-1 rounded-md hover:bg-muted/50"
+            className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors px-3 py-1.5 rounded-md hover:bg-muted/50"
             title="Tancar sessió"
           >
-            <LogOut className="h-3.5 w-3.5" />
+            <LogOut className="h-4 w-4" />
             <span className="hidden sm:inline">Sortir</span>
           </button>
         </div>
