@@ -11,11 +11,9 @@ export async function GET(req: NextRequest) {
 
   try {
     const backend = getStorageBackend();
-    // Admins veuen tots els stages; usuaris només els seus
-    const stages =
-      user.role === 'admin'
-        ? await backend.listStages()
-        : await backend.listStages({ userId: user.id });
+    // Tothom (incl. admin) veu només els seus propis stages a la pantalla principal.
+    // L'admin veu els de tots els usuaris al panell d'administració (/admin/courses).
+    const stages = await backend.listStages({ userId: user.id });
 
     return NextResponse.json(stages);
   } catch (err) {

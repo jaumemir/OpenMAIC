@@ -12,6 +12,7 @@ interface AdminNavProps {
 const SECTION_LABELS: Record<string, string> = {
   users: 'Usuaris',
   config: 'Configuració',
+  courses: 'Cursos generats',
   audit: 'Auditoria',
 };
 
