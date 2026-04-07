@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef, useMemo } from 'react';
+import { useSession } from '@/lib/auth/client';
 import { Bot, Check, ChevronLeft, Globe, Paperclip, FileText, X, Globe2 } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import {
@@ -14,6 +15,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip
 import { cn } from '@/lib/utils';
 import { useI18n } from '@/lib/hooks/use-i18n';
 import { useSettingsStore } from '@/lib/store/settings';
+import { useUserPrefsStore } from '@/lib/store/user-prefs';
 import { PDF_PROVIDERS } from '@/lib/pdf/constants';
 import type { PDFProviderId } from '@/lib/pdf/types';
 import { WEB_SEARCH_PROVIDERS } from '@/lib/web-search/constants';
@@ -52,10 +54,12 @@ export function GenerationToolbar({
   onPdfError,
 }: GenerationToolbarProps) {
   const { t } = useI18n();
-  const currentProviderId = useSettingsStore((s) => s.providerId);
-  const currentModelId = useSettingsStore((s) => s.modelId);
+  const { data: session } = useSession();
+  const isAdmin = (session?.user as { role?: string } | undefined)?.role === 'admin';
+  const currentProviderId = useUserPrefsStore((s) => s.providerId);
+  const currentModelId = useUserPrefsStore((s) => s.modelId);
   const providersConfig = useSettingsStore((s) => s.providersConfig);
-  const setModel = useSettingsStore((s) => s.setModel);
+  const setModel = useUserPrefsStore((s) => s.setModel);
   const pdfProviderId = useSettingsStore((s) => s.pdfProviderId);
   const pdfProvidersConfig = useSettingsStore((s) => s.pdfProvidersConfig);
   const setPDFProvider = useSettingsStore((s) => s.setPDFProvider);
@@ -126,7 +130,7 @@ export function GenerationToolbar({
           setModel={setModel}
           t={t}
         />
-      ) : (
+      ) : isAdmin ? (
         <Tooltip>
           <TooltipTrigger asChild>
             <button
@@ -143,7 +147,7 @@ export function GenerationToolbar({
           </TooltipTrigger>
           <TooltipContent>{t('toolbar.configureProviderHint')}</TooltipContent>
         </Tooltip>
-      )}
+      ) : null}
 
       {/* ── Separator ── */}
       <div className="w-px h-4 bg-border/60 mx-1" />

@@ -5,6 +5,13 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from '@/components/ui/dialog';
 
 interface UserRow {
   id: string;
@@ -15,7 +22,22 @@ interface UserRow {
   firstName: string | null;
   lastName: string | null;
   organization: string | null;
+  department: string | null;
+  jobTitle: string | null;
+  city: string | null;
 }
+
+const STATUS_LABELS: Record<string, string> = {
+  active: 'Actiu',
+  pending: 'Pendent',
+  inactive: 'Inhabilitat',
+};
+
+const STATUS_COLORS: Record<string, string> = {
+  active: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
+  pending: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400',
+  inactive: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
+};
 
 export default function AdminUsersPage() {
   const [users, setUsers] = useState<UserRow[]>([]);
@@ -28,6 +50,12 @@ export default function AdminUsersPage() {
   const [inviteLoading, setInviteLoading] = useState(false);
   const [inviteResult, setInviteResult] = useState<{ url?: string; emailSent?: boolean } | null>(null);
   const [inviteError, setInviteError] = useState('');
+
+  // Diàleg d'edició
+  const [editUser, setEditUser] = useState<UserRow | null>(null);
+  const [editForm, setEditForm] = useState<Partial<UserRow>>({});
+  const [editLoading, setEditLoading] = useState(false);
+  const [editError, setEditError] = useState('');
 
   const loadUsers = useCallback(async () => {
     setLoading(true);
@@ -59,10 +87,10 @@ export default function AdminUsersPage() {
         setInviteEmail(''); setInviteFirstName(''); setInviteLastName('');
         loadUsers();
       } else {
-        setInviteError(data.error ?? 'Error creant la invitació.');
+        setInviteError(data.error ?? "Error creant la invitació.");
       }
     } catch {
-      setInviteError('Error de connexió.');
+      setInviteError("Error de connexió.");
     } finally {
       setInviteLoading(false);
     }
@@ -78,10 +106,58 @@ export default function AdminUsersPage() {
     loadUsers();
   }
 
+  async function handleToggleStatus(userId: string, currentStatus: string) {
+    const newStatus = currentStatus === 'inactive' ? 'active' : 'inactive';
+    await fetch(`/api/admin/users/${userId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status: newStatus }),
+    });
+    loadUsers();
+  }
+
   async function handleDelete(userId: string) {
-    if (!confirm('Segur que vols esborrar aquest usuari?')) return;
+    if (!confirm("Segur que vols esborrar aquest usuari? Aquesta acció no es pot desfer.")) return;
     await fetch(`/api/admin/users/${userId}`, { method: 'DELETE' });
     loadUsers();
+  }
+
+  function openEdit(u: UserRow) {
+    setEditUser(u);
+    setEditForm({
+      firstName: u.firstName ?? '',
+      lastName: u.lastName ?? '',
+      organization: u.organization ?? '',
+      department: u.department ?? '',
+      jobTitle: u.jobTitle ?? '',
+      city: u.city ?? '',
+    });
+    setEditError('');
+  }
+
+  async function handleEditSave(e: React.FormEvent) {
+    e.preventDefault();
+    if (!editUser) return;
+    setEditLoading(true);
+    setEditError('');
+    try {
+      const res = await fetch(`/api/admin/users/${editUser.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(editForm),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setEditUser(null);
+        loadUsers();
+      } else {
+        setEditError(data.error ?? "Error desant els canvis.");
+      }
+    } catch {
+      setEditError("Error de connexió.");
+    } finally {
+      setEditLoading(false);
+    }
   }
 
   return (
@@ -144,9 +220,10 @@ export default function AdminUsersPage() {
                 <tr><td colSpan={6} className="px-4 py-8 text-center text-muted-foreground">Carregant...</td></tr>
               )}
               {!loading && users.map((u) => (
-                <tr key={u.id} className="border-t hover:bg-muted/20">
-                  <td className="px-4 py-2">
+                <tr key={u.id} className={`border-t transition-colors ${u.status === 'inactive' ? 'opacity-60 bg-muted/30' : 'hover:bg-muted/20'}`}>
+                  <td className="px-4 py-2 font-medium">
                     {u.firstName && u.lastName ? `${u.firstName} ${u.lastName}` : '—'}
+                    {u.organization && <span className="ml-1 text-xs text-muted-foreground">· {u.organization}</span>}
                   </td>
                   <td className="px-4 py-2 text-muted-foreground">{u.email}</td>
                   <td className="px-4 py-2">
@@ -155,17 +232,28 @@ export default function AdminUsersPage() {
                     </span>
                   </td>
                   <td className="px-4 py-2">
-                    <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${u.status === 'active' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' : 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400'}`}>
-                      {u.status}
+                    <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${STATUS_COLORS[u.status] ?? ''}`}>
+                      {STATUS_LABELS[u.status] ?? u.status}
                     </span>
                   </td>
                   <td className="px-4 py-2 text-muted-foreground text-xs">
                     {new Date(u.createdAt).toLocaleDateString('ca-ES')}
                   </td>
                   <td className="px-4 py-2">
-                    <div className="flex gap-2 justify-end">
+                    <div className="flex gap-1 justify-end flex-wrap">
+                      <Button variant="ghost" size="sm" onClick={() => openEdit(u)}>
+                        Editar
+                      </Button>
                       <Button variant="ghost" size="sm" onClick={() => handleRoleToggle(u.id, u.role)}>
                         {u.role === 'admin' ? '↓ user' : '↑ admin'}
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className={u.status === 'inactive' ? 'text-green-600 hover:text-green-700' : 'text-orange-600 hover:text-orange-700'}
+                        onClick={() => handleToggleStatus(u.id, u.status)}
+                      >
+                        {u.status === 'inactive' ? 'Habilitar' : 'Inhabilitar'}
                       </Button>
                       <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive" onClick={() => handleDelete(u.id)}>
                         Esborra
@@ -181,6 +269,102 @@ export default function AdminUsersPage() {
           </table>
         </div>
       </div>
+
+      {/* Diàleg d'edició d'usuari */}
+      <Dialog open={!!editUser} onOpenChange={(open) => { if (!open) setEditUser(null); }}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Editar usuari</DialogTitle>
+          </DialogHeader>
+          {editUser && (
+            <form onSubmit={handleEditSave} className="space-y-4">
+              {/* Email (no editable) */}
+              <div className="space-y-1">
+                <Label>Correu electrònic</Label>
+                <Input value={editUser.email} disabled className="bg-muted text-muted-foreground" />
+                <p className="text-xs text-muted-foreground">L&apos;email no es pot modificar.</p>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <Label htmlFor="editFirstName">Nom</Label>
+                  <Input
+                    id="editFirstName"
+                    value={editForm.firstName ?? ''}
+                    onChange={(e) => setEditForm((f) => ({ ...f, firstName: e.target.value }))}
+                    disabled={editLoading}
+                  />
+                </div>
+                <div className="space-y-1">
+                  <Label htmlFor="editLastName">Cognom</Label>
+                  <Input
+                    id="editLastName"
+                    value={editForm.lastName ?? ''}
+                    onChange={(e) => setEditForm((f) => ({ ...f, lastName: e.target.value }))}
+                    disabled={editLoading}
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-1">
+                <Label htmlFor="editOrg">Organització</Label>
+                <Input
+                  id="editOrg"
+                  value={editForm.organization ?? ''}
+                  onChange={(e) => setEditForm((f) => ({ ...f, organization: e.target.value }))}
+                  disabled={editLoading}
+                  placeholder="Opcional"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <Label htmlFor="editDept">Departament</Label>
+                  <Input
+                    id="editDept"
+                    value={editForm.department ?? ''}
+                    onChange={(e) => setEditForm((f) => ({ ...f, department: e.target.value }))}
+                    disabled={editLoading}
+                    placeholder="Opcional"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <Label htmlFor="editJob">Càrrec</Label>
+                  <Input
+                    id="editJob"
+                    value={editForm.jobTitle ?? ''}
+                    onChange={(e) => setEditForm((f) => ({ ...f, jobTitle: e.target.value }))}
+                    disabled={editLoading}
+                    placeholder="Opcional"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-1">
+                <Label htmlFor="editCity">Ciutat</Label>
+                <Input
+                  id="editCity"
+                  value={editForm.city ?? ''}
+                  onChange={(e) => setEditForm((f) => ({ ...f, city: e.target.value }))}
+                  disabled={editLoading}
+                  placeholder="Opcional"
+                />
+              </div>
+
+              {editError && <p className="text-sm text-destructive">{editError}</p>}
+
+              <DialogFooter>
+                <Button type="button" variant="outline" onClick={() => setEditUser(null)} disabled={editLoading}>
+                  Cancel·lar
+                </Button>
+                <Button type="submit" disabled={editLoading}>
+                  {editLoading ? 'Desant...' : 'Desar canvis'}
+                </Button>
+              </DialogFooter>
+            </form>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

@@ -8,6 +8,7 @@
 
 import { useMediaGenerationStore } from '@/lib/store/media-generation';
 import { useSettingsStore } from '@/lib/store/settings';
+import { useUserPrefsStore } from '@/lib/store/user-prefs';
 import { db, mediaFileKey } from '@/lib/utils/database';
 import { isServerStorageEnabled } from '@/lib/utils/storage-backend';
 import type { SceneOutline } from '@/lib/types/generation';
@@ -43,8 +44,8 @@ export async function generateMediaForOutlines(
     if (!outline.mediaGenerations) continue;
     for (const mg of outline.mediaGenerations) {
       // Filter by enabled flags
-      if (mg.type === 'image' && !settings.imageGenerationEnabled) continue;
-      if (mg.type === 'video' && !settings.videoGenerationEnabled) continue;
+      if (mg.type === 'image' && !useUserPrefsStore.getState().imageGenerationEnabled) continue;
+      if (mg.type === 'video' && !useUserPrefsStore.getState().videoGenerationEnabled) continue;
       // Skip already completed or permanently failed (restored from DB)
       const existing = store.getTask(mg.elementId);
       if (existing?.status === 'done' || existing?.status === 'failed') continue;
@@ -72,13 +73,13 @@ export async function retryMediaTask(elementId: string): Promise<void> {
   const task = store.getTask(elementId);
   if (!task || task.status !== 'failed') return;
 
-  // Check if the corresponding generation type is still enabled in global settings
-  const settings = useSettingsStore.getState();
-  if (task.type === 'image' && !settings.imageGenerationEnabled) {
+  // Check if the corresponding generation type is still enabled in user prefs
+  const userPrefs = useUserPrefsStore.getState();
+  if (task.type === 'image' && !userPrefs.imageGenerationEnabled) {
     store.markFailed(elementId, 'Generation disabled', 'GENERATION_DISABLED');
     return;
   }
-  if (task.type === 'video' && !settings.videoGenerationEnabled) {
+  if (task.type === 'video' && !userPrefs.videoGenerationEnabled) {
     store.markFailed(elementId, 'Generation disabled', 'GENERATION_DISABLED');
     return;
   }

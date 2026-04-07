@@ -26,6 +26,9 @@ export type AuditAction =
   | 'USER_ACTIVATED'
   | 'USER_DELETED'
   | 'USER_ROLE_CHANGED'
+  | 'USER_DISABLED'
+  | 'USER_ENABLED'
+  | 'USER_PROFILE_UPDATED'
   // Configuració (admin)
   | 'CONFIG_CHANGED';
 

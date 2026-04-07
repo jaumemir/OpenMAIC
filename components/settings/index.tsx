@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect, useCallback } from 'react';
+import { useSession } from '@/lib/auth/client';
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import {
   AlertDialog,
@@ -30,6 +31,7 @@ import {
 } from 'lucide-react';
 import { useI18n } from '@/lib/hooks/use-i18n';
 import { useSettingsStore } from '@/lib/store/settings';
+import { useUserPrefsStore } from '@/lib/store/user-prefs';
 import { toast } from 'sonner';
 import { type ProviderId } from '@/lib/ai/providers';
 import { PROVIDERS } from '@/lib/ai/providers';
@@ -183,12 +185,17 @@ interface SettingsDialogProps {
   initialSection?: SettingsSection;
 }
 
+// Seccions exclusives d'admin (requereixen configurar API keys de proveïdors)
+const ADMIN_ONLY_SECTIONS: SettingsSection[] = ['providers', 'image', 'video', 'tts', 'asr', 'pdf', 'web-search'];
+
 export function SettingsDialog({ open, onOpenChange, initialSection }: SettingsDialogProps) {
   const { t } = useI18n();
+  const { data: session } = useSession();
+  const isAdmin = (session?.user as { role?: string } | undefined)?.role === 'admin';
 
   // Get settings from store
-  const providerId = useSettingsStore((state) => state.providerId);
-  const _modelId = useSettingsStore((state) => state.modelId);
+  const providerId = useUserPrefsStore((state) => state.providerId);
+  const _modelId = useUserPrefsStore((state) => state.modelId);
   const providersConfig = useSettingsStore((state) => state.providersConfig);
   const pdfProviderId = useSettingsStore((state) => state.pdfProviderId);
   const pdfProvidersConfig = useSettingsStore((state) => state.pdfProvidersConfig);
@@ -204,14 +211,15 @@ export function SettingsDialog({ open, onOpenChange, initialSection }: SettingsD
   const asrProvidersConfig = useSettingsStore((state) => state.asrProvidersConfig);
 
   // Store actions
-  const setModel = useSettingsStore((state) => state.setModel);
+  const setModel = useUserPrefsStore((state) => state.setModel);
   const setProviderConfig = useSettingsStore((state) => state.setProviderConfig);
   const setProvidersConfig = useSettingsStore((state) => state.setProvidersConfig);
   const setTTSProvider = useSettingsStore((state) => state.setTTSProvider);
   const setASRProvider = useSettingsStore((state) => state.setASRProvider);
 
-  // Navigation
-  const [activeSection, setActiveSection] = useState<SettingsSection>('providers');
+  // Navigation — per defecte 'themes' si no és admin (no té accés a seccions de proveïdors)
+  const defaultSection: SettingsSection = isAdmin ? 'providers' : 'themes';
+  const [activeSection, setActiveSection] = useState<SettingsSection>(defaultSection);
   const [selectedProviderId, setSelectedProviderId] = useState<ProviderId>(providerId);
   const [selectedPdfProviderId, setSelectedPdfProviderId] = useState<PDFProviderId>(pdfProviderId);
   const [selectedWebSearchProviderId, setSelectedWebSearchProviderId] =
@@ -220,13 +228,17 @@ export function SettingsDialog({ open, onOpenChange, initialSection }: SettingsD
     useState<ImageProviderId>(imageProviderId);
   const [selectedVideoProviderId, setSelectedVideoProviderId] =
     useState<VideoProviderId>(videoProviderId);
-  // Navigate to initialSection when dialog opens
+  // Navigate to initialSection when dialog opens (redirect to 'themes' if non-admin requests admin-only section)
   useEffect(() => {
-    if (open && initialSection) {
+    if (open) {
+      const target = initialSection ?? defaultSection;
+      const resolvedSection =
+        !isAdmin && ADMIN_ONLY_SECTIONS.includes(target) ? 'themes' : target;
       // eslint-disable-next-line react-hooks/set-state-in-effect -- Sync section from prop when dialog opens
-      setActiveSection(initialSection);
+      setActiveSection(resolvedSection);
     }
-  }, [open, initialSection]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- defaultSection depèn de isAdmin que ve de session
+  }, [open, initialSection, isAdmin]);
 
   // Model editing state
   const [editingModel, setEditingModel] = useState<EditingModel | null>(null);
@@ -680,96 +692,101 @@ export function SettingsDialog({ open, onOpenChange, initialSection }: SettingsD
         <div className="flex h-full overflow-hidden">
           {/* Left Sidebar - Navigation */}
           <div className="flex-shrink-0 bg-muted/30 p-3 space-y-1" style={{ width: sidebarWidth }}>
-            <button
-              onClick={() => setActiveSection('providers')}
-              className={cn(
-                'w-full flex items-center gap-3 px-3 py-2 text-sm rounded-lg transition-colors text-left min-w-0',
-                activeSection === 'providers'
-                  ? 'bg-primary/10 text-primary font-medium'
-                  : 'hover:bg-muted',
-              )}
-            >
-              <Box className="h-4 w-4 shrink-0" />
-              <span className="truncate">{t('settings.providers')}</span>
-            </button>
+            {/* Seccions exclusives d'admin */}
+            {isAdmin && (
+              <>
+                <button
+                  onClick={() => setActiveSection('providers')}
+                  className={cn(
+                    'w-full flex items-center gap-3 px-3 py-2 text-sm rounded-lg transition-colors text-left min-w-0',
+                    activeSection === 'providers'
+                      ? 'bg-primary/10 text-primary font-medium'
+                      : 'hover:bg-muted',
+                  )}
+                >
+                  <Box className="h-4 w-4 shrink-0" />
+                  <span className="truncate">{t('settings.providers')}</span>
+                </button>
 
-            <button
-              onClick={() => setActiveSection('image')}
-              className={cn(
-                'w-full flex items-center gap-3 px-3 py-2 text-sm rounded-lg transition-colors text-left min-w-0',
-                activeSection === 'image'
-                  ? 'bg-primary/10 text-primary font-medium'
-                  : 'hover:bg-muted',
-              )}
-            >
-              <ImageIcon className="h-4 w-4 shrink-0" />
-              <span className="truncate">{t('settings.imageSettings')}</span>
-            </button>
+                <button
+                  onClick={() => setActiveSection('image')}
+                  className={cn(
+                    'w-full flex items-center gap-3 px-3 py-2 text-sm rounded-lg transition-colors text-left min-w-0',
+                    activeSection === 'image'
+                      ? 'bg-primary/10 text-primary font-medium'
+                      : 'hover:bg-muted',
+                  )}
+                >
+                  <ImageIcon className="h-4 w-4 shrink-0" />
+                  <span className="truncate">{t('settings.imageSettings')}</span>
+                </button>
 
-            <button
-              onClick={() => setActiveSection('video')}
-              className={cn(
-                'w-full flex items-center gap-3 px-3 py-2 text-sm rounded-lg transition-colors text-left min-w-0',
-                activeSection === 'video'
-                  ? 'bg-primary/10 text-primary font-medium'
-                  : 'hover:bg-muted',
-              )}
-            >
-              <Film className="h-4 w-4 shrink-0" />
-              <span className="truncate">{t('settings.videoSettings')}</span>
-            </button>
+                <button
+                  onClick={() => setActiveSection('video')}
+                  className={cn(
+                    'w-full flex items-center gap-3 px-3 py-2 text-sm rounded-lg transition-colors text-left min-w-0',
+                    activeSection === 'video'
+                      ? 'bg-primary/10 text-primary font-medium'
+                      : 'hover:bg-muted',
+                  )}
+                >
+                  <Film className="h-4 w-4 shrink-0" />
+                  <span className="truncate">{t('settings.videoSettings')}</span>
+                </button>
 
-            <button
-              onClick={() => setActiveSection('tts')}
-              className={cn(
-                'w-full flex items-center gap-3 px-3 py-2 text-sm rounded-lg transition-colors text-left min-w-0',
-                activeSection === 'tts'
-                  ? 'bg-primary/10 text-primary font-medium'
-                  : 'hover:bg-muted',
-              )}
-            >
-              <Volume2 className="h-4 w-4 shrink-0" />
-              <span className="truncate">{t('settings.ttsSettings')}</span>
-            </button>
+                <button
+                  onClick={() => setActiveSection('tts')}
+                  className={cn(
+                    'w-full flex items-center gap-3 px-3 py-2 text-sm rounded-lg transition-colors text-left min-w-0',
+                    activeSection === 'tts'
+                      ? 'bg-primary/10 text-primary font-medium'
+                      : 'hover:bg-muted',
+                  )}
+                >
+                  <Volume2 className="h-4 w-4 shrink-0" />
+                  <span className="truncate">{t('settings.ttsSettings')}</span>
+                </button>
 
-            <button
-              onClick={() => setActiveSection('asr')}
-              className={cn(
-                'w-full flex items-center gap-3 px-3 py-2 text-sm rounded-lg transition-colors text-left min-w-0',
-                activeSection === 'asr'
-                  ? 'bg-primary/10 text-primary font-medium'
-                  : 'hover:bg-muted',
-              )}
-            >
-              <Mic className="h-4 w-4 shrink-0" />
-              <span className="truncate">{t('settings.asrSettings')}</span>
-            </button>
+                <button
+                  onClick={() => setActiveSection('asr')}
+                  className={cn(
+                    'w-full flex items-center gap-3 px-3 py-2 text-sm rounded-lg transition-colors text-left min-w-0',
+                    activeSection === 'asr'
+                      ? 'bg-primary/10 text-primary font-medium'
+                      : 'hover:bg-muted',
+                  )}
+                >
+                  <Mic className="h-4 w-4 shrink-0" />
+                  <span className="truncate">{t('settings.asrSettings')}</span>
+                </button>
 
-            <button
-              onClick={() => setActiveSection('pdf')}
-              className={cn(
-                'w-full flex items-center gap-3 px-3 py-2 text-sm rounded-lg transition-colors text-left min-w-0',
-                activeSection === 'pdf'
-                  ? 'bg-primary/10 text-primary font-medium'
-                  : 'hover:bg-muted',
-              )}
-            >
-              <FileText className="h-4 w-4 shrink-0" />
-              <span className="truncate">{t('settings.pdfSettings')}</span>
-            </button>
+                <button
+                  onClick={() => setActiveSection('pdf')}
+                  className={cn(
+                    'w-full flex items-center gap-3 px-3 py-2 text-sm rounded-lg transition-colors text-left min-w-0',
+                    activeSection === 'pdf'
+                      ? 'bg-primary/10 text-primary font-medium'
+                      : 'hover:bg-muted',
+                  )}
+                >
+                  <FileText className="h-4 w-4 shrink-0" />
+                  <span className="truncate">{t('settings.pdfSettings')}</span>
+                </button>
 
-            <button
-              onClick={() => setActiveSection('web-search')}
-              className={cn(
-                'w-full flex items-center gap-3 px-3 py-2 text-sm rounded-lg transition-colors text-left min-w-0',
-                activeSection === 'web-search'
-                  ? 'bg-primary/10 text-primary font-medium'
-                  : 'hover:bg-muted',
-              )}
-            >
-              <Search className="h-4 w-4 shrink-0" />
-              <span className="truncate">{t('settings.webSearchSettings')}</span>
-            </button>
+                <button
+                  onClick={() => setActiveSection('web-search')}
+                  className={cn(
+                    'w-full flex items-center gap-3 px-3 py-2 text-sm rounded-lg transition-colors text-left min-w-0',
+                    activeSection === 'web-search'
+                      ? 'bg-primary/10 text-primary font-medium'
+                      : 'hover:bg-muted',
+                  )}
+                >
+                  <Search className="h-4 w-4 shrink-0" />
+                  <span className="truncate">{t('settings.webSearchSettings')}</span>
+                </button>
+              </>
+            )}
 
             <button
               onClick={() => setActiveSection('themes')}

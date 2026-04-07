@@ -47,7 +47,9 @@ export function useAudioRecorder(options: UseAudioRecorderOptions = {}) {
         // Note: This requires importing useSettingsStore in browser context
         if (typeof window !== 'undefined') {
           const { useSettingsStore } = await import('@/lib/store/settings');
-          const { asrProviderId, asrLanguage, asrProvidersConfig } = useSettingsStore.getState();
+          const { useUserPrefsStore } = await import('@/lib/store/user-prefs');
+          const { asrProviderId, asrProvidersConfig } = useSettingsStore.getState();
+          const { asrLanguage } = useUserPrefsStore.getState();
 
           formData.append('providerId', asrProviderId);
           formData.append(
@@ -100,7 +102,9 @@ export function useAudioRecorder(options: UseAudioRecorderOptions = {}) {
       // Get current ASR configuration
       if (typeof window !== 'undefined') {
         const { useSettingsStore } = await import('@/lib/store/settings');
-        const { asrProviderId, asrLanguage } = useSettingsStore.getState();
+        const { useUserPrefsStore } = await import('@/lib/store/user-prefs');
+        const { asrProviderId } = useSettingsStore.getState();
+        const { asrLanguage } = useUserPrefsStore.getState();
 
         // Use browser native ASR if configured
         if (asrProviderId === 'browser-native') {

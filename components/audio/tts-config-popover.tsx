@@ -16,6 +16,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip
 import { cn } from '@/lib/utils';
 import { useI18n } from '@/lib/hooks/use-i18n';
 import { useSettingsStore } from '@/lib/store/settings';
+import { useUserPrefsStore } from '@/lib/store/user-prefs';
 import { getTTSVoices } from '@/lib/audio/constants';
 import { useTTSPreview } from '@/lib/audio/use-tts-preview';
 
@@ -33,8 +34,8 @@ export function TtsConfigPopover() {
   const [open, setOpen] = useState(false);
   const { previewing, startPreview, stopPreview } = useTTSPreview();
 
-  const ttsEnabled = useSettingsStore((s) => s.ttsEnabled);
-  const setTTSEnabled = useSettingsStore((s) => s.setTTSEnabled);
+  const ttsEnabled = useUserPrefsStore((s) => s.ttsEnabled);
+  const setTTSEnabled = useUserPrefsStore((s) => s.setTTSEnabled);
   const ttsProviderId = useSettingsStore((s) => s.ttsProviderId);
   const ttsVoice = useSettingsStore((s) => s.ttsVoice);
   const ttsSpeed = useSettingsStore((s) => s.ttsSpeed);

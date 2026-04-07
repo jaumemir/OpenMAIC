@@ -24,14 +24,15 @@ model User {
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  profile            UserProfile?
-  sessions           Session[]
-  accounts           Account[]
-  invitationsSent    Invitation[]     @relation("InvitedBy")
-  stageOwnerships    StageOwnership[]
-  classroomJobs      ClassroomJob[]
-  adminConfigUpdates AdminConfig[]
-  auditLogs          AuditLog[]
+  profile              UserProfile?
+  sessions             Session[]
+  accounts             Account[]
+  invitationsSent      Invitation[]          @relation("InvitedBy")
+  stageOwnerships      StageOwnership[]
+  classroomJobs        ClassroomJob[]
+  adminConfigUpdates   AdminConfig[]
+  auditLogs            AuditLog[]
+  passwordResetTokens  PasswordResetToken[]
 
   @@map("users")
 }
@@ -114,6 +115,22 @@ model Invitation {
   invitedBy User @relation("InvitedBy", fields: [invitedById], references: [id])
 
   @@map("invitations")
+}
+
+// ── Token de recuperació de contrasenya ──────────────────────────────────
+
+model PasswordResetToken {
+  id        String    @id @default(uuid())
+  token     String    @unique
+  userId    String    @map("user_id")
+  expiresAt DateTime  @map("expires_at")
+  usedAt    DateTime? @map("used_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("password_reset_tokens")
 }
 
 // ── Propietat de stages (pont filesystem ↔ DB) ───────────────────────────

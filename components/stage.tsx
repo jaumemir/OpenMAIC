@@ -5,6 +5,7 @@ import { useStageStore } from '@/lib/store';
 import { PENDING_SCENE_ID } from '@/lib/store/stage';
 import { useCanvasStore } from '@/lib/store/canvas';
 import { useSettingsStore } from '@/lib/store/settings';
+import { useUserPrefsStore } from '@/lib/store/user-prefs';
 import { useI18n } from '@/lib/hooks/use-i18n';
 import { SceneSidebar } from './stage/scene-sidebar';
 import { Header } from './header';
@@ -109,7 +110,7 @@ export function Stage({
   // Selected agents from settings store (Zustand)
   const selectedAgentIds = useSettingsStore((s) => s.selectedAgentIds);
   const ttsMuted = useSettingsStore((s) => s.ttsMuted);
-  const ttsEnabled = useSettingsStore((s) => s.ttsEnabled);
+  const ttsEnabled = useUserPrefsStore((s) => s.ttsEnabled);
 
   // Generate participants from selected agents
   const participants = useMemo(

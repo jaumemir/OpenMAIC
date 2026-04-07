@@ -44,6 +44,9 @@ export async function GET(req: NextRequest) {
       firstName: u.profile?.firstName ?? null,
       lastName: u.profile?.lastName ?? null,
       organization: u.profile?.organization ?? null,
+      department: u.profile?.department ?? null,
+      jobTitle: u.profile?.jobTitle ?? null,
+      city: u.profile?.city ?? null,
     })),
     pagination: { page, limit, total, totalPages: Math.ceil(total / limit) },
   });

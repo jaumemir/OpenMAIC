@@ -38,8 +38,18 @@ export async function PUT(req: NextRequest, { params }: Params) {
   const { stageId } = await params;
   if (!isValidId(stageId)) return apiError('INVALID_REQUEST', 400, 'stageId invàlid.');
 
-  const ownershipError = await requireOwnership(user.id, user.role, stageId);
-  if (ownershipError) return ownershipError;
+  // PUT té semàntica "crear o substituir": si l'usuari no té ownership, la crea.
+  // Admins no necessiten ownership. Usuaris amb ownership d'un altre → 403.
+  if (user.role !== 'admin') {
+    const { prisma } = await import('@/lib/prisma');
+    const existing = await prisma.stageOwnership.findUnique({ where: { stageId } });
+    if (existing && existing.userId !== user.id) {
+      return apiError('FORBIDDEN', 403, 'No tens permisos per accedir a aquest recurs.');
+    }
+    if (!existing) {
+      await prisma.stageOwnership.create({ data: { stageId, userId: user.id } });
+    }
+  }
 
   try {
     const data = await req.json();

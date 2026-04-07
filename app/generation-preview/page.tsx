@@ -10,6 +10,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip
 import { cn } from '@/lib/utils';
 import { useStageStore } from '@/lib/store/stage';
 import { useSettingsStore } from '@/lib/store/settings';
+import { useUserPrefsStore } from '@/lib/store/user-prefs';
 import { useAgentRegistry } from '@/lib/orchestration/registry/store';
 import { getAvailableProvidersWithVoices } from '@/lib/audio/voice-resolver';
 import { useI18n } from '@/lib/hooks/use-i18n';
@@ -113,9 +114,9 @@ function GenerationPreviewContent() {
       'x-video-model': settings.videoModelId || '',
       'x-video-api-key': videoProviderConfig?.apiKey || '',
       'x-video-base-url': videoProviderConfig?.baseUrl || '',
-      // Media generation toggles
-      'x-image-generation-enabled': String(settings.imageGenerationEnabled ?? false),
-      'x-video-generation-enabled': String(settings.videoGenerationEnabled ?? false),
+      // Media generation toggles (per-user preferences)
+      'x-image-generation-enabled': String(useUserPrefsStore.getState().imageGenerationEnabled ?? false),
+      'x-video-generation-enabled': String(useUserPrefsStore.getState().videoGenerationEnabled ?? false),
     };
   };
 
@@ -376,7 +377,7 @@ function GenerationPreviewContent() {
         updatedAt: Date.now(),
       };
 
-      if (settings.agentMode === 'auto') {
+      if (useUserPrefsStore.getState().agentMode === 'auto') {
         const agentStepIdx = activeSteps.findIndex((s) => s.id === 'agent-generation');
         if (agentStepIdx >= 0) setCurrentStepIndex(agentStepIdx);
 
@@ -706,7 +707,7 @@ function GenerationPreviewContent() {
       }
 
       // Generate TTS for first scene (part of actions step — blocking)
-      if (settings.ttsEnabled && settings.ttsProviderId !== 'browser-native-tts') {
+      if (useUserPrefsStore.getState().ttsEnabled && settings.ttsProviderId !== 'browser-native-tts') {
         const ttsProviderConfig = settings.ttsProvidersConfig?.[settings.ttsProviderId];
         const speechActions = (data.scene.actions || []).filter(
           (a: { type: string; text?: string }) => a.type === 'speech' && a.text,

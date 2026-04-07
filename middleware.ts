@@ -17,6 +17,8 @@ import { NextResponse, type NextRequest } from 'next/server';
 const PUBLIC_PATHS = [
   '/login',
   '/accept-invite',
+  '/forgot-password',
+  '/reset-password',
   '/api/auth',
   '/api/invitations/verify',
   '/api/invitations/accept',

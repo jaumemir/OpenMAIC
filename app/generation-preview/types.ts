@@ -1,5 +1,5 @@
 import { ScanLine, Search, Bot, FileText, LayoutPanelLeft, Clapperboard } from 'lucide-react';
-import { useSettingsStore } from '@/lib/store/settings';
+import { useUserPrefsStore } from '@/lib/store/user-prefs';
 import type {
   SceneOutline,
   UserRequirements,
@@ -84,7 +84,7 @@ export const getActiveSteps = (session: GenerationSessionState | null) => {
   return ALL_STEPS.filter((step) => {
     if (step.id === 'pdf-analysis') return !!session?.pdfStorageKey;
     if (step.id === 'web-search') return !!session?.requirements?.webSearch;
-    if (step.id === 'agent-generation') return useSettingsStore.getState().agentMode === 'auto';
+    if (step.id === 'agent-generation') return useUserPrefsStore.getState().agentMode === 'auto';
     return true;
   });
 };

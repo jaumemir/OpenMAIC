@@ -7,7 +7,7 @@ import { useClipImage } from './useClipImage';
 import { useFilter } from './useFilter';
 import { ImageOutline } from './ImageOutline';
 import { useMediaGenerationStore, isMediaPlaceholder } from '@/lib/store/media-generation';
-import { useSettingsStore } from '@/lib/store/settings';
+import { useUserPrefsStore } from '@/lib/store/user-prefs';
 import { useMediaStageId } from '@/lib/contexts/media-stage-context';
 import { retryMediaTask } from '@/lib/media/media-orchestrator';
 import { RotateCcw, Paintbrush, ShieldAlert, ImageOff } from 'lucide-react';
@@ -39,7 +39,7 @@ export function BaseImageElement({ elementInfo }: BaseImageElementProps) {
     return t;
   });
 
-  const imageGenerationEnabled = useSettingsStore((s) => s.imageGenerationEnabled);
+  const imageGenerationEnabled = useUserPrefsStore((s) => s.imageGenerationEnabled);
   // Resolve actual src: use objectUrl from store if available, otherwise original src
   const resolvedSrc = task?.status === 'done' && task.objectUrl ? task.objectUrl : elementInfo.src;
   const showDisabled = isPlaceholder && !task && !imageGenerationEnabled;
