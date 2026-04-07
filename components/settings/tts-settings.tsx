@@ -120,7 +120,7 @@ export function TTSSettings({ selectedProviderId }: TTSSettingsProps) {
       setTestStatus('success');
       setTestMessage(t('settings.ttsTestSuccess'));
     } catch (error) {
-      log.error('TTS test failed:', error);
+      log.warn('TTS test failed:', error);
       setTestStatus('error');
       setTestMessage(
         error instanceof Error && error.message

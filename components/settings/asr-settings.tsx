@@ -140,7 +140,7 @@ export function ASRSettings({ selectedProviderId }: ASRSettingsProps) {
                 setTestMessage(errorData.details || errorData.error || t('settings.asrTestFailed'));
               }
             } catch (error) {
-              log.error('ASR test failed:', error);
+              log.warn('ASR test failed:', error);
               setTestStatus('error');
               setTestMessage(t('settings.asrTestFailed'));
             }

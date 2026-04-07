@@ -355,7 +355,7 @@ export function AudioSettings({ onSave }: AudioSettingsProps = {}) {
                 );
               }
             } catch (error) {
-              log.error('ASR test failed:', error);
+              log.warn('ASR test failed:', error);
               setASRTestStatus('error');
               setASRTestMessage(t('settings.asrTestFailed'));
             }
