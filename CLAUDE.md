@@ -32,8 +32,10 @@ pnpm check            # Prettier --check
 |------|-----------|
 | Framework | Next.js 16 (App Router) |
 | UI | React 19, Tailwind CSS 4, shadcn/ui, Radix UI |
-| State | Zustand 5 + Immer (localStorage persist) |
-| Storage browser | Dexie 4 (IndexedDB) |
+| State | Zustand 5 + Immer (en memòria; layoutStore persisteix a localStorage) |
+| Storage server | Filesystem `/data/` (dev) · Object store (prod) |
+| DB | Prisma 5 · SQLite (dev) · PostgreSQL (prod) |
+| Auth | better-auth · Argon2id · sessions httpOnly |
 | LLM | Vercel AI SDK 6 (@ai-sdk/openai, anthropic, google) |
 | Orquestració | LangGraph 1.1 (@langchain/langgraph) |
 | Tests unitaris | Vitest 4 |
@@ -51,7 +53,7 @@ pnpm check            # Prettier --check
 Input usuari
   → Stage 1: outline-generator.ts   → SceneOutline[]   (títol, tipus, punts clau)
   → Stage 2: scene-generator.ts     → Scene[]          (elements, accions, imatges)
-  → Storage (IndexedDB o filesystem)
+  → Storage (servidor: /api/stages/*)
   → classroom/[id] playback
 ```
 
@@ -76,67 +78,112 @@ START → director node → agent_generate node → director node → ... → EN
 El director decideix el torn següent (LLM decision o fast-path si és el primer torn).
 Accions streamed via SSE a `app/api/chat/route.ts`.
 
+### Autenticació
+
+- **better-auth** gestiona sessions, login, logout, OAuth (si configurat)
+- **Invitació per email**: Flux invitation-only; l'admin convida usuaris via `/api/admin/users`
+- **Rols**: `admin` (configura proveïdors, veu tot) · `user` (crea cursos propis)
+- **Protecció**: `requireAuth(req)` en totes les API routes; layout guard Server Component al panell admin
+- **Middleware** (`proxy.ts`): Comprova presència de cookie de sessió (Edge-compatible); validació completa a `requireAuth()` (Node.js)
+
 ---
 
 ## Directoris clau
 
 ```
 app/
-  api/                    # Rutes API (Next.js App Router)
-    generate/             # scene-outlines-stream, scene-content
-    chat/                 # Multi-agent SSE
-    themes/               # CRUD themes
-    generate-classroom/   # Job async (submit + poll)
-  classroom/[id]/         # Playback
-  generation-preview/     # Preview en temps real
+  (admin)/              # Panell d'administrador (layout guard SSR)
+    admin/
+      page.tsx          # Dashboard: estadístiques + navegació
+      users/            # Gestió d'usuaris (invitar, editar, desactivar)
+      courses/          # Llista global de cursos amb propietari
+      audit/            # Log d'auditoria
+      config/           # Config global (models permesos)
+  api/
+    auth/               # better-auth routes + forgot/reset password
+    admin/
+      config/providers/ # GET/PUT config global encriptada (admin only)
+      users/            # CRUD usuaris (admin only)
+      audit/            # Log d'auditoria (admin only)
+      stages/           # Tots els stages (admin only)
+    generate/           # scene-outlines-stream, scene-content, scene-actions, tts, image, video
+    chat/               # Multi-agent SSE
+    stages/             # CRUD stages (owner-protected)
+    themes/             # CRUD themes
+    user/               # me, preferences
+    generate-classroom/ # Job async (submit + poll)
+    invitations/        # verify + accept token
+  classroom/[id]/       # Playback
+  generation-preview/   # Preview en temps real
 
 lib/
   ai/
-    providers.ts          # Registre de 20+ providers LLM
-    llm.ts                # callLLM / streamLLM unificats + thinking adapter
+    providers.ts        # Registre de 20+ providers LLM
+    llm.ts              # callLLM / streamLLM unificats + thinking adapter
+  auth/
+    server.ts           # Instància better-auth (server)
+    client.ts           # useSession, signIn, signOut (client)
+  audit.ts              # auditLog() helper + AuditAction union type
   generation/
-    outline-generator.ts  # Stage 1
-    scene-generator.ts    # Stage 2 (1,300 línies)
+    outline-generator.ts     # Stage 1
+    scene-generator.ts       # Stage 2 (1,300 línies)
     generation-pipeline.ts
-    prompts/templates/    # Plantilles de prompt (Markdown amb {{variables}})
-    theme-instructions.ts # resolveThemeManifest / resolveThemeInstructions / resolveThemeCSS
-    theme-utils.ts        # themeToSlideTheme
+    prompts/templates/       # Plantilles de prompt (Markdown amb {{variables}})
+    theme-instructions.ts    # resolveThemeManifest / resolveThemeInstructions / resolveThemeCSS
+    theme-utils.ts           # themeToSlideTheme
   orchestration/
-    director-graph.ts     # StateGraph LangGraph
-  store/
-    settings.ts           # Zustand store principal (1,365 línies)
-  types/
-    generation.ts         # UserRequirements, SceneOutline, PdfImage, ImageMapping
-    slides.ts             # TextElement, ImageElement, ShapeElement, etc.
-    stage.ts              # Scene, SlideContent, QuizContent, InteractiveContent, PBLContent
-    action.ts             # Tots els tipus d'acció (discriminated union)
-    provider.ts           # ModelInfo, ThinkingConfig, ThinkingCapability
-    theme.ts              # ThemeManifest, ThemeListItem
-    settings.ts           # SettingsState, SettingsSection
+    director-graph.ts        # StateGraph LangGraph
+  prisma.ts                  # PrismaClient singleton (patch DATABASE_URL per SQLite)
   server/
-    scene-content-generation.ts  # Pont API → pipeline
-    theme-storage.ts             # Filesystem backend per a themes
-    resolve-model.ts
+    api-response.ts          # requireAuth, apiSuccess, apiError
+    config-crypto.ts         # encrypt/decrypt API keys (AES-256-GCM)
+    classroom-job-store.ts   # CRUD ClassroomJob via Prisma
+    scene-content-generation.ts
+    theme-storage.ts
+  store/
+    settings.ts         # Config global admin (in-memory, hidratat des de BD)
+    user-prefs.ts        # Preferències per usuari (in-memory, hidratat des de BD)
+    layout.ts            # Layout efímer UI (persistit a localStorage)
+    stage.ts             # Contingut del curs actiu
+    media-generation.ts  # Estat de generació de media (imatges/vídeos)
+  types/
+    generation.ts        # UserRequirements, SceneOutline, PdfImage, ImageMapping
+    slides.ts            # TextElement, ImageElement, ShapeElement, etc.
+    stage.ts             # Scene, SlideContent, QuizContent, InteractiveContent, PBLContent
+    action.ts            # Tots els tipus d'acció (discriminated union)
+    provider.ts          # ModelInfo, ThinkingConfig, ThinkingCapability
+    theme.ts             # ThemeManifest, ThemeListItem
+    settings.ts          # SettingsState, SettingsSection
+  utils/
+    stage-storage.ts     # Crida /api/stages/* (server-only)
+    outlines-storage.ts  # Crida /api/stages/[id]/outlines
+    playback-storage.ts  # Crida /api/stages/[id]/playback
+    chat-storage.ts      # No-ops (chats embeguts al stage JSON)
   themes/
-    index.ts              # getBuiltInThemes()
-    sistema/              # Theme built-in (versionat)
+    index.ts             # getBuiltInThemes()
+    sistema/             # Theme built-in (versionat)
 
-data/themes/              # Themes custom (servidor, .gitignore excepte gencat)
-  gencat/                 # Theme Generalitat Catalunya (versionat com a demo)
+prisma/
+  schema.dev.prisma      # SQLite (dev): User, Session, AdminConfig, AuditLog, UserPreferences, ...
+  schema.prod.prisma     # PostgreSQL (prod): mateix schema, tipus adaptats
+  migrations/            # Migracions SQLite aplicades
+
+data/themes/             # Themes custom (servidor, .gitignore excepte gencat)
+  gencat/                # Theme Generalitat Catalunya (versionat com a demo)
 
 components/
-  slide-renderer/         # Editor canvas-based
-  scene-renderers/        # slide, quiz, interactive, pbl
-  generation/             # Toolbar, theme-popover
-  settings/               # Settings panel + seccions
-  whiteboard/             # SVG whiteboard
+  slide-renderer/        # Editor canvas-based
+  scene-renderers/       # slide, quiz, interactive, pbl
+  generation/            # Toolbar, theme-popover
+  settings/              # Settings panel + seccions (admin-only sections protected)
+  whiteboard/            # SVG whiteboard
 
 packages/
-  pptxgenjs/              # Fork customitzat de pptxgenjs
-  mathml2omml/            # MathML → Office Math XML
+  pptxgenjs/             # Fork customitzat de pptxgenjs
+  mathml2omml/           # MathML → Office Math XML
 
-tests/                    # Vitest (*.test.ts)
-e2e/                      # Playwright
+tests/                   # Vitest (*.test.ts)
+e2e/                     # Playwright
 ```
 
 ---
@@ -157,17 +204,31 @@ e2e/                      # Playwright
 ## Variables d'entorn crítiques
 
 ```bash
+# Auth
+BETTER_AUTH_SECRET=          # Secret per signar sessions (obligatori)
+BETTER_AUTH_URL=             # Base URL (p.ex. http://localhost:3000)
+
+# Encriptació de configuració admin
+CONFIG_ENCRYPTION_KEY=       # 64 hex chars = 32 bytes (AES-256-GCM)
+
 # LLM (un o més)
 OPENAI_API_KEY=
 ANTHROPIC_API_KEY=
 GOOGLE_API_KEY=
+
+# BD (dev: SQLite automàtic; prod: obligatori)
+DATABASE_URL=                # postgresql://... (prod)
+
+# Email (per invitacions i reset password)
+ACS_CONNECTION_STRING=       # Azure Communication Services
+ACS_SENDER_ADDRESS=
 
 # Model per defecte (servidor)
 DEFAULT_MODEL=google:gemini-2.5-flash-preview
 
 # Logging
 LOG_LEVEL=info
-LOG_FORMAT=pretty  # o 'json'
+LOG_FORMAT=pretty            # o 'json'
 ```
 
 Veure `.env.example` per la llista completa (TTS, ASR, imatge, vídeo, PDF, cerca web).
@@ -196,15 +257,24 @@ Variables amb doble claudàtor: `{{themeInstructions}}`, `{{themePrimary}}`, `{{
 `callLLM` accepta un quart paràmetre `ThinkingConfig { enabled?, budgetTokens? }`.
 El mòdul `llm.ts` detecta automàticament les capacitats del model i adapta el format a cada provider (OpenAI: `reasoningEffort`, Anthropic: `thinking.type+budgetTokens`, Google: `thinkingConfig.thinkingBudget`).
 
-### Zustand + Immer
+### Zustand stores
+
+Tres stores amb comportament diferent:
 
 ```typescript
-export const useSettingsStore = create<SettingsState>()(
-  persist(immer((set, get) => ({ ... })), { name: 'settings' })
+// settings + user-prefs: en memòria, hidratats des del servidor al login
+export const useSettingsStore = create<SettingsState>()(immer((set, get) => ({ ... })))
+// → hidratar: fetch('/api/admin/config/providers') → hydrate(config)
+
+// layout: persistit a localStorage (UI efímer, no cal BD)
+export const useLayoutStore = create<LayoutState>()(
+  persist(immer((set) => ({ ... })), { name: 'layout-storage' })
 )
 ```
 
-Tots els stores usen el patró `immer` dins de `persist`.
+### Config admin xifrada
+
+`lib/server/config-crypto.ts` usa AES-256-GCM per xifrar totes les API keys abans de guardar-les a `AdminConfig` (Prisma). Format: `"iv:authTag:ciphertext"` (tot en hex). La clau ve de `CONFIG_ENCRYPTION_KEY` (env var, mai al codi).
 
 ### Logger
 
@@ -262,4 +332,10 @@ Els tests d'integració amb proveïdors LLM reals requereixen API keys al `.env.
 
 5. **`postinstall` necessari:** `pnpm install` builda `packages/pptxgenjs` i `packages/mathml2omml`. Si falten, fer `pnpm postinstall` manualment.
 
-6. **Storage sempre al servidor:** Tot el contingut de cursos (stages, escenes, media, TTS) es persisteix al servidor via `/api/stages/*`. En dev: filesystem `/data/`. En producció: object store + PostgreSQL.
+6. **Storage sempre al servidor:** Tot el contingut de cursos (stages, escenes, media, TTS) es persisteix al servidor via `/api/stages/*`. En dev: filesystem `/data/`. En producció: object store + PostgreSQL. No hi ha fallback a IndexedDB.
+
+7. **Models eliminats que reapareixen:** `mergeWithBuiltInProviders()` a `/api/admin/config/providers` és autoritativa: si un proveïdor ja existeix a BD, la seva llista de models no es toca. Afegir-ne de nous des del codi? Sí. Restaurar els eliminats? No.
+
+8. **`requireAuth` vs middleware:** El middleware (`proxy.ts`) comprova cookie per redirigir, però no valida la sessió completament. Sempre usar `requireAuth(req)` a les API routes per obtenir l'usuari autenticat i validat.
+
+9. **Prisma + SQLite path:** `lib/prisma.ts` fa patch de `process.env.DATABASE_URL` per resoldre la ruta relativa de SQLite correctament tant amb `prisma migrate` com des de Next.js runtime.
