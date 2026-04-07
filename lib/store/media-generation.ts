@@ -8,8 +8,6 @@
 
 import { create } from 'zustand';
 import type { MediaGenerationRequest } from '@/lib/media/types';
-import { db } from '@/lib/utils/database';
-import { isServerStorageEnabled } from '@/lib/utils/storage-backend';
 import { createLogger } from '@/lib/logger';
 
 const log = createLogger('MediaGenerationStore');
@@ -162,86 +160,45 @@ export const useMediaGenerationStore = create<MediaGenerationState>()((set, get)
     try {
       const restored: Record<string, MediaTask> = {};
 
-      if (isServerStorageEnabled()) {
-        // Server mode: fetch metadata list and use HTTP URLs directly
-        const res = await fetch(`/api/stages/${stageId}/media`);
-        if (!res.ok) return;
-        const records = await res.json() as Array<{
-          elementId: string;
-          type: 'image' | 'video';
-          mimeType: string;
-          prompt: string;
-          params: string;
-          hasPoster: boolean;
-          error?: string;
-          errorCode?: string;
-        }>;
+      const res = await fetch(`/api/stages/${stageId}/media`);
+      if (!res.ok) return;
+      const records = await res.json() as Array<{
+        elementId: string;
+        type: 'image' | 'video';
+        mimeType: string;
+        prompt: string;
+        params: string;
+        hasPoster: boolean;
+        error?: string;
+        errorCode?: string;
+      }>;
 
-        for (const rec of records) {
-          const params = JSON.parse(rec.params || '{}');
-          if (rec.error) {
-            restored[rec.elementId] = {
-              elementId: rec.elementId,
-              type: rec.type,
-              status: 'failed',
-              prompt: rec.prompt,
-              params,
-              error: rec.error,
-              errorCode: rec.errorCode,
-              retryCount: 0,
-              stageId,
-            };
-          } else {
-            restored[rec.elementId] = {
-              elementId: rec.elementId,
-              type: rec.type,
-              status: 'done',
-              prompt: rec.prompt,
-              params,
-              objectUrl: `/api/stages/${stageId}/media/${rec.elementId}`,
-              poster: rec.hasPoster ? `/api/stages/${stageId}/media/${rec.elementId}/poster` : undefined,
-              retryCount: 0,
-              stageId,
-            };
-          }
-        }
-      } else {
-        // IndexedDB mode
-        const records = await db.mediaFiles.where('stageId').equals(stageId).toArray();
-        for (const rec of records) {
-          // Extract elementId from compound key (stageId:elementId)
-          const elementId = rec.id.includes(':') ? rec.id.split(':').slice(1).join(':') : rec.id;
-          const params = JSON.parse(rec.params || '{}');
-
-          if (rec.error) {
-            restored[elementId] = {
-              elementId,
-              type: rec.type,
-              status: 'failed',
-              prompt: rec.prompt,
-              params,
-              error: rec.error,
-              errorCode: rec.errorCode,
-              retryCount: 0,
-              stageId,
-            };
-          } else {
-            // Re-wrap blob with stored mimeType — IndexedDB may drop Blob.type
-            const blob = rec.blob.type ? rec.blob : new Blob([rec.blob], { type: rec.mimeType });
-            const objectUrl = URL.createObjectURL(blob);
-            const poster = rec.poster ? URL.createObjectURL(rec.poster) : undefined;
-            restored[elementId] = {
-              elementId,
-              type: rec.type,
-              status: 'done',
-              prompt: rec.prompt,
-              params,
-              objectUrl,
-              poster,
-              retryCount: 0,
-              stageId,
-            };
-          }
+      for (const rec of records) {
+        const params = JSON.parse(rec.params || '{}');
+        if (rec.error) {
+          restored[rec.elementId] = {
+            elementId: rec.elementId,
+            type: rec.type,
+            status: 'failed',
+            prompt: rec.prompt,
+            params,
+            error: rec.error,
+            errorCode: rec.errorCode,
+            retryCount: 0,
+            stageId,
+          };
+        } else {
+          restored[rec.elementId] = {
+            elementId: rec.elementId,
+            type: rec.type,
+            status: 'done',
+            prompt: rec.prompt,
+            params,
+            objectUrl: `/api/stages/${stageId}/media/${rec.elementId}`,
+            poster: rec.hasPoster ? `/api/stages/${stageId}/media/${rec.elementId}/poster` : undefined,
+            retryCount: 0,
+            stageId,
+          };
         }
       }
 

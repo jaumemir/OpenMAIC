@@ -48,11 +48,10 @@ export default function AdminConfigPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="max-w-3xl mx-auto px-6 py-10">
-        <h1 className="text-2xl font-semibold mb-8">Configuració global</h1>
+    <div className="max-w-3xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-10">
+        <h1 className="text-2xl font-semibold tracking-tight mb-8">Configuració global</h1>
 
-        <Card>
+        <Card className="rounded-2xl border-border/60 bg-white/60 dark:bg-slate-900/50 shadow-sm">
           <CardHeader>
             <CardTitle>Models permesos</CardTitle>
             <CardDescription>
@@ -81,7 +80,6 @@ export default function AdminConfigPage() {
             )}
           </CardContent>
         </Card>
-      </div>
     </div>
   );
 }

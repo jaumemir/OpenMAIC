@@ -1,8 +1,8 @@
 import { headers } from 'next/headers';
 import { getSessionFromHeaders } from '@/lib/auth/session';
 import { prisma } from '@/lib/prisma';
-import { fromDbJson } from '@/lib/db-compat';
 import Link from 'next/link';
+import { Users, Settings, BookOpen, ClipboardList } from 'lucide-react';
 
 export default async function AdminDashboardPage() {
   const hdrs = await headers();
@@ -20,67 +20,66 @@ export default async function AdminDashboardPage() {
   const adminName = (session?.user as { name?: string } | undefined)?.name ?? 'Admin';
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="max-w-5xl mx-auto px-6 py-10">
-        <div className="mb-8">
-          <h1 className="text-2xl font-semibold">Panel d&apos;administració</h1>
-          <p className="text-muted-foreground mt-1">Benvingut/da, {adminName}</p>
-        </div>
+    <div className="max-w-6xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-10">
+      <div className="mb-10">
+        <h1 className="text-2xl font-semibold tracking-tight">Panel d&apos;administració</h1>
+        <p className="text-muted-foreground mt-1">Benvingut/da, {adminName}</p>
+      </div>
 
-        {/* Resum */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-10">
-          <StatCard title="Usuaris registrats" value={userCount} />
-          <StatCard title="Accions avui" value={recentLogs.filter((l) => isToday(l.createdAt)).length} />
-          <StatCard title="Accions totals (últimes 24h)" value={recentLogs.length} />
-        </div>
+      {/* Estadístiques */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-10">
+        <StatCard title="Usuaris registrats" value={userCount} />
+        <StatCard title="Accions avui" value={recentLogs.filter((l) => isToday(l.createdAt)).length} />
+        <StatCard title="Accions (últimes 24h)" value={recentLogs.length} />
+      </div>
 
-        {/* Navegació */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-10">
-          <AdminNavCard href="/admin/users" title="Usuaris" description="Gestiona usuaris i invitacions" />
-          <AdminNavCard href="/admin/config" title="Configuració" description="Models permesos i paràmetres globals" />
-          <AdminNavCard href="/admin/audit" title="Auditoria" description="Log complet d'accions del sistema" />
-        </div>
+      {/* Navegació */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
+        <AdminNavCard href="/admin/users"   icon={Users}         title="Usuaris"          description="Gestiona usuaris i invitacions" />
+        <AdminNavCard href="/admin/config"  icon={Settings}      title="Configuració"     description="Models permesos i paràmetres globals" />
+        <AdminNavCard href="/admin/courses" icon={BookOpen}      title="Cursos generats"  description="Tots els cursos del sistema" />
+        <AdminNavCard href="/admin/audit"   icon={ClipboardList} title="Auditoria"        description="Log complet d'accions" />
+      </div>
 
-        {/* Últimes accions */}
-        <div>
-          <h2 className="text-lg font-medium mb-4">Activitat recent</h2>
-          <div className="border rounded-lg overflow-hidden">
-            <table className="w-full text-sm">
-              <thead className="bg-muted/50">
-                <tr>
-                  <th className="text-left px-4 py-2 font-medium text-muted-foreground">Acció</th>
-                  <th className="text-left px-4 py-2 font-medium text-muted-foreground">Usuari</th>
-                  <th className="text-left px-4 py-2 font-medium text-muted-foreground">Entitat</th>
-                  <th className="text-left px-4 py-2 font-medium text-muted-foreground">Data</th>
+      {/* Activitat recent */}
+      <div>
+        <h2 className="text-base font-semibold mb-4">Activitat recent</h2>
+        <div className="rounded-xl border border-border/60 overflow-hidden bg-white/60 dark:bg-slate-900/50 shadow-sm">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-border/60 bg-muted/40">
+                <th className="text-left px-4 py-2.5 font-medium text-muted-foreground">Acció</th>
+                <th className="text-left px-4 py-2.5 font-medium text-muted-foreground">Usuari</th>
+                <th className="text-left px-4 py-2.5 font-medium text-muted-foreground hidden sm:table-cell">Entitat</th>
+                <th className="text-left px-4 py-2.5 font-medium text-muted-foreground">Data</th>
+              </tr>
+            </thead>
+            <tbody>
+              {recentLogs.map((log) => (
+                <tr key={log.id} className="border-t border-border/40 hover:bg-muted/20 transition-colors">
+                  <td className="px-4 py-2.5 font-mono text-xs">{log.action}</td>
+                  <td className="px-4 py-2.5 text-muted-foreground text-xs">
+                    {log.user
+                      ? `${log.user.profile?.firstName ?? ''} ${log.user.profile?.lastName ?? ''}`.trim() || log.user.email
+                      : 'Sistema'}
+                  </td>
+                  <td className="px-4 py-2.5 text-muted-foreground text-xs hidden sm:table-cell">
+                    {log.entityType ? `${log.entityType}/${log.entityId?.slice(0, 8)}` : '—'}
+                  </td>
+                  <td className="px-4 py-2.5 text-muted-foreground text-xs whitespace-nowrap">
+                    {new Date(log.createdAt).toLocaleString('ca-ES')}
+                  </td>
                 </tr>
-              </thead>
-              <tbody>
-                {recentLogs.map((log) => (
-                  <tr key={log.id} className="border-t hover:bg-muted/20">
-                    <td className="px-4 py-2 font-mono text-xs">{log.action}</td>
-                    <td className="px-4 py-2 text-muted-foreground">
-                      {log.user
-                        ? `${log.user.profile?.firstName ?? ''} ${log.user.profile?.lastName ?? ''}`.trim() || log.user.email
-                        : 'Sistema'}
-                    </td>
-                    <td className="px-4 py-2 text-muted-foreground">
-                      {log.entityType ? `${log.entityType}/${log.entityId?.slice(0, 8)}` : '—'}
-                    </td>
-                    <td className="px-4 py-2 text-muted-foreground text-xs">
-                      {new Date(log.createdAt).toLocaleString('ca-ES')}
-                    </td>
-                  </tr>
-                ))}
-                {recentLogs.length === 0 && (
-                  <tr>
-                    <td colSpan={4} className="px-4 py-8 text-center text-muted-foreground">
-                      Sense activitat registrada
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
+              ))}
+              {recentLogs.length === 0 && (
+                <tr>
+                  <td colSpan={4} className="px-4 py-10 text-center text-muted-foreground text-sm">
+                    Sense activitat registrada
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
         </div>
       </div>
     </div>
@@ -89,21 +88,36 @@ export default async function AdminDashboardPage() {
 
 function StatCard({ title, value }: { title: string; value: number }) {
   return (
-    <div className="border rounded-lg px-5 py-4">
-      <p className="text-sm text-muted-foreground">{title}</p>
-      <p className="text-3xl font-semibold mt-1">{value}</p>
+    <div className="rounded-2xl border border-border/60 bg-white/60 dark:bg-slate-900/50 px-5 py-4 shadow-sm">
+      <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">{title}</p>
+      <p className="text-3xl font-semibold mt-1.5 tabular-nums">{value}</p>
     </div>
   );
 }
 
-function AdminNavCard({ href, title, description }: { href: string; title: string; description: string }) {
+function AdminNavCard({
+  href,
+  icon: Icon,
+  title,
+  description,
+}: {
+  href: string;
+  icon: React.ElementType;
+  title: string;
+  description: string;
+}) {
   return (
     <Link
       href={href}
-      className="border rounded-lg px-5 py-4 hover:bg-muted/30 transition-colors block"
+      className="rounded-2xl border border-border/60 bg-white/60 dark:bg-slate-900/50 px-5 py-4 shadow-sm hover:shadow-md hover:border-border transition-all block group"
     >
-      <p className="font-medium">{title}</p>
-      <p className="text-sm text-muted-foreground mt-1">{description}</p>
+      <div className="flex items-center gap-2.5 mb-2">
+        <div className="p-1.5 rounded-lg bg-primary/10 text-primary group-hover:bg-primary/15 transition-colors">
+          <Icon className="h-4 w-4" />
+        </div>
+        <p className="font-semibold text-sm">{title}</p>
+      </div>
+      <p className="text-xs text-muted-foreground leading-relaxed">{description}</p>
     </Link>
   );
 }
