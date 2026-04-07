@@ -49,17 +49,18 @@ export type SerializableSettings = {
 
 /**
  * Fa merge entre la config de BD i la llista actual de PROVIDERS del codi.
- * Afegeix providers nous que apareguin al codi però que no estiguin a BD.
- * Mai sobreescriu configuració existent (API keys, models personalitzats).
+ * Afegeix ÚNICAMENT providers que siguin nous al codi i que no existeixin a BD.
+ * Per als providers ja existents a BD, la seva llista de models és autoritativa
+ * (l'admin pot afegir/eliminar models i la BD ho respecta).
  */
 function mergeWithBuiltInProviders(config: SerializableSettings): SerializableSettings {
   if (!config.providersConfig) return config;
 
   const result = { ...config.providersConfig } as ProvidersConfig;
   for (const pid of Object.keys(PROVIDERS) as ProviderId[]) {
-    const provider = PROVIDERS[pid];
     if (!result[pid]) {
-      // Provider nou al codi que no existia a BD → afegir amb defaults
+      // Provider completament nou al codi que no existia a BD → afegir amb defaults
+      const provider = PROVIDERS[pid];
       result[pid] = {
         apiKey: '',
         baseUrl: '',
@@ -71,15 +72,9 @@ function mergeWithBuiltInProviders(config: SerializableSettings): SerializableSe
         requiresApiKey: provider.requiresApiKey,
         isBuiltIn: true,
       };
-    } else {
-      // Provider existent: afegir models nous del codi sense sobreescriure els existents
-      const existing = result[pid];
-      const existingIds = new Set((existing.models ?? []).map((m) => m.id));
-      const newModels = provider.models.filter((m) => !existingIds.has(m.id));
-      if (newModels.length > 0) {
-        result[pid] = { ...existing, models: [...newModels, ...(existing.models ?? [])] };
-      }
     }
+    // Provider ja existent a BD → no tocar res (models, API keys, etc.)
+    // La llista de models guardada per l'admin és l'única font de veritat.
   }
 
   return { ...config, providersConfig: result };
