@@ -33,7 +33,7 @@ pnpm check            # Prettier --check
 | Framework | Next.js 16 (App Router) |
 | UI | React 19, Tailwind CSS 4, shadcn/ui, Radix UI |
 | State | Zustand 5 + Immer (localStorage persist) |
-| Storage browser | Dexie 4 (IndexedDB) |
+| Storage local | Dexie 4 (IndexedDB, cache: agents, snapshots, PDFs, TTS) |
 | LLM | Vercel AI SDK 6 (@ai-sdk/openai, anthropic, google) |
 | Orquestració | LangGraph 1.1 (@langchain/langgraph) |
 | Tests unitaris | Vitest 4 |
@@ -51,7 +51,7 @@ pnpm check            # Prettier --check
 Input usuari
   → Stage 1: outline-generator.ts   → SceneOutline[]   (títol, tipus, punts clau)
   → Stage 2: scene-generator.ts     → Scene[]          (elements, accions, imatges)
-  → Storage (IndexedDB o filesystem)
+  → Storage (servidor: filesystem en dev, object store + PostgreSQL en producció)
   → classroom/[id] playback
 ```
 
