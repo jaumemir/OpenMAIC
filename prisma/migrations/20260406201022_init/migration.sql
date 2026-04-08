@@ -4,8 +4,8 @@ CREATE TABLE "users" (
     "email" TEXT NOT NULL,
     "role" TEXT NOT NULL DEFAULT 'user',
     "status" TEXT NOT NULL DEFAULT 'pending',
-    "created_at" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updated_at" DATETIME NOT NULL
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL
 );
 
 -- CreateTable
@@ -23,10 +23,10 @@ CREATE TABLE "user_profiles" (
 -- CreateTable
 CREATE TABLE "sessions" (
     "id" TEXT NOT NULL PRIMARY KEY,
-    "expires_at" DATETIME NOT NULL,
+    "expires_at" TIMESTAMP(3) NOT NULL,
     "token" TEXT NOT NULL,
-    "created_at" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updated_at" DATETIME NOT NULL,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
     "ip_address" TEXT,
     "user_agent" TEXT,
     "user_id" TEXT NOT NULL,
@@ -43,11 +43,11 @@ CREATE TABLE "accounts" (
     "access_token" TEXT,
     "refresh_token" TEXT,
     "id_token" TEXT,
-    "access_token_expires_at" DATETIME,
-    "refresh_token_expires_at" DATETIME,
+    "access_token_expires_at" TIMESTAMP(3),
+    "refresh_token_expires_at" TIMESTAMP(3),
     "scope" TEXT,
-    "created_at" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updated_at" DATETIME NOT NULL,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
     CONSTRAINT "accounts_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users" ("id") ON DELETE CASCADE ON UPDATE CASCADE
 );
 
@@ -56,9 +56,9 @@ CREATE TABLE "verifications" (
     "id" TEXT NOT NULL PRIMARY KEY,
     "identifier" TEXT NOT NULL,
     "value" TEXT NOT NULL,
-    "expires_at" DATETIME NOT NULL,
-    "created_at" DATETIME DEFAULT CURRENT_TIMESTAMP,
-    "updated_at" DATETIME
+    "expires_at" TIMESTAMP(3) NOT NULL,
+    "created_at" TIMESTAMP(3) DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3)
 );
 
 -- CreateTable
@@ -68,9 +68,9 @@ CREATE TABLE "invitations" (
     "first_name" TEXT NOT NULL,
     "last_name" TEXT NOT NULL,
     "token" TEXT NOT NULL,
-    "expires_at" DATETIME NOT NULL,
-    "used_at" DATETIME,
-    "created_at" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "expires_at" TIMESTAMP(3) NOT NULL,
+    "used_at" TIMESTAMP(3),
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "invited_by_id" TEXT NOT NULL,
     CONSTRAINT "invitations_invited_by_id_fkey" FOREIGN KEY ("invited_by_id") REFERENCES "users" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
 );
@@ -79,7 +79,7 @@ CREATE TABLE "invitations" (
 CREATE TABLE "stage_ownerships" (
     "stage_id" TEXT NOT NULL PRIMARY KEY,
     "user_id" TEXT NOT NULL,
-    "created_at" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT "stage_ownerships_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users" ("id") ON DELETE CASCADE ON UPDATE CASCADE
 );
 
@@ -96,10 +96,10 @@ CREATE TABLE "classroom_jobs" (
     "total_scenes" INTEGER,
     "result" TEXT,
     "error" TEXT,
-    "created_at" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updated_at" DATETIME NOT NULL,
-    "started_at" DATETIME,
-    "completed_at" DATETIME,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
+    "started_at" TIMESTAMP(3),
+    "completed_at" TIMESTAMP(3),
     CONSTRAINT "classroom_jobs_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users" ("id") ON DELETE CASCADE ON UPDATE CASCADE
 );
 
@@ -107,7 +107,7 @@ CREATE TABLE "classroom_jobs" (
 CREATE TABLE "admin_config" (
     "key" TEXT NOT NULL PRIMARY KEY,
     "value" TEXT NOT NULL,
-    "updated_at" DATETIME NOT NULL,
+    "updated_at" TIMESTAMP(3) NOT NULL,
     "updated_by_id" TEXT,
     CONSTRAINT "admin_config_updated_by_id_fkey" FOREIGN KEY ("updated_by_id") REFERENCES "users" ("id") ON DELETE SET NULL ON UPDATE CASCADE
 );
@@ -122,7 +122,7 @@ CREATE TABLE "audit_logs" (
     "details" TEXT,
     "ip_address" TEXT,
     "user_agent" TEXT,
-    "created_at" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT "audit_logs_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users" ("id") ON DELETE SET NULL ON UPDATE CASCADE
 );
 

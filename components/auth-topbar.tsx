@@ -1,5 +1,6 @@
 import { headers } from 'next/headers';
 import { getSessionFromHeaders } from '@/lib/auth/session';
+import { prisma } from '@/lib/prisma';
 import AuthTopbarClient from './auth-topbar-client';
 
 /**
@@ -19,11 +20,20 @@ export default async function AuthTopbar() {
     role?: string;
   };
 
+  // El nom ve de user_profiles (firstName + lastName), no de users.name
+  const profile = await prisma.userProfile.findUnique({
+    where: { userId: user.id },
+    select: { firstName: true, lastName: true },
+  });
+  const displayName = profile
+    ? `${profile.firstName} ${profile.lastName}`.trim()
+    : (user.name ?? user.email);
+
   return (
     <AuthTopbarClient
       userId={user.id}
       email={user.email}
-      name={user.name ?? user.email}
+      name={displayName}
       role={user.role ?? 'user'}
     />
   );

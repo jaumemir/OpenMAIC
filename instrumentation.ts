@@ -16,25 +16,10 @@ export async function register() {
   // Només s'executa al costat del servidor (Node.js runtime)
   if (process.env.NEXT_RUNTIME !== 'nodejs') return;
 
-  // ── 1. Auto-migrar la BD ──────────────────────────────────────────────────
-  try {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const { execFileSync } = require('child_process') as typeof import('child_process');
-    const dbUrl = process.env.DATABASE_URL ?? '';
-    const schema = dbUrl.startsWith('file:')
-      ? 'prisma/schema.dev.prisma'
-      : 'prisma/schema.prod.prisma';
-    execFileSync(
-      'node_modules/.bin/prisma',
-      ['migrate', 'deploy', `--schema=${schema}`],
-      { stdio: 'pipe', env: process.env },
-    );
-    console.log('[OpenMAIC] BD: migracions aplicades.');
-  } catch (err) {
-    console.error('[OpenMAIC] BD: error aplicant migracions:', err);
-  }
+  // Nota: `prisma migrate deploy` s'executa a start.sh ABANS d'iniciar l'app.
+  // instrumentation.ts només gestiona la creació de l'admin per defecte.
 
-  // ── 2. Crear admin per defecte si no n'hi ha cap ─────────────────────────
+  // ── Crear admin per defecte si no n'hi ha cap ────────────────────────────
 
   // Importació dinàmica per garantir que no es resol a l'Edge runtime
   const { prisma } = await import('@/lib/prisma');
