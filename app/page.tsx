@@ -197,21 +197,7 @@ function HomePage() {
       })
       .catch(() => {});
 
-    // Config global (admin only)
-    if (sessionUser.role === 'admin') {
-      fetch('/api/admin/config/providers')
-        .then((r) => r.json())
-        .then((data) => {
-          if (data?.config) {
-            useSettingsStore.getState().hydrate(data.config);
-          }
-        })
-        .catch(() => {});
-    } else {
-      // Usuaris normals: fetchServerProviders filtra models per allowedModels
-      useSettingsStore.getState().fetchServerProviders();
-    }
-  }, [sessionUser?.id, sessionUser?.role]);
+  }, [sessionUser?.id]);
 
   // Hidratar el nickname des del perfil de l'usuari autenticat (si no n'hi ha un de configurat)
   useEffect(() => {

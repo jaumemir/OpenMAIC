@@ -1202,6 +1202,7 @@ export const useSettingsStore = create<SettingsState>()(
             ...(autoAgentCount !== undefined && { autoAgentCount }),
             ...(themeId !== undefined && { themeId }),
           }));
+          _hydratedFromDB = true;
         },
       };
     },
@@ -1228,9 +1229,11 @@ if (typeof window !== 'undefined') {
 
 let _configSaveTimer: ReturnType<typeof setTimeout> | null = null;
 let _configSaveInitialized = false;
+let _hydratedFromDB = false;
 
 function scheduleConfigSave(state: SettingsState) {
   if (typeof window === 'undefined') return;
+  if (!_hydratedFromDB) return;
   if (_configSaveTimer) clearTimeout(_configSaveTimer);
   _configSaveTimer = setTimeout(() => {
     _configSaveTimer = null;
