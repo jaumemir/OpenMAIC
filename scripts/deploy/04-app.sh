@@ -123,9 +123,9 @@ properties:
       - name: config-encryption-key
         value: "${CONFIG_ENCRYPTION_KEY}"
       - name: acs-endpoint
-        value: "https://dgia-email-relay.germany.communication.azure.com/"
+        value: "${ACS_ENDPOINT}"
       - name: acs-access-key
-        value: "REMOVED_ACS_KEY"
+        value: "${ACS_ACCESS_KEY}"
   template:
     volumes:
       - name: openmaic-data
