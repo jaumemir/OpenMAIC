@@ -3,7 +3,7 @@
  *
  * Tracks per-element media generation status (pending → generating → done/failed).
  * Drives skeleton loading in slide renderer components.
- * Persistence is handled by IndexedDB (mediaFiles table), not Zustand middleware.
+ * Persistence is handled by the server API (/api/stages/{stageId}/media), not Zustand middleware.
  */
 
 import { create } from 'zustand';
@@ -52,7 +52,7 @@ interface MediaGenerationState {
   getTask: (elementId: string) => MediaTask | undefined;
   isReady: (elementId: string) => boolean;
 
-  // Restore from IndexedDB on page load
+  // Restore from server DB on page load
   restoreFromDB: (stageId: string) => Promise<void>;
 
   // Cleanup

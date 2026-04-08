@@ -14,6 +14,8 @@ RUN apk add --no-cache python3 build-base g++ cairo-dev pango-dev jpeg-dev gifli
 
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY packages/ ./packages/
+# postinstall executa `prisma generate --schema=prisma/schema.dev.prisma`
+COPY prisma/ ./prisma/
 
 RUN pnpm install --frozen-lockfile
 
@@ -23,6 +25,10 @@ FROM base AS builder
 COPY --from=deps /app/node_modules ./node_modules
 COPY --from=deps /app/packages ./packages
 COPY . .
+
+# postinstall genera el client amb schema.dev.prisma (SQLite).
+# Re-generar amb schema.prod.prisma (PostgreSQL) abans del build.
+RUN pnpm exec prisma generate --schema=prisma/schema.prod.prisma
 
 RUN pnpm build
 
@@ -35,17 +41,28 @@ ENV NODE_ENV=production
 ENV HOSTNAME=0.0.0.0
 ENV PORT=3000
 
-RUN apk add --no-cache libc6-compat cairo pango jpeg giflib librsvg
+RUN apk add --no-cache libc6-compat cairo pango jpeg giflib librsvg openssl
 
 RUN addgroup --system --gid 1001 nodejs && \
     adduser --system --uid 1001 nextjs
 
-COPY --from=builder /app/public ./public
+COPY --from=builder --chown=nextjs:nodejs /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+# Prisma schemas i migracions: necessaris per a `prisma migrate deploy` en start.sh
+COPY --from=builder --chown=nextjs:nodejs /app/prisma ./prisma
+# Prisma CLI global: instal·lat via npm per evitar problemes de symlinks del store pnpm.
+# npm resol totes les deps transitives i descarrega el binari correcte (linux-musl-openssl-3.0.x).
+RUN npm install -g prisma@5.22.0
+# Directori de dades: creat buit aquí; en producció s'hi munta Azure Files (o volum local)
+RUN mkdir -p /app/data && chown nextjs:nodejs /app/data
+
+COPY --chown=nextjs:nodejs start.sh ./start.sh
+RUN chmod +x start.sh
 
 USER nextjs
 
 EXPOSE 3000
 
-CMD ["node", "server.js"]
+# start.sh: aplica migracions Prisma i arrenca `node server.js`
+CMD ["sh", "start.sh"]

@@ -82,13 +82,12 @@ export default function AcceptInviteForm() {
       });
 
       const data = await res.json();
-      if (!res.ok || !data.user) {
+      if (!res.ok || !data.success) {
         setFormError(data.error ?? 'Error activant el compte. Torna-ho a intentar.');
         return;
       }
 
-      router.push('/');
-      router.refresh();
+      router.push('/login?activated=1');
     } catch {
       setFormError('Error de connexió. Torna-ho a intentar.');
     } finally {

@@ -9,6 +9,6 @@ CREATE TABLE "user_preferences" (
     "video_generation_enabled" BOOLEAN NOT NULL DEFAULT false,
     "asr_language" TEXT NOT NULL DEFAULT 'zh-CN',
     "agent_mode" TEXT NOT NULL DEFAULT 'auto',
-    "updated_at" DATETIME NOT NULL,
+    "updated_at" TIMESTAMP(3) NOT NULL,
     CONSTRAINT "user_preferences_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users" ("id") ON DELETE CASCADE ON UPDATE CASCADE
 );

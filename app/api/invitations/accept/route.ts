@@ -5,14 +5,12 @@
  * 1. Valida token (existeix, no expirat, no usat)
  * 2. Crea User + UserProfile + Account (argon2id hash) en transacció
  * 3. Marca invitació com usada
- * 4. Fa sign-in automàtic via better-auth
- * 5. Retorna la sessió
+ * 4. Retorna { success, user } — l'usuari fa login manualment a /login
  */
 export const runtime = 'nodejs';
 
 import { NextRequest } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { auth } from '@/lib/auth/server';
 import { apiError, apiSuccess } from '@/lib/server/api-response';
 import { auditLog, extractRequestMeta } from '@/lib/audit';
 import argon2 from 'argon2';
@@ -115,36 +113,6 @@ export async function POST(req: NextRequest) {
     ...meta,
   });
 
-  // 5. Fer sign-in automàtic via better-auth — asResponse:true retorna un Response real amb cookies
-  const signInResponse = await auth.api.signInEmail({
-    body: { email: invitation.email, password },
-    headers: req.headers,
-    asResponse: true,
-  });
-
-  if (!signInResponse.ok) {
-    return apiError(
-      'INTERNAL_ERROR',
-      500,
-      "Compte creat però no s'ha pogut iniciar sessió automàticament. Prova d'entrar manualment.",
-    );
-  }
-
-  // Auditoria de login automàtic (llegim el body sense consumir el Response original)
-  try {
-    const body = await signInResponse.clone().json();
-    await auditLog({
-      userId,
-      action: 'USER_LOGIN',
-      entityType: 'session',
-      entityId: body?.session?.id,
-      details: { method: 'invitation_accept' },
-      ...meta,
-    });
-  } catch {
-    // Silenciem si no podem llegir el body per auditoria
-  }
-
-  // Retornem el Response de better-auth directament (inclou Set-Cookie)
-  return signInResponse;
+  // 5. Retornar èxit — l'usuari farà login manualment a /login
+  return apiSuccess({ user: { email: invitation.email } });
 }
