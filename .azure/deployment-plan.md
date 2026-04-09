@@ -87,8 +87,13 @@ Generated: 2026-04-08
                  CONFIG_ENCRYPTION_KEY, ACS_ENDPOINT, ACS_ACCESS_KEY, etc.
 
 03-build-push.sh → az acr build → crminilmscat.azurecr.io/openmaic:<tag>
+                   → desa digest a .last-image-digest
 
-04-app.sh      → Container App amb YAML (volum /app/data, secrets KV, UAMI)
+04-new-app.sh  → Container App amb YAML complet (primer desplegament)
+                 volum /app/data, secrets directes, credencials ACR admin
+
+05-deploy.sh   → Actualitza NOMÉS la imatge (redesplegaments)
+                 no sobreescriu secrets ni cap altra configuració
 ```
 
 ### Modificació Dockerfile requerida
@@ -144,7 +149,7 @@ COPY --from=builder --chown=nextjs:nodejs /app/prisma ./prisma
 - [x] Generar `scripts/deploy/01-infra.sh`
 - [x] Generar `scripts/deploy/02-secrets.sh`
 - [x] Generar `scripts/deploy/03-build-push.sh`
-- [x] Generar `scripts/deploy/04-app.sh`
+- [x] Generar `scripts/deploy/04-new-app.sh` (reanomenat de 04-app.sh)
 - [ ] **⛔ Actualitzar status a "Ready for Validation"**
 
 ### Phase 3: Validation
@@ -179,7 +184,8 @@ COPY --from=builder --chown=nextjs:nodejs /app/prisma ./prisma
 | `scripts/deploy/01-infra.sh` | Crear infraestructura base | ✅ |
 | `scripts/deploy/02-secrets.sh` | Poblar Key Vault | ✅ |
 | `scripts/deploy/03-build-push.sh` | Build i push imatge Docker | ✅ |
-| `scripts/deploy/04-app.sh` | Deploy Container App | ✅ |
+| `scripts/deploy/04-new-app.sh` | Crear Container App (primer desplegament) | ✅ |
+| `scripts/deploy/05-deploy.sh` | Actualitzar imatge (redesplegaments) | ✅ |
 
 ---
 
@@ -206,6 +212,7 @@ COPY --from=builder --chown=nextjs:nodejs /app/prisma ./prisma
 > Current: Planning — pendent aprovació
 
 1. Aprovar el pla
-2. Executar scripts en ordre: `01-infra.sh` → `02-secrets.sh` → `03-build-push.sh` → `04-app.sh`
+2. Primer desplegament: `01-infra.sh` → `02-secrets.sh` → `03-build-push.sh` → `04-new-app.sh`
+   Redesplegaments: `03-build-push.sh` → `05-deploy.sh`
 3. Verificar que l'app arranca: `az containerapp logs show --name ca-openmaic --resource-group rg_dgia-labs --follow`
 4. Comprovar URL pública: `az containerapp show --name ca-openmaic --resource-group rg_dgia-labs --query properties.configuration.ingress.fqdn -o tsv`

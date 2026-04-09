@@ -1,13 +1,16 @@
 #!/bin/bash
 # ============================================================
-# 04-app.sh — Crear o actualitzar la Container App d'OpenMAIC
+# 04-new-app.sh — Crear la Container App d'OpenMAIC (PRIMER DESPLEGAMENT)
 # ============================================================
 # Usa secrets directes (no KV) per compatibilitat amb entorns
 # on les condicions ABAC impedeixen roleAssignments.
 # Usa credencials admin ACR per al pull de la imatge.
 #
-# Prerequisits: 01, 03 executats.
-# Ús: bash scripts/deploy/04-app.sh
+# ATENCIÓ: sobreescriu tots els secrets i config del Container App.
+# Per actualitzar només la imatge, usa 05-deploy.sh.
+#
+# Prerequisits: 01, 02, 03 executats.
+# Ús: bash scripts/deploy/04-new-app.sh
 # ============================================================
 set -euo pipefail
 

@@ -62,7 +62,7 @@ IMAGE_DIGEST=$(az acr repository show \
 
 DIGEST_REF="${ACR_NAME}.azurecr.io/${ACR_REPO}@${IMAGE_DIGEST}"
 
-# Guardar el digest per a 04-app.sh
+# Guardar el digest per a 05-deploy.sh
 echo "IMAGE_DIGEST=${IMAGE_DIGEST}" > "$SCRIPT_DIR/.last-image-digest"
 echo "IMAGE_DIGEST_REF=${DIGEST_REF}" >> "$SCRIPT_DIR/.last-image-digest"
 echo "IMAGE_TAG_USED=${IMAGE_TAG}" >> "$SCRIPT_DIR/.last-image-digest"
@@ -75,5 +75,5 @@ echo "   $FULL_IMAGE_LATEST"
 echo " Digest:"
 echo "   $DIGEST_REF"
 echo "============================================================"
-echo " Proper pas: bash scripts/deploy/04-app.sh"
+echo " Proper pas: bash scripts/deploy/05-deploy.sh"
 echo "============================================================"
