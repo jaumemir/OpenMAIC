@@ -9,7 +9,7 @@ export async function POST(req: NextRequest) {
   let model: string | undefined;
   try {
     const body = await req.json();
-    const { providerType, requiresApiKey } = body;
+    const { providerType } = body;
     model = body.model;
 
     if (!model) {
@@ -22,7 +22,6 @@ export async function POST(req: NextRequest) {
       const result = await resolveModel({
         modelString: model,
         providerType,
-        requiresApiKey,
       });
       languageModel = result.model;
     } catch (error) {

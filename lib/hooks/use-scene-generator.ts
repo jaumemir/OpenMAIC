@@ -32,7 +32,6 @@ function getApiHeaders(): HeadersInit {
     'Content-Type': 'application/json',
     'x-model': config.modelString || '',
     'x-provider-type': config.providerType || '',
-    'x-requires-api-key': String(config.requiresApiKey ?? false),
     // Image generation provider
     'x-image-provider': settings.imageProviderId || '',
     'x-image-model': settings.imageModelId || '',

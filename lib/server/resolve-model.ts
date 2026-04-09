@@ -18,6 +18,8 @@ import { resolveApiKeyFromDb, resolveBaseUrlFromDb } from '@/lib/server/db-provi
 export interface ResolvedModel extends ModelWithInfo {
   /** Original model string (e.g. "openai/gpt-4o-mini") */
   modelString: string;
+  /** Resolved provider ID (e.g. "openai", "ollama") */
+  providerId: string;
   /** Effective API key after server-side fallback resolution */
   apiKey: string;
 }
@@ -30,7 +32,6 @@ export interface ResolvedModel extends ModelWithInfo {
 export async function resolveModel(params: {
   modelString?: string;
   providerType?: string;
-  requiresApiKey?: boolean;
 }): Promise<ResolvedModel> {
   const modelString = params.modelString || process.env.DEFAULT_MODEL || 'gpt-4o-mini';
   const { providerId, modelId } = parseModelString(modelString);
@@ -55,21 +56,21 @@ export async function resolveModel(params: {
     baseUrl,
     proxy,
     providerType: params.providerType as 'openai' | 'anthropic' | 'google' | undefined,
-    requiresApiKey: params.requiresApiKey,
   });
 
-  return { model, modelInfo, modelString, apiKey };
+  return { model, modelInfo, modelString, providerId, apiKey };
 }
 
 /**
  * Resolve a language model from standard request headers.
  *
- * Reads: x-model, x-provider-type, x-requires-api-key
+ * Reads: x-model, x-provider-type
+ * Note: API keys and base URLs are resolved server-side from env/DB — never
+ * trusted from client headers to prevent auth bypass.
  */
 export async function resolveModelFromHeaders(req: NextRequest): Promise<ResolvedModel> {
   return resolveModel({
     modelString: req.headers.get('x-model') || undefined,
     providerType: req.headers.get('x-provider-type') || undefined,
-    requiresApiKey: req.headers.get('x-requires-api-key') === 'true' ? true : undefined,
   });
 }

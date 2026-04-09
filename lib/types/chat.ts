@@ -277,7 +277,6 @@ export interface StatelessChatRequest {
   };
   model?: string;
   providerType?: string;
-  requiresApiKey?: boolean;
 }
 
 /**

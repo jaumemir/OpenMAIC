@@ -451,7 +451,6 @@ export function useChatSessions(options: UseChatSessionsOptions = {}) {
         userProfile?: { nickname?: string; bio?: string };
         model?: string;
         providerType?: string;
-        requiresApiKey?: boolean;
       },
       controller: AbortController,
       sessionType: SessionType,
@@ -871,7 +870,6 @@ export function useChatSessions(options: UseChatSessionsOptions = {}) {
             },
             model: mc.modelString,
             providerType: mc.providerType,
-            requiresApiKey: mc.requiresApiKey,
           },
           controller,
           session.type,
@@ -1081,7 +1079,6 @@ export function useChatSessions(options: UseChatSessionsOptions = {}) {
             },
             model: mc.modelString,
             providerType: mc.providerType,
-            requiresApiKey: mc.requiresApiKey,
           },
           controller,
           sessionType,
@@ -1222,7 +1219,6 @@ export function useChatSessions(options: UseChatSessionsOptions = {}) {
             },
             model: mc.modelString,
             providerType: mc.providerType,
-            requiresApiKey: mc.requiresApiKey,
           },
           controller,
           'discussion',
