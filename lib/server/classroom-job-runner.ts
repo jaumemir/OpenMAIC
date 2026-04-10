@@ -1,4 +1,5 @@
 import { createLogger } from '@/lib/logger';
+import { prisma } from '@/lib/prisma';
 import { generateClassroom, type GenerateClassroomInput } from '@/lib/server/classroom-generation';
 import {
   markClassroomGenerationJobFailed,
@@ -28,11 +29,27 @@ export function runClassroomGenerationJob(
 
       const result = await generateClassroom(input, {
         baseUrl,
-        userId,
         onProgress: async (progress) => {
           await updateClassroomGenerationJobProgress(jobId, progress);
         },
       });
+
+      // Registrar propietat del stage a la BD
+      if (userId) {
+        try {
+          await prisma.stageOwnership.upsert({
+            where: { stageId: result.id },
+            update: { userId },
+            create: { stageId: result.id, userId },
+          });
+        } catch (err) {
+          log.error(
+            `No s'ha pogut crear StageOwnership [stageId=${result.id}, userId=${userId}]:`,
+            err,
+          );
+          // No fallem el job — el stage existeix; l'admin pot reparar l'ownership
+        }
+      }
 
       await markClassroomGenerationJobSucceeded(jobId, result);
 

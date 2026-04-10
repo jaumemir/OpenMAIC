@@ -64,7 +64,6 @@ export async function persistClassroom(
     id: string;
     stage: Stage;
     scenes: Scene[];
-    userId?: string;
   },
   baseUrl: string,
 ): Promise<PersistedClassroomData & { url: string }> {
@@ -89,18 +88,6 @@ export async function persistClassroom(
   }).catch((err) => {
     console.error('[persistClassroom] Error escrivint stage al backend:', err);
   });
-
-  // Registrar propietat del stage a la BD si hi ha userId
-  if (data.userId) {
-    const { prisma } = await import('@/lib/prisma');
-    await prisma.stageOwnership.upsert({
-      where: { stageId: data.id },
-      update: { userId: data.userId },
-      create: { stageId: data.id, userId: data.userId },
-    }).catch((err) => {
-      console.error('[persistClassroom] Error escrivint StageOwnership:', err);
-    });
-  }
 
   return {
     ...classroomData,
