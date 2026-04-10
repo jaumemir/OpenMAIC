@@ -3,11 +3,17 @@
  *
  * Extracts the repeated parseModelString → resolveApiKey → resolveBaseUrl →
  * resolveProxy → getModel boilerplate into a single call.
+ *
+ * Key resolution order:
+ *   1. Client-provided key (header or body) — if not empty and not '__STORED__'
+ *   2. YAML/env via resolveApiKey
+ *   3. AdminConfig DB via resolveApiKeyFromDb
  */
 
 import type { NextRequest } from 'next/server';
 import { getModel, parseModelString, type ModelWithInfo } from '@/lib/ai/providers';
 import { resolveApiKey, resolveBaseUrl, resolveProxy } from '@/lib/server/provider-config';
+import { resolveApiKeyFromDb } from '@/lib/server/db-provider-config';
 import { validateUrlForSSRF } from '@/lib/server/ssrf-guard';
 
 export interface ResolvedModel extends ModelWithInfo {
@@ -17,18 +23,20 @@ export interface ResolvedModel extends ModelWithInfo {
   apiKey: string;
 }
 
+const SENTINEL = '__STORED__';
+
 /**
  * Resolve a language model from explicit parameters.
  *
  * Use this when model config comes from the request body.
  */
-export function resolveModel(params: {
+export async function resolveModel(params: {
   modelString?: string;
   apiKey?: string;
   baseUrl?: string;
   providerType?: string;
   requiresApiKey?: boolean;
-}): ResolvedModel {
+}): Promise<ResolvedModel> {
   const modelString = params.modelString || process.env.DEFAULT_MODEL || 'gpt-4o-mini';
   const { providerId, modelId } = parseModelString(modelString);
 
@@ -40,9 +48,22 @@ export function resolveModel(params: {
     }
   }
 
-  const apiKey = clientBaseUrl
-    ? params.apiKey || ''
-    : resolveApiKey(providerId, params.apiKey || '');
+  // Normalize client key: treat sentinel and empty string the same (no client key)
+  const clientKey =
+    params.apiKey && params.apiKey !== SENTINEL ? params.apiKey : undefined;
+
+  let apiKey: string;
+  if (clientBaseUrl) {
+    // Custom base URL: client key required (user-provided provider)
+    apiKey = clientKey || '';
+  } else {
+    // Standard provider: resolve from client → YAML/env → DB
+    apiKey = resolveApiKey(providerId, clientKey);
+    if (!apiKey) {
+      apiKey = await resolveApiKeyFromDb(providerId);
+    }
+  }
+
   const baseUrl = clientBaseUrl ? clientBaseUrl : resolveBaseUrl(providerId, params.baseUrl);
   const proxy = resolveProxy(providerId);
   const { model, modelInfo } = getModel({
@@ -63,7 +84,7 @@ export function resolveModel(params: {
  *
  * Reads: x-model, x-api-key, x-base-url, x-provider-type, x-requires-api-key
  */
-export function resolveModelFromHeaders(req: NextRequest): ResolvedModel {
+export async function resolveModelFromHeaders(req: NextRequest): Promise<ResolvedModel> {
   return resolveModel({
     modelString: req.headers.get('x-model') || undefined,
     apiKey: req.headers.get('x-api-key') || undefined,
