@@ -77,3 +77,6 @@ next-env.d.ts
 
 # docs
 /docs
+
+# deploy scripts generated files
+scripts/deploy/.last-*
