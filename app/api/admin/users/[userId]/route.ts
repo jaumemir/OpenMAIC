@@ -8,6 +8,9 @@ import { NextRequest } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { requireAuth, apiError, apiSuccess } from '@/lib/server/api-response';
 import { auditLog, extractRequestMeta } from '@/lib/audit';
+import { createLogger } from '@/lib/logger';
+
+const log = createLogger('AdminUsers API');
 
 type Params = { params: Promise<{ userId: string }> };
 
@@ -99,7 +102,9 @@ export async function PATCH(req: NextRequest, { params }: Params) {
 
   // Invalida sessions si l'usuari queda inactiu
   if (status === 'inactive') {
-    await prisma.session.deleteMany({ where: { userId } }).catch(() => {});
+    await prisma.session.deleteMany({ where: { userId } }).catch((err) => {
+      log.error(`No s'han pogut invalidar les sessions de l'usuari ${userId}:`, err);
+    });
   }
 
   // ── Auditoria ────────────────────────────────────────────────────────────

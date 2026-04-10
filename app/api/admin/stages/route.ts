@@ -76,7 +76,7 @@ export async function DELETE(req: NextRequest) {
     await backend.deleteStage(stageId);
 
     // Eliminar propietat de la BD
-    await prisma.stageOwnership.deleteMany({ where: { stageId } }).catch(() => {});
+    await prisma.stageOwnership.deleteMany({ where: { stageId } });
 
     const meta = extractRequestMeta(req);
     await auditLog({
