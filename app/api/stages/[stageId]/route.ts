@@ -39,16 +39,15 @@ export async function PUT(req: NextRequest, { params }: Params) {
   const { stageId } = await params;
   if (!isValidId(stageId)) return apiError('INVALID_REQUEST', 400, 'stageId invàlid.');
 
-  // PUT té semàntica "crear o substituir": si l'usuari no té ownership, la crea.
-  // Admins no necessiten ownership. Usuaris amb ownership d'un altre → 403.
-  if (user.role !== 'admin') {
-    const existing = await prisma.stageOwnership.findUnique({ where: { stageId } });
-    if (existing && existing.userId !== user.id) {
-      return apiError('FORBIDDEN', 403, 'No tens permisos per accedir a aquest recurs.');
-    }
-    if (!existing) {
-      await prisma.stageOwnership.create({ data: { stageId, userId: user.id } });
-    }
+  // PUT té semàntica "crear o substituir": sempre registra l'ownership si no existeix.
+  // Admins poden modificar stages d'altres usuaris (no reben 403), però els seus
+  // propis stages també queden registrats per aparèixer a la pantalla principal.
+  const existing = await prisma.stageOwnership.findUnique({ where: { stageId } });
+  if (existing && existing.userId !== user.id && user.role !== 'admin') {
+    return apiError('FORBIDDEN', 403, 'No tens permisos per accedir a aquest recurs.');
+  }
+  if (!existing) {
+    await prisma.stageOwnership.create({ data: { stageId, userId: user.id } });
   }
 
   try {

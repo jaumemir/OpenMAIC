@@ -1,5 +1,5 @@
 /**
- * middleware.ts — Protecció de rutes per sessió i rol.
+ * proxy.ts — Protecció de rutes per sessió i rol.
  *
  * Estratègia Edge-compatible:
  * - Comprova l'existència del cookie de sessió (better-auth: "better-auth.session_token")
@@ -50,7 +50,7 @@ function hasSessionCookie(req: NextRequest): boolean {
   );
 }
 
-export function middleware(req: NextRequest) {
+export function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
   // Permetre rutes públiques sense comprovació
