@@ -272,6 +272,32 @@ export const useLayoutStore = create<LayoutState>()(
 )
 ```
 
+### Providers LLM: fluxos admin vs usuari
+
+La configuració de providers LLM ve **exclusivament de la BD** (no de `.env`).
+
+**Admin** (rol `admin`):
+- `ServerProvidersInit` crida `GET /api/admin/config/providers` → `hydrate(config)`
+- Obté la config completa amb totes les API keys desxifrades i tots els providers configurats
+
+**Usuari** (rol `user`):
+- `ServerProvidersInit` crida `fetchServerProviders()` → `GET /api/server-providers`
+- El servidor llegeix `globalConfig` de BD, retorna **només** providers amb `apiKey` configurada
+- Aplica el filtre `allowedModels` (BD, clau `'allowedModels'`):
+  - `null` / buit → tots els providers permesos
+  - `["anthropic"]` → tot Anthropic permès
+  - `["anthropic:claude-sonnet-4-6"]` → només aquell model d'Anthropic
+- `fetchServerProviders()` esborra `apiKey: ''` per a **tots** els providers en el pas de reset, evitant que API keys de sessions d'admin sangrin a sessions d'usuari
+
+**Visibilitat al selector de models:**
+```
+Provider visible si: (!requiresApiKey || apiKey || isServerConfigured) && models.length >= 1
+```
+- `isServerConfigured: true` → el servidor l'ha retornat (admin o user)
+- `apiKey !== ''` → l'usuari l'ha entrat manualment (dins la sessió, no persista)
+
+**IDs de model:** els IDs a `allowedModels` han de coincidir exactament amb els IDs que l'admin ha configurat a la BD (p.ex. `gpt-4o`, `claude-sonnet-4-6`). El client usa els IDs del servidor directament i complementa amb metadata built-in si existeix.
+
 ### Config admin xifrada
 
 `lib/server/config-crypto.ts` usa AES-256-GCM per xifrar totes les API keys abans de guardar-les a `AdminConfig` (Prisma). Format: `"iv:authTag:ciphertext"` (tot en hex). La clau ve de `CONFIG_ENCRYPTION_KEY` (env var, mai al codi).
@@ -339,3 +365,7 @@ Els tests d'integració amb proveïdors LLM reals requereixen API keys al `.env.
 8. **`requireAuth` vs middleware:** El middleware (`proxy.ts`) comprova cookie per redirigir, però no valida la sessió completament. Sempre usar `requireAuth(req)` a les API routes per obtenir l'usuari autenticat i validat.
 
 9. **Prisma + SQLite path:** `lib/prisma.ts` fa patch de `process.env.DATABASE_URL` per resoldre la ruta relativa de SQLite correctament tant amb `prisma migrate` com des de Next.js runtime.
+
+10. **`allowedModels` no filtra:** Verificar que el camp `allowedModels` a la BD (clau `'allowedModels'`) sigui un array JSON vàlid, no `null`. Els IDs han de coincidir exactament amb els configurats per l'admin (p.ex. `"openai:gpt-4o"`, no `"openai:GPT-4o"`). Si el camp és `null` o `[]`, tots els providers passen.
+
+11. **Providers de l'admin visibles a usuaris sense reload:** `fetchServerProviders()` esborra `apiKey` de tots els providers en el reset. Si veus un provider que no hauria d'aparèixer, comprova que no hi hagi API keys residuals d'una sessió d'admin anterior. Un reload complet (`window.location.reload()`) sempre resol l'estat.
