@@ -221,6 +221,8 @@ model UserPreferences {
   videoGenerationEnabled  Boolean  @default(false) @map("video_generation_enabled")
   asrLanguage             String   @default("zh-CN") @map("asr_language")
   agentMode               String   @default("auto") @map("agent_mode")
+  avatar                  String   @default("/avatars/user.png") @map("avatar")
+  bio                     String   @default("") @map("bio")
   updatedAt               DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)

@@ -1,10 +1,15 @@
 /**
  * User Profile Store
- * Persists avatar, nickname & bio to localStorage
+ *
+ * Dades de perfil visible: avatar, nickname i bio.
+ * - avatar i bio: persistits a la BD via useUserPrefsStore (font de veritat)
+ * - nickname: en memòria, hidratat des de la sessió (firstName + lastName)
+ *
+ * No usa localStorage persist — la BD és la font de veritat per a avatar i bio.
  */
 
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { useUserPrefsStore } from '@/lib/store/user-prefs';
 
 /** Predefined avatar options */
 export const AVATAR_OPTIONS = [
@@ -18,27 +23,34 @@ export const AVATAR_OPTIONS = [
 ] as const;
 
 export interface UserProfileState {
-  /** Local avatar path or data-URL (for custom uploads) */
   avatar: string;
   nickname: string;
   bio: string;
+  /** Canvia l'avatar i el desa a la BD (per a accions de l'usuari) */
   setAvatar: (avatar: string) => void;
   setNickname: (nickname: string) => void;
+  /** Canvia la bio i la desa a la BD (per a accions de l'usuari) */
   setBio: (bio: string) => void;
+  /** Hidrata avatar+bio des de la BD sense reescriure (usa'l a la càrrega inicial) */
+  hydrateProfile: (avatar: string, bio: string) => void;
 }
 
-export const useUserProfileStore = create<UserProfileState>()(
-  persist(
-    (set) => ({
-      avatar: AVATAR_OPTIONS[0],
-      nickname: '',
-      bio: '',
-      setAvatar: (avatar) => set({ avatar }),
-      setNickname: (nickname) => set({ nickname }),
-      setBio: (bio) => set({ bio }),
-    }),
-    {
-      name: 'user-profile-storage',
-    },
-  ),
-);
+export const useUserProfileStore = create<UserProfileState>()((set) => ({
+  avatar: AVATAR_OPTIONS[0],
+  nickname: '',
+  bio: '',
+
+  setAvatar: (avatar) => {
+    set({ avatar });
+    useUserPrefsStore.getState().setAvatar(avatar);
+  },
+
+  setNickname: (nickname) => set({ nickname }),
+
+  setBio: (bio) => {
+    set({ bio });
+    useUserPrefsStore.getState().setBio(bio);
+  },
+
+  hydrateProfile: (avatar, bio) => set({ avatar, bio }),
+}));

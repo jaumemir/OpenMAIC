@@ -7,11 +7,9 @@ import { motion, AnimatePresence } from 'motion/react';
 import {
   ArrowUp,
   AudioLines,
-  Check,
   ChevronDown,
   Clock,
   Copy,
-  ImagePlus,
   Loader2,
   Pencil,
   Trash2,
@@ -187,23 +185,23 @@ function HomePage() {
   useEffect(() => {
     if (!sessionUser?.id) return;
 
-    // Preferències per-usuari
+    // Preferències per-usuari (model, TTS, ASR, avatar, bio...)
     fetch('/api/user/preferences')
       .then((r) => r.json())
       .then((data) => {
         if (data?.preferences) {
           useUserPrefsStore.getState().hydrate(data.preferences);
+          // Sincronitzar avatar i bio al profile store (sense reescriure a la BD)
+          const { avatar, bio } = data.preferences;
+          useUserProfileStore.getState().hydrateProfile(
+            avatar ?? '/avatars/user.png',
+            bio ?? '',
+          );
         }
       })
       .catch(() => {});
 
-  }, [sessionUser?.id]);
-
-  // Hidratar el nickname des del perfil de l'usuari autenticat (si no n'hi ha un de configurat)
-  useEffect(() => {
-    if (!sessionUser?.id) return;
-    const currentNickname = useUserProfileStore.getState().nickname;
-    if (currentNickname) return; // L'usuari ja té un nickname configurat manualment
+    // Hidratar el nickname des del perfil de sessió (nom llegit de la BD, no editable aquí)
     fetch('/api/user/me')
       .then((r) => r.ok ? r.json() : null)
       .then((profile: { firstName?: string; lastName?: string } | null) => {
@@ -211,7 +209,8 @@ function HomePage() {
         const name = [profile.firstName, profile.lastName].filter(Boolean).join(' ');
         if (name) useUserProfileStore.getState().setNickname(name);
       })
-      .catch(() => { /* silenci */ });
+      .catch(() => {});
+
   }, [sessionUser?.id]);
 
   const handleDelete = (id: string, e: React.MouseEvent) => {
@@ -824,12 +823,7 @@ function HomePage() {
   );
 }
 
-// ─── Greeting Bar — avatar + "Hi, Name", click to edit in-place ────
-const MAX_AVATAR_SIZE = 5 * 1024 * 1024;
-
-function isCustomAvatar(src: string) {
-  return src.startsWith('data:');
-}
+// ─── Greeting Bar — avatar + "Hola, Nom", click to edit avatar/bio ────
 
 function GreetingBar() {
   const { t } = useI18n();
@@ -837,15 +831,10 @@ function GreetingBar() {
   const nickname = useUserProfileStore((s) => s.nickname);
   const bio = useUserProfileStore((s) => s.bio);
   const setAvatar = useUserProfileStore((s) => s.setAvatar);
-  const setNickname = useUserProfileStore((s) => s.setNickname);
   const setBio = useUserProfileStore((s) => s.setBio);
 
   const [open, setOpen] = useState(false);
-  const [editingName, setEditingName] = useState(false);
-  const [nameDraft, setNameDraft] = useState('');
   const [avatarPickerOpen, setAvatarPickerOpen] = useState(false);
-  const nameInputRef = useRef<HTMLInputElement>(null);
-  const avatarInputRef = useRef<HTMLInputElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
   const displayName = nickname || t('profile.defaultNickname');
@@ -856,7 +845,6 @@ function GreetingBar() {
     const handler = (e: MouseEvent) => {
       if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
         setOpen(false);
-        setEditingName(false);
         setAvatarPickerOpen(false);
       }
     };
@@ -864,58 +852,8 @@ function GreetingBar() {
     return () => document.removeEventListener('mousedown', handler);
   }, [open]);
 
-  const startEditName = () => {
-    setNameDraft(nickname);
-    setEditingName(true);
-    setTimeout(() => nameInputRef.current?.focus(), 50);
-  };
-
-  const commitName = () => {
-    setNickname(nameDraft.trim());
-    setEditingName(false);
-  };
-
-  const handleAvatarUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    if (file.size > MAX_AVATAR_SIZE) {
-      toast.error(t('profile.fileTooLarge'));
-      return;
-    }
-    if (!file.type.startsWith('image/')) {
-      toast.error(t('profile.invalidFileType'));
-      return;
-    }
-    const reader = new FileReader();
-    reader.onload = () => {
-      const img = new window.Image();
-      img.onload = () => {
-        const canvas = document.createElement('canvas');
-        canvas.width = 128;
-        canvas.height = 128;
-        const ctx = canvas.getContext('2d')!;
-        const scale = Math.max(128 / img.width, 128 / img.height);
-        const w = img.width * scale;
-        const h = img.height * scale;
-        ctx.drawImage(img, (128 - w) / 2, (128 - h) / 2, w, h);
-        setAvatar(canvas.toDataURL('image/jpeg', 0.85));
-      };
-      img.src = reader.result as string;
-    };
-    reader.readAsDataURL(file);
-    e.target.value = '';
-  };
-
   return (
     <div ref={containerRef} className="relative pl-4 pr-2 pt-3.5 pb-1 w-auto">
-      <input
-        ref={avatarInputRef}
-        type="file"
-        accept="image/*"
-        className="hidden"
-        onChange={handleAvatarUpload}
-      />
-
       {/* ── Collapsed pill (always in flow) ── */}
       {!open && (
         <div
@@ -964,12 +902,11 @@ function GreetingBar() {
             className="absolute left-4 top-3.5 z-50 w-64"
           >
             <div className="rounded-2xl bg-white/95 dark:bg-slate-800/95 backdrop-blur-sm ring-1 ring-black/[0.04] dark:ring-white/[0.06] shadow-[0_1px_8px_-2px_rgba(0,0,0,0.06)] dark:shadow-[0_1px_8px_-2px_rgba(0,0,0,0.3)] px-2.5 py-2">
-              {/* ── Row: avatar + name ── */}
+              {/* ── Row: avatar + name (read-only) ── */}
               <div
                 className="flex items-center gap-2.5 cursor-pointer transition-all duration-200"
                 onClick={() => {
                   setOpen(false);
-                  setEditingName(false);
                   setAvatarPickerOpen(false);
                 }}
               >
@@ -998,46 +935,11 @@ function GreetingBar() {
                   </motion.div>
                 </div>
 
-                {/* Text */}
+                {/* Name (read-only) */}
                 <div className="flex-1 min-w-0">
-                  {editingName ? (
-                    <div className="flex items-center gap-1.5" onClick={(e) => e.stopPropagation()}>
-                      <input
-                        ref={nameInputRef}
-                        value={nameDraft}
-                        onChange={(e) => setNameDraft(e.target.value)}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter') commitName();
-                          if (e.key === 'Escape') {
-                            setEditingName(false);
-                          }
-                        }}
-                        onBlur={commitName}
-                        maxLength={20}
-                        placeholder={t('profile.defaultNickname')}
-                        className="flex-1 min-w-0 h-6 bg-transparent border-b border-border/80 text-[13px] font-semibold text-foreground outline-none placeholder:text-muted-foreground/40"
-                      />
-                      <button
-                        onClick={commitName}
-                        className="shrink-0 size-5 rounded flex items-center justify-center text-violet-500 hover:bg-violet-100 dark:hover:bg-violet-900/30"
-                      >
-                        <Check className="size-3" />
-                      </button>
-                    </div>
-                  ) : (
-                    <span
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        startEditName();
-                      }}
-                      className="group/name inline-flex items-center gap-1 cursor-pointer"
-                    >
-                      <span className="text-[13px] font-semibold text-foreground/85 group-hover/name:text-foreground transition-colors">
-                        {displayName}
-                      </span>
-                      <Pencil className="size-2.5 text-muted-foreground/30 opacity-0 group-hover/name:opacity-100 transition-opacity" />
-                    </span>
-                  )}
+                  <span className="text-[13px] font-semibold text-foreground/85 truncate block">
+                    {displayName}
+                  </span>
                 </div>
 
                 {/* Collapse arrow */}
@@ -1078,19 +980,6 @@ function GreetingBar() {
                             <img src={url} alt="" className="size-full" />
                           </button>
                         ))}
-                        <label
-                          className={cn(
-                            'size-7 rounded-full flex items-center justify-center cursor-pointer transition-all duration-150 border border-dashed',
-                            'hover:scale-110 active:scale-95',
-                            isCustomAvatar(avatar)
-                              ? 'ring-2 ring-violet-400 dark:ring-violet-500 ring-offset-0 border-violet-300 dark:border-violet-600 bg-violet-50 dark:bg-violet-900/30'
-                              : 'border-muted-foreground/30 text-muted-foreground/50 hover:border-muted-foreground/50',
-                          )}
-                          onClick={() => avatarInputRef.current?.click()}
-                          title={t('profile.uploadAvatar')}
-                        >
-                          <ImagePlus className="size-3" />
-                        </label>
                       </div>
                     </motion.div>
                   )}

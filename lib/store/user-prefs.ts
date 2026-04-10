@@ -30,6 +30,10 @@ export interface UserPrefsState {
   // Mode d'agents (per-usuari)
   agentMode: 'preset' | 'auto';
 
+  // Avatar i bio (per-usuari)
+  avatar: string;
+  bio: string;
+
   // Setters (auto-desen a BD en background)
   setModel: (providerId: ProviderId, modelId: string) => void;
   setTTSEnabled: (enabled: boolean) => void;
@@ -38,6 +42,8 @@ export interface UserPrefsState {
   setVideoGenerationEnabled: (enabled: boolean) => void;
   setASRLanguage: (language: string) => void;
   setAgentMode: (mode: 'preset' | 'auto') => void;
+  setAvatar: (avatar: string) => void;
+  setBio: (bio: string) => void;
 
   /**
    * Hidrata el store amb dades rebudes del servidor (GET /api/user/preferences).
@@ -76,6 +82,8 @@ export const useUserPrefsStore = create<UserPrefsState>()((set) => ({
   videoGenerationEnabled: false,
   asrLanguage: 'zh-CN',
   agentMode: 'auto' as const,
+  avatar: '/avatars/user.png',
+  bio: '',
 
   setModel: (providerId, modelId) => {
     set({ providerId, modelId });
@@ -105,12 +113,20 @@ export const useUserPrefsStore = create<UserPrefsState>()((set) => ({
     set({ agentMode });
     scheduleSave({ agentMode });
   },
+  setAvatar: (avatar) => {
+    set({ avatar });
+    scheduleSave({ avatar });
+  },
+  setBio: (bio) => {
+    set({ bio });
+    scheduleSave({ bio });
+  },
 
   hydrate: (prefs) => {
     const {
       providerId, modelId, ttsEnabled, asrEnabled,
       imageGenerationEnabled, videoGenerationEnabled,
-      asrLanguage, agentMode,
+      asrLanguage, agentMode, avatar, bio,
     } = prefs;
     set({
       ...(providerId !== undefined && { providerId }),
@@ -121,6 +137,8 @@ export const useUserPrefsStore = create<UserPrefsState>()((set) => ({
       ...(videoGenerationEnabled !== undefined && { videoGenerationEnabled }),
       ...(asrLanguage !== undefined && { asrLanguage }),
       ...(agentMode !== undefined && { agentMode }),
+      ...(avatar !== undefined && { avatar }),
+      ...(bio !== undefined && { bio }),
     });
   },
 }));

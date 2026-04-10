@@ -17,6 +17,8 @@ const DEFAULTS = {
   videoGenerationEnabled: false,
   asrLanguage: 'zh-CN',
   agentMode: 'auto' as const,
+  avatar: '/avatars/user.png',
+  bio: '',
 };
 
 export async function GET(req: NextRequest) {
@@ -36,6 +38,8 @@ export async function GET(req: NextRequest) {
         videoGenerationEnabled: row.videoGenerationEnabled,
         asrLanguage: row.asrLanguage,
         agentMode: row.agentMode as 'preset' | 'auto',
+        avatar: row.avatar,
+        bio: row.bio,
       }
     : DEFAULTS;
 
