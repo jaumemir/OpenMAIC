@@ -4,19 +4,8 @@ import type { NextRequest } from 'next/server';
 import type { Scene, Stage } from '@/lib/types/stage';
 import { getStorageBackend } from '@/lib/server/storage';
 
-export const CLASSROOMS_DIR = path.join(process.cwd(), 'data', 'classrooms');
-export const CLASSROOM_JOBS_DIR = path.join(process.cwd(), 'data', 'classroom-jobs');
-
 async function ensureDir(dir: string) {
   await fs.mkdir(dir, { recursive: true });
-}
-
-export async function ensureClassroomsDir() {
-  await ensureDir(CLASSROOMS_DIR);
-}
-
-export async function ensureClassroomJobsDir() {
-  await ensureDir(CLASSROOM_JOBS_DIR);
 }
 
 export async function writeJsonFileAtomic(filePath: string, data: unknown) {
@@ -42,23 +31,6 @@ export interface PersistedClassroomData {
   createdAt: string;
 }
 
-export function isValidClassroomId(id: string): boolean {
-  return /^[a-zA-Z0-9_-]+$/.test(id);
-}
-
-export async function readClassroom(id: string): Promise<PersistedClassroomData | null> {
-  const filePath = path.join(CLASSROOMS_DIR, `${id}.json`);
-  try {
-    const content = await fs.readFile(filePath, 'utf-8');
-    return JSON.parse(content) as PersistedClassroomData;
-  } catch (error) {
-    if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
-      return null;
-    }
-    throw error;
-  }
-}
-
 export async function persistClassroom(
   data: {
     id: string;
@@ -67,30 +39,20 @@ export async function persistClassroom(
   },
   baseUrl: string,
 ): Promise<PersistedClassroomData & { url: string }> {
-  const classroomData: PersistedClassroomData = {
-    id: data.id,
-    stage: data.stage,
-    scenes: data.scenes,
-    createdAt: new Date().toISOString(),
-  };
+  const createdAt = new Date().toISOString();
 
-  await ensureClassroomsDir();
-  const filePath = path.join(CLASSROOMS_DIR, `${data.id}.json`);
-  await writeJsonFileAtomic(filePath, classroomData);
-
-  // Escriure a data/stages/ perquè el curs aparegui al llistat de GET /api/stages
-  const backend = getStorageBackend();
-  await backend.saveStage(data.id, {
+  await getStorageBackend().saveStage(data.id, {
     stage: data.stage,
     scenes: data.scenes,
     currentSceneId: data.scenes[0]?.id ?? null,
     chats: [],
-  }).catch((err) => {
-    console.error('[persistClassroom] Error escrivint stage al backend:', err);
   });
 
   return {
-    ...classroomData,
+    id: data.id,
+    stage: data.stage,
+    scenes: data.scenes,
+    createdAt,
     url: `${baseUrl}/classroom/${data.id}`,
   };
 }
