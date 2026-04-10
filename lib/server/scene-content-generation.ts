@@ -86,7 +86,7 @@ export async function generateSceneContentFromInput(
     language: rawOutline.language || (stageInfo?.language as 'zh-CN' | 'en-US') || 'zh-CN',
   };
 
-  const { model: languageModel, modelInfo, modelString } = resolveModel(modelConfig);
+  const { model: languageModel, modelInfo, modelString } = await resolveModel(modelConfig);
   const hasVision = !!modelInfo?.capabilities?.vision;
 
   const aiCall = async (
