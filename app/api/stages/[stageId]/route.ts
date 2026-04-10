@@ -1,6 +1,7 @@
 export const runtime = 'nodejs';
 
 import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/lib/prisma';
 import { getStorageBackend } from '@/lib/server/storage';
 import { requireAuth, requireOwnership, apiError } from '@/lib/server/api-response';
 import { auditLog, extractRequestMeta } from '@/lib/audit';
@@ -41,7 +42,6 @@ export async function PUT(req: NextRequest, { params }: Params) {
   // PUT té semàntica "crear o substituir": si l'usuari no té ownership, la crea.
   // Admins no necessiten ownership. Usuaris amb ownership d'un altre → 403.
   if (user.role !== 'admin') {
-    const { prisma } = await import('@/lib/prisma');
     const existing = await prisma.stageOwnership.findUnique({ where: { stageId } });
     if (existing && existing.userId !== user.id) {
       return apiError('FORBIDDEN', 403, 'No tens permisos per accedir a aquest recurs.');
@@ -84,8 +84,8 @@ export async function DELETE(req: NextRequest, { params }: Params) {
   try {
     await getStorageBackend().deleteStage(stageId);
 
-    // Eliminar propietat de la BD
-    await prismaDeleteOwnership(stageId);
+    // Eliminar propietat de la BD (deleteMany no llança si no existia)
+    await prisma.stageOwnership.deleteMany({ where: { stageId } });
 
     const meta = extractRequestMeta(req);
     await auditLog({
@@ -137,11 +137,3 @@ export async function PATCH(req: NextRequest, { params }: Params) {
   }
 }
 
-// ── Helper intern ──────────────────────────────────────────────────────────
-
-async function prismaDeleteOwnership(stageId: string): Promise<void> {
-  const { prisma } = await import('@/lib/prisma');
-  await prisma.stageOwnership.deleteMany({ where: { stageId } }).catch(() => {
-    // Silenciar si no existia
-  });
-}
