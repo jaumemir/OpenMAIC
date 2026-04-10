@@ -715,7 +715,8 @@ export const useSettingsStore = create<SettingsState>()(
             set((state) => {
               // Merge LLM providers
               const newProvidersConfig = { ...state.providersConfig };
-              // First reset all server flags
+              // First reset all server flags and clear any server-set API keys
+              // (prevents admin API keys from bleeding into user sessions)
               for (const pid of Object.keys(newProvidersConfig)) {
                 const key = pid as ProviderId;
                 if (newProvidersConfig[key]) {
@@ -724,6 +725,7 @@ export const useSettingsStore = create<SettingsState>()(
                     isServerConfigured: false,
                     serverModels: undefined,
                     serverBaseUrl: undefined,
+                    apiKey: '',
                   };
                 }
               }
