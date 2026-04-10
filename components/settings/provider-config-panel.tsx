@@ -56,6 +56,8 @@ interface ProviderConfigPanelProps {
   isBuiltIn: boolean; // To determine if reset button should be shown
 }
 
+const SENTINEL = '__STORED__';
+
 export function ProviderConfigPanel({
   provider,
   initialApiKey,
@@ -99,6 +101,23 @@ export function ProviderConfigPanel({
   const handleApiKeyChange = (key: string) => {
     setApiKey(key);
     onConfigChange(key, baseUrl, requiresApiKey);
+  };
+
+  // Clear sentinel on focus so user can type a new key
+  const handleApiKeyFocus = () => {
+    if (apiKey === SENTINEL) {
+      setApiKey('');
+      onConfigChange('', baseUrl, requiresApiKey);
+    }
+  };
+
+  // Restore sentinel on blur if user did not type a new value
+  const handleApiKeyBlur = () => {
+    if (apiKey === '' && initialApiKey === SENTINEL) {
+      setApiKey(SENTINEL);
+      onConfigChange(SENTINEL, baseUrl, requiresApiKey);
+    }
+    onSave();
   };
 
   const handleBaseUrlChange = (url: string) => {
@@ -177,21 +196,30 @@ export function ProviderConfigPanel({
               autoCapitalize="none"
               autoCorrect="off"
               spellCheck={false}
-              placeholder={isServerConfigured ? t('settings.optionalOverride') : 'sk-...'}
-              value={apiKey}
+              placeholder={
+                apiKey === SENTINEL
+                  ? t('settings.apiKeyStored')
+                  : isServerConfigured
+                    ? t('settings.optionalOverride')
+                    : 'sk-...'
+              }
+              value={apiKey === SENTINEL ? '' : apiKey}
               onChange={(e) => handleApiKeyChange(e.target.value)}
-              onBlur={onSave}
+              onFocus={handleApiKeyFocus}
+              onBlur={handleApiKeyBlur}
               disabled={!requiresApiKey && !isServerConfigured}
               className="h-8 pr-8"
             />
-            <button
-              type="button"
-              onClick={() => setShowApiKey(!showApiKey)}
-              className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-              disabled={!requiresApiKey}
-            >
-              {showApiKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-            </button>
+            {apiKey !== SENTINEL && (
+              <button
+                type="button"
+                onClick={() => setShowApiKey(!showApiKey)}
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                disabled={!requiresApiKey}
+              >
+                {showApiKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </button>
+            )}
           </div>
           <Button
             variant="outline"
