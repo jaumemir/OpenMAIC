@@ -4,8 +4,16 @@ import type { NextRequest } from 'next/server';
 import type { Scene, Stage } from '@/lib/types/stage';
 import { getStorageBackend } from '@/lib/server/storage';
 
+// Directori de media (imatges, vídeos, àudio) generat per a cada classroom.
+// El contingut JSON del stage es guarda a data/stages/ (via StorageBackend).
+export const CLASSROOMS_DIR = path.join(process.cwd(), 'data', 'classrooms');
+
 async function ensureDir(dir: string) {
   await fs.mkdir(dir, { recursive: true });
+}
+
+export function isValidClassroomId(id: string): boolean {
+  return /^[a-zA-Z0-9_-]+$/.test(id);
 }
 
 export async function writeJsonFileAtomic(filePath: string, data: unknown) {
