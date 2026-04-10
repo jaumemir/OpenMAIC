@@ -13,6 +13,7 @@ import { prisma } from '@/lib/prisma';
 import { requireAuth, apiError, apiSuccess } from '@/lib/server/api-response';
 import { auditLog, extractRequestMeta } from '@/lib/audit';
 import { encryptProviderApiKeys, decryptProviderApiKeys } from '@/lib/server/config-crypto';
+import { maskApiKeys, stripSentinelApiKeys } from '@/lib/server/admin-config-mask';
 import { PROVIDERS } from '@/lib/ai/providers';
 import type { ProviderId } from '@/lib/ai/providers';
 import type { ProvidersConfig } from '@/lib/types/settings';
@@ -170,7 +171,7 @@ export async function GET(req: NextRequest) {
     }
   }
 
-  return apiSuccess({ config, exists: !!row });
+  return apiSuccess({ config: maskApiKeys(config), exists: !!row });
 }
 
 export async function PUT(req: NextRequest) {
@@ -204,31 +205,73 @@ export async function PUT(req: NextRequest) {
     currentConfig = decryptAllApiKeys(currentConfig);
   }
 
-  // Merge: els updates sobreescriuen, però configs de proveïdors es fan en deep merge per proveïdor
+  // Merge: els updates sobreescriuen, però configs de proveïdors es fan en deep merge per proveïdor.
+  // stripSentinelApiKeys preserva la clau existent quan el client envia '__STORED__'.
   const merged: SerializableSettings = {
     ...currentConfig,
     ...updates,
-    // Deep merge per als sub-objectes de proveïdors
     providersConfig: updates.providersConfig
-      ? { ...currentConfig.providersConfig, ...updates.providersConfig }
+      ? ({
+          ...currentConfig.providersConfig,
+          ...stripSentinelApiKeys(
+            updates.providersConfig as Record<string, { apiKey?: string }>,
+            currentConfig.providersConfig as Record<string, { apiKey?: string }> ?? {},
+          ),
+        } as SerializableSettings['providersConfig'])
       : currentConfig.providersConfig,
     ttsProvidersConfig: updates.ttsProvidersConfig
-      ? { ...currentConfig.ttsProvidersConfig, ...updates.ttsProvidersConfig }
+      ? ({
+          ...currentConfig.ttsProvidersConfig,
+          ...stripSentinelApiKeys(
+            updates.ttsProvidersConfig as Record<string, { apiKey?: string }>,
+            currentConfig.ttsProvidersConfig as Record<string, { apiKey?: string }> ?? {},
+          ),
+        } as SerializableSettings['ttsProvidersConfig'])
       : currentConfig.ttsProvidersConfig,
     asrProvidersConfig: updates.asrProvidersConfig
-      ? { ...currentConfig.asrProvidersConfig, ...updates.asrProvidersConfig }
+      ? ({
+          ...currentConfig.asrProvidersConfig,
+          ...stripSentinelApiKeys(
+            updates.asrProvidersConfig as Record<string, { apiKey?: string }>,
+            currentConfig.asrProvidersConfig as Record<string, { apiKey?: string }> ?? {},
+          ),
+        } as SerializableSettings['asrProvidersConfig'])
       : currentConfig.asrProvidersConfig,
     pdfProvidersConfig: updates.pdfProvidersConfig
-      ? { ...currentConfig.pdfProvidersConfig, ...updates.pdfProvidersConfig }
+      ? ({
+          ...currentConfig.pdfProvidersConfig,
+          ...stripSentinelApiKeys(
+            updates.pdfProvidersConfig as Record<string, { apiKey?: string }>,
+            currentConfig.pdfProvidersConfig as Record<string, { apiKey?: string }> ?? {},
+          ),
+        } as SerializableSettings['pdfProvidersConfig'])
       : currentConfig.pdfProvidersConfig,
     imageProvidersConfig: updates.imageProvidersConfig
-      ? { ...currentConfig.imageProvidersConfig, ...updates.imageProvidersConfig }
+      ? ({
+          ...currentConfig.imageProvidersConfig,
+          ...stripSentinelApiKeys(
+            updates.imageProvidersConfig as Record<string, { apiKey?: string }>,
+            currentConfig.imageProvidersConfig as Record<string, { apiKey?: string }> ?? {},
+          ),
+        } as SerializableSettings['imageProvidersConfig'])
       : currentConfig.imageProvidersConfig,
     videoProvidersConfig: updates.videoProvidersConfig
-      ? { ...currentConfig.videoProvidersConfig, ...updates.videoProvidersConfig }
+      ? ({
+          ...currentConfig.videoProvidersConfig,
+          ...stripSentinelApiKeys(
+            updates.videoProvidersConfig as Record<string, { apiKey?: string }>,
+            currentConfig.videoProvidersConfig as Record<string, { apiKey?: string }> ?? {},
+          ),
+        } as SerializableSettings['videoProvidersConfig'])
       : currentConfig.videoProvidersConfig,
     webSearchProvidersConfig: updates.webSearchProvidersConfig
-      ? { ...currentConfig.webSearchProvidersConfig, ...updates.webSearchProvidersConfig }
+      ? ({
+          ...currentConfig.webSearchProvidersConfig,
+          ...stripSentinelApiKeys(
+            updates.webSearchProvidersConfig as Record<string, { apiKey?: string }>,
+            currentConfig.webSearchProvidersConfig as Record<string, { apiKey?: string }> ?? {},
+          ),
+        } as SerializableSettings['webSearchProvidersConfig'])
       : currentConfig.webSearchProvidersConfig,
   };
 
