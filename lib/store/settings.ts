@@ -732,9 +732,10 @@ export const useSettingsStore = create<SettingsState>()(
                 const key = pid as ProviderId;
                 if (newProvidersConfig[key]) {
                   const currentModels = newProvidersConfig[key].models;
-                  // When server specifies allowed models, filter the models list
+                  // Use server-specified models directly (admin config is authoritative).
+                  // Look up built-in metadata when available; fall back to { id, name: id }.
                   const filteredModels = info.models?.length
-                    ? currentModels.filter((m) => info.models!.includes(m.id))
+                    ? info.models.map((id) => currentModels.find((m) => m.id === id) ?? { id, name: id })
                     : currentModels;
                   newProvidersConfig[key] = {
                     ...newProvidersConfig[key],
