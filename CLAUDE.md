@@ -272,6 +272,27 @@ export const useLayoutStore = create<LayoutState>()(
 )
 ```
 
+### Perfil d'usuari: avatar, bio i nom
+
+El perfil visible a la GreetingBar usa **dos stores coordinats**:
+
+- **`useUserPrefsStore`** (`lib/store/user-prefs.ts`): font de veritat, BD-backed. Inclou `avatar` i `bio` a més de les preferències de model/TTS/ASR.
+- **`useUserProfileStore`** (`lib/store/user-profile.ts`): store en memòria (sense `persist`). Agrega `avatar`, `bio` i `nickname` per als consumidors UI (GreetingBar, chat, agents).
+
+**Flux d'hidratació** (a `app/page.tsx`, `useEffect` on `sessionUser?.id`):
+1. `GET /api/user/preferences` → `useUserPrefsStore.hydrate(data.preferences)`
+2. `useUserProfileStore.hydrateProfile(avatar, bio)` — escriu directament al store **sense** reescriure a la BD
+3. `GET /api/user/me` → `useUserProfileStore.setNickname(firstName + ' ' + lastName)` — el nom és de sols lectura a la UI
+
+**Modificació** (acció de l'usuari):
+- `useUserProfileStore.setAvatar(url)` → actualitza l'store local **i** crida `useUserPrefsStore.setAvatar(url)` → debounced save a BD
+- `useUserProfileStore.setBio(text)` → ídem via `useUserPrefsStore.setBio(text)`
+- `useUserProfileStore.setNickname(name)` → només en memòria (el nom ve de la sessió, no és editable a la UI)
+
+**Avatar**: sempre des de la llista `AVATAR_OPTIONS` (`lib/store/user-profile.ts`). No hi ha pujada de fitxer.
+
+**GreetingBar** (`app/page.tsx`): mostra el nom de sessió en mode de sols lectura; l'usuari pot escollir avatar predefinit i editar la bio.
+
 ### Providers LLM: fluxos admin vs usuari
 
 La configuració de providers LLM ve **exclusivament de la BD** (no de `.env`).
@@ -369,3 +390,5 @@ Els tests d'integració amb proveïdors LLM reals requereixen API keys al `.env.
 10. **`allowedModels` no filtra:** Verificar que el camp `allowedModels` a la BD (clau `'allowedModels'`) sigui un array JSON vàlid, no `null`. Els IDs han de coincidir exactament amb els configurats per l'admin (p.ex. `"openai:gpt-4o"`, no `"openai:GPT-4o"`). Si el camp és `null` o `[]`, tots els providers passen.
 
 11. **Providers de l'admin visibles a usuaris sense reload:** `fetchServerProviders()` esborra `apiKey` de tots els providers en el reset. Si veus un provider que no hauria d'aparèixer, comprova que no hi hagi API keys residuals d'una sessió d'admin anterior. Un reload complet (`window.location.reload()`) sempre resol l'estat.
+
+12. **Avatar o bio no es guarda a la BD:** Verificar que el canvi va per `useUserProfileStore.setAvatar`/`setBio` (que deleguen a `useUserPrefsStore`), no per `hydrateProfile` (que és sols per a la càrrega inicial). Si crides `hydrateProfile` des d'una acció d'usuari, el canvi es perd en recarregar.
