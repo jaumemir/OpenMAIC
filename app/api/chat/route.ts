@@ -33,8 +33,6 @@ export const maxDuration = 60;
  *   messages: UIMessage[],
  *   storeState: { stage, scenes, currentSceneId, mode },
  *   config: { agentIds, sessionType? },
- *   apiKey: string,
- *   baseUrl?: string,
  *   model?: string
  * }
  *
@@ -65,8 +63,6 @@ export async function POST(req: NextRequest) {
 
     const { model: languageModel, apiKey: resolvedApiKey } = await resolveModel({
       modelString: body.model,
-      apiKey: body.apiKey,
-      baseUrl: body.baseUrl,
       providerType: body.providerType,
       requiresApiKey: body.requiresApiKey,
     });
@@ -114,10 +110,7 @@ export async function POST(req: NextRequest) {
         startHeartbeat();
 
         const generator = statelessGenerate(
-          {
-            ...body,
-            apiKey: resolvedApiKey,
-          },
+          body,
           signal,
           languageModel,
           { enabled: false } satisfies ThinkingConfig,

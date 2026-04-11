@@ -1,11 +1,9 @@
 import { useSettingsStore } from '@/lib/store/settings';
 import { useUserPrefsStore } from '@/lib/store/user-prefs';
 
-const SENTINEL = '__STORED__';
-
 /**
  * Get current model configuration from settings store.
- * Treats '__STORED__' apiKey as empty — the server resolves the real key from DB.
+ * API keys and base URLs are never included — the server resolves them from DB/env.
  */
 export function getCurrentModelConfig() {
   const { providerId, modelId } = useUserPrefsStore.getState();
@@ -13,14 +11,11 @@ export function getCurrentModelConfig() {
   const modelString = `${providerId}:${modelId}`;
 
   const providerConfig = providersConfig[providerId];
-  const rawApiKey = providerConfig?.apiKey || '';
 
   return {
     providerId,
     modelId,
     modelString,
-    apiKey: rawApiKey === SENTINEL ? '' : rawApiKey,
-    baseUrl: providerConfig?.baseUrl || '',
     providerType: providerConfig?.type,
     requiresApiKey: providerConfig?.requiresApiKey,
     isServerConfigured: providerConfig?.isServerConfigured,

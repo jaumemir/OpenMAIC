@@ -93,7 +93,7 @@ export async function generateMediaForClassroom(
     for (const req of imageRequests) {
       try {
         const providerId = imageProviderIds[0] as ImageProviderId;
-        const apiKey = resolveImageApiKey(providerId);
+        const apiKey = await resolveImageApiKey(providerId);
         if (!apiKey) {
           log.warn(`No API key for image provider "${providerId}", skipping ${req.elementId}`);
           continue;
@@ -102,7 +102,7 @@ export async function generateMediaForClassroom(
         const model = providerConfig?.models?.[0]?.id;
 
         const result = await generateImage(
-          { providerId, apiKey, baseUrl: resolveImageBaseUrl(providerId), model },
+          { providerId, apiKey, baseUrl: await resolveImageBaseUrl(providerId), model },
           { prompt: req.prompt, aspectRatio: req.aspectRatio || '16:9' },
         );
 
@@ -134,7 +134,7 @@ export async function generateMediaForClassroom(
     for (const req of videoRequests) {
       try {
         const providerId = videoProviderIds[0] as VideoProviderId;
-        const apiKey = resolveVideoApiKey(providerId);
+        const apiKey = await resolveVideoApiKey(providerId);
         if (!apiKey) {
           log.warn(`No API key for video provider "${providerId}", skipping ${req.elementId}`);
           continue;
@@ -148,7 +148,7 @@ export async function generateMediaForClassroom(
         });
 
         const result = await generateVideo(
-          { providerId, apiKey, baseUrl: resolveVideoBaseUrl(providerId), model },
+          { providerId, apiKey, baseUrl: await resolveVideoBaseUrl(providerId), model },
           normalized,
         );
 
@@ -224,7 +224,7 @@ export async function generateTTSForClassroom(
     log.warn(`No API key for TTS provider "${providerId}", skipping TTS generation`);
     return;
   }
-  const ttsBaseUrl = resolveTTSBaseUrl(providerId) || TTS_PROVIDERS[providerId]?.defaultBaseUrl;
+  const ttsBaseUrl = (await resolveTTSBaseUrl(providerId)) || TTS_PROVIDERS[providerId]?.defaultBaseUrl;
   const voice = DEFAULT_TTS_VOICES[providerId] || 'default';
   const format = TTS_PROVIDERS[providerId]?.supportedFormats?.[0] || 'mp3';
 

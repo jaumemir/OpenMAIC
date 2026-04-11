@@ -9,7 +9,7 @@ export async function POST(req: NextRequest) {
   let model: string | undefined;
   try {
     const body = await req.json();
-    const { apiKey, baseUrl, providerType, requiresApiKey } = body;
+    const { providerType, requiresApiKey } = body;
     model = body.model;
 
     if (!model) {
@@ -21,8 +21,6 @@ export async function POST(req: NextRequest) {
     try {
       const result = await resolveModel({
         modelString: model,
-        apiKey: apiKey || '',
-        baseUrl: baseUrl || undefined,
         providerType,
         requiresApiKey,
       });

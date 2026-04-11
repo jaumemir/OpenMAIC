@@ -32,8 +32,6 @@ export async function generateAndStoreTTS(
       ttsModelId: ttsProviderConfig?.modelId,
       ttsVoice: settings.ttsVoice,
       ttsSpeed: settings.ttsSpeed,
-      ttsApiKey: ttsProviderConfig?.apiKey || undefined,
-      ttsBaseUrl: ttsProviderConfig?.baseUrl || undefined,
     }),
     signal,
   });

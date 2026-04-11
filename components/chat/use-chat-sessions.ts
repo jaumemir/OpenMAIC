@@ -449,8 +449,6 @@ export function useChatSessions(options: UseChatSessionsOptions = {}) {
           [key: string]: unknown;
         };
         userProfile?: { nickname?: string; bio?: string };
-        apiKey: string;
-        baseUrl?: string;
         model?: string;
         providerType?: string;
         requiresApiKey?: boolean;
@@ -871,8 +869,6 @@ export function useChatSessions(options: UseChatSessionsOptions = {}) {
               nickname: userProfileState.nickname || undefined,
               bio: userProfileState.bio || undefined,
             },
-            apiKey: mc.apiKey,
-            baseUrl: mc.baseUrl,
             model: mc.modelString,
             providerType: mc.providerType,
             requiresApiKey: mc.requiresApiKey,
@@ -962,7 +958,7 @@ export function useChatSessions(options: UseChatSessionsOptions = {}) {
         toast.error(t('settings.modelNotConfigured'));
         return;
       }
-      if (modelConfig.requiresApiKey && !modelConfig.apiKey && !modelConfig.isServerConfigured) {
+      if (modelConfig.requiresApiKey && !modelConfig.isServerConfigured) {
         toast.error(t('settings.setupNeeded'), {
           description: t('settings.apiKeyDesc'),
         });
@@ -1083,8 +1079,6 @@ export function useChatSessions(options: UseChatSessionsOptions = {}) {
               nickname: userProfileState.nickname || undefined,
               bio: userProfileState.bio || undefined,
             },
-            apiKey: mc.apiKey,
-            baseUrl: mc.baseUrl,
             model: mc.modelString,
             providerType: mc.providerType,
             requiresApiKey: mc.requiresApiKey,
@@ -1140,7 +1134,7 @@ export function useChatSessions(options: UseChatSessionsOptions = {}) {
         toast.error(t('settings.modelNotConfigured'));
         return;
       }
-      if (modelConfig.requiresApiKey && !modelConfig.apiKey && !modelConfig.isServerConfigured) {
+      if (modelConfig.requiresApiKey && !modelConfig.isServerConfigured) {
         toast.error(t('settings.setupNeeded'), {
           description: t('settings.apiKeyDesc'),
         });
@@ -1226,8 +1220,6 @@ export function useChatSessions(options: UseChatSessionsOptions = {}) {
               nickname: userProfileState.nickname || undefined,
               bio: userProfileState.bio || undefined,
             },
-            apiKey: mc.apiKey,
-            baseUrl: mc.baseUrl,
             model: mc.modelString,
             providerType: mc.providerType,
             requiresApiKey: mc.requiresApiKey,

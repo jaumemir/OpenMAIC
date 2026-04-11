@@ -244,15 +244,13 @@ export function getServerProviders(): Record<string, { models?: string[]; baseUr
   return result;
 }
 
-/** Resolve API key: client key > server key > empty string */
-export function resolveApiKey(providerId: string, clientKey?: string): string {
-  if (clientKey) return clientKey;
+/** Resolve LLM API key: YAML/env > empty string (DB fallback handled in resolveModel) */
+export function resolveApiKey(providerId: string): string {
   return getConfig().providers[providerId]?.apiKey || '';
 }
 
-/** Resolve base URL: client > server > undefined */
-export function resolveBaseUrl(providerId: string, clientBaseUrl?: string): string | undefined {
-  if (clientBaseUrl) return clientBaseUrl;
+/** Resolve LLM base URL from YAML config (DB fallback handled in resolveModel) */
+export function resolveBaseUrl(providerId: string): string | undefined {
   return getConfig().providers[providerId]?.baseUrl;
 }
 
@@ -275,18 +273,18 @@ export function getServerTTSProviders(): Record<string, { baseUrl?: string }> {
   return result;
 }
 
-export async function resolveTTSApiKey(providerId: string, clientKey?: string): Promise<string> {
-  const effectiveClientKey = clientKey && clientKey !== SENTINEL ? clientKey : undefined;
-  if (effectiveClientKey) return effectiveClientKey;
+export async function resolveTTSApiKey(providerId: string): Promise<string> {
   const yamlKey = getConfig().tts[providerId]?.apiKey;
   if (yamlKey) return yamlKey;
   const { resolveApiKeyFromDb } = await import('@/lib/server/db-provider-config');
   return resolveApiKeyFromDb(providerId, 'ttsProvidersConfig');
 }
 
-export function resolveTTSBaseUrl(providerId: string, clientBaseUrl?: string): string | undefined {
-  if (clientBaseUrl) return clientBaseUrl;
-  return getConfig().tts[providerId]?.baseUrl;
+export async function resolveTTSBaseUrl(providerId: string): Promise<string | undefined> {
+  const yamlUrl = getConfig().tts[providerId]?.baseUrl;
+  if (yamlUrl) return yamlUrl;
+  const { resolveBaseUrlFromDb } = await import('@/lib/server/db-provider-config');
+  return resolveBaseUrlFromDb(providerId, 'ttsProvidersConfig');
 }
 
 // ---------------------------------------------------------------------------
@@ -303,14 +301,18 @@ export function getServerASRProviders(): Record<string, { baseUrl?: string }> {
   return result;
 }
 
-export function resolveASRApiKey(providerId: string, clientKey?: string): string {
-  if (clientKey) return clientKey;
-  return getConfig().asr[providerId]?.apiKey || '';
+export async function resolveASRApiKey(providerId: string): Promise<string> {
+  const yamlKey = getConfig().asr[providerId]?.apiKey;
+  if (yamlKey) return yamlKey;
+  const { resolveApiKeyFromDb } = await import('@/lib/server/db-provider-config');
+  return resolveApiKeyFromDb(providerId, 'asrProvidersConfig');
 }
 
-export function resolveASRBaseUrl(providerId: string, clientBaseUrl?: string): string | undefined {
-  if (clientBaseUrl) return clientBaseUrl;
-  return getConfig().asr[providerId]?.baseUrl;
+export async function resolveASRBaseUrl(providerId: string): Promise<string | undefined> {
+  const yamlUrl = getConfig().asr[providerId]?.baseUrl;
+  if (yamlUrl) return yamlUrl;
+  const { resolveBaseUrlFromDb } = await import('@/lib/server/db-provider-config');
+  return resolveBaseUrlFromDb(providerId, 'asrProvidersConfig');
 }
 
 // ---------------------------------------------------------------------------
@@ -327,14 +329,18 @@ export function getServerPDFProviders(): Record<string, { baseUrl?: string }> {
   return result;
 }
 
-export function resolvePDFApiKey(providerId: string, clientKey?: string): string {
-  if (clientKey) return clientKey;
-  return getConfig().pdf[providerId]?.apiKey || '';
+export async function resolvePDFApiKey(providerId: string): Promise<string> {
+  const yamlKey = getConfig().pdf[providerId]?.apiKey;
+  if (yamlKey) return yamlKey;
+  const { resolveApiKeyFromDb } = await import('@/lib/server/db-provider-config');
+  return resolveApiKeyFromDb(providerId, 'pdfProvidersConfig');
 }
 
-export function resolvePDFBaseUrl(providerId: string, clientBaseUrl?: string): string | undefined {
-  if (clientBaseUrl) return clientBaseUrl;
-  return getConfig().pdf[providerId]?.baseUrl;
+export async function resolvePDFBaseUrl(providerId: string): Promise<string | undefined> {
+  const yamlUrl = getConfig().pdf[providerId]?.baseUrl;
+  if (yamlUrl) return yamlUrl;
+  const { resolveBaseUrlFromDb } = await import('@/lib/server/db-provider-config');
+  return resolveBaseUrlFromDb(providerId, 'pdfProvidersConfig');
 }
 
 // ---------------------------------------------------------------------------
@@ -350,17 +356,18 @@ export function getServerImageProviders(): Record<string, Record<string, never>>
   return result;
 }
 
-export function resolveImageApiKey(providerId: string, clientKey?: string): string {
-  if (clientKey) return clientKey;
-  return getConfig().image[providerId]?.apiKey || '';
+export async function resolveImageApiKey(providerId: string): Promise<string> {
+  const yamlKey = getConfig().image[providerId]?.apiKey;
+  if (yamlKey) return yamlKey;
+  const { resolveApiKeyFromDb } = await import('@/lib/server/db-provider-config');
+  return resolveApiKeyFromDb(providerId, 'imageProvidersConfig');
 }
 
-export function resolveImageBaseUrl(
-  providerId: string,
-  clientBaseUrl?: string,
-): string | undefined {
-  if (clientBaseUrl) return clientBaseUrl;
-  return getConfig().image[providerId]?.baseUrl;
+export async function resolveImageBaseUrl(providerId: string): Promise<string | undefined> {
+  const yamlUrl = getConfig().image[providerId]?.baseUrl;
+  if (yamlUrl) return yamlUrl;
+  const { resolveBaseUrlFromDb } = await import('@/lib/server/db-provider-config');
+  return resolveBaseUrlFromDb(providerId, 'imageProvidersConfig');
 }
 
 // ---------------------------------------------------------------------------
@@ -376,17 +383,18 @@ export function getServerVideoProviders(): Record<string, Record<string, never>>
   return result;
 }
 
-export function resolveVideoApiKey(providerId: string, clientKey?: string): string {
-  if (clientKey) return clientKey;
-  return getConfig().video[providerId]?.apiKey || '';
+export async function resolveVideoApiKey(providerId: string): Promise<string> {
+  const yamlKey = getConfig().video[providerId]?.apiKey;
+  if (yamlKey) return yamlKey;
+  const { resolveApiKeyFromDb } = await import('@/lib/server/db-provider-config');
+  return resolveApiKeyFromDb(providerId, 'videoProvidersConfig');
 }
 
-export function resolveVideoBaseUrl(
-  providerId: string,
-  clientBaseUrl?: string,
-): string | undefined {
-  if (clientBaseUrl) return clientBaseUrl;
-  return getConfig().video[providerId]?.baseUrl;
+export async function resolveVideoBaseUrl(providerId: string): Promise<string | undefined> {
+  const yamlUrl = getConfig().video[providerId]?.baseUrl;
+  if (yamlUrl) return yamlUrl;
+  const { resolveBaseUrlFromDb } = await import('@/lib/server/db-provider-config');
+  return resolveBaseUrlFromDb(providerId, 'videoProvidersConfig');
 }
 
 // ---------------------------------------------------------------------------
@@ -403,8 +411,6 @@ export function getServerWebSearchProviders(): Record<string, { baseUrl?: string
   }
   return result;
 }
-
-const SENTINEL = '__STORED__';
 
 /** Resolve Tavily API key: YAML/env > DB > empty */
 export async function resolveWebSearchApiKey(): Promise<string> {

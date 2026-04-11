@@ -275,9 +275,6 @@ export interface StatelessChatRequest {
     nickname?: string;
     bio?: string;
   };
-  /** OpenAI-compatible API credentials */
-  apiKey: string;
-  baseUrl?: string;
   model?: string;
   providerType?: string;
   requiresApiKey?: boolean;

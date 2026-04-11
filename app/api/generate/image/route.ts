@@ -1,18 +1,9 @@
 /**
  * Image Generation API
  *
- * Generates an image from a text prompt using the specified provider.
- * Called by the client during media generation after slides are produced.
- *
  * POST /api/generate/image
- *
- * Headers:
- *   x-image-provider: ImageProviderId (default: 'seedream')
- *   x-api-key: string (optional, server fallback)
- *   x-base-url: string (optional, server fallback)
- *
+ * Headers: x-image-provider, x-image-model
  * Body: { prompt, negativePrompt?, width?, height?, aspectRatio?, style? }
- * Response: { success: boolean, result?: ImageGenerationResult, error?: string }
  */
 
 import { NextRequest } from 'next/server';
@@ -21,7 +12,6 @@ import { resolveImageApiKey, resolveImageBaseUrl } from '@/lib/server/provider-c
 import type { ImageProviderId, ImageGenerationOptions } from '@/lib/media/types';
 import { createLogger } from '@/lib/logger';
 import { apiError, apiSuccess } from '@/lib/server/api-response';
-import { validateUrlForSSRF } from '@/lib/server/ssrf-guard';
 
 const log = createLogger('ImageGeneration API');
 
@@ -36,20 +26,9 @@ export async function POST(request: NextRequest) {
     }
 
     const providerId = (request.headers.get('x-image-provider') || 'seedream') as ImageProviderId;
-    const clientApiKey = request.headers.get('x-api-key') || undefined;
-    const clientBaseUrl = request.headers.get('x-base-url') || undefined;
     const clientModel = request.headers.get('x-image-model') || undefined;
 
-    if (clientBaseUrl && process.env.NODE_ENV === 'production') {
-      const ssrfError = validateUrlForSSRF(clientBaseUrl);
-      if (ssrfError) {
-        return apiError('INVALID_URL', 403, ssrfError);
-      }
-    }
-
-    const apiKey = clientBaseUrl
-      ? clientApiKey || ''
-      : resolveImageApiKey(providerId, clientApiKey);
+    const apiKey = await resolveImageApiKey(providerId);
     if (!apiKey) {
       return apiError(
         'MISSING_API_KEY',
@@ -58,7 +37,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const baseUrl = clientBaseUrl ? clientBaseUrl : resolveImageBaseUrl(providerId, clientBaseUrl);
+    const baseUrl = await resolveImageBaseUrl(providerId);
 
     // Resolve dimensions from aspect ratio if not explicitly set
     if (!body.width && !body.height && body.aspectRatio) {

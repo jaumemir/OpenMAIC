@@ -5,6 +5,7 @@
  * Called by the client in parallel for each speech action after a scene is generated.
  *
  * POST /api/generate/tts
+ * Body: { text, audioId, ttsProviderId, ttsModelId?, ttsVoice, ttsSpeed? }
  */
 
 import { NextRequest } from 'next/server';
@@ -13,7 +14,6 @@ import { resolveTTSApiKey, resolveTTSBaseUrl } from '@/lib/server/provider-confi
 import type { TTSProviderId } from '@/lib/audio/types';
 import { createLogger } from '@/lib/logger';
 import { apiError, apiSuccess } from '@/lib/server/api-response';
-import { validateUrlForSSRF } from '@/lib/server/ssrf-guard';
 
 const log = createLogger('TTS API');
 
@@ -25,15 +25,13 @@ export async function POST(req: NextRequest) {
   let audioId: string | undefined;
   try {
     const body = await req.json();
-    const { text, ttsModelId, ttsSpeed, ttsApiKey, ttsBaseUrl } = body as {
+    const { text, ttsModelId, ttsSpeed } = body as {
       text: string;
       audioId: string;
       ttsProviderId: TTSProviderId;
       ttsModelId?: string;
       ttsVoice: string;
       ttsSpeed?: number;
-      ttsApiKey?: string;
-      ttsBaseUrl?: string;
     };
     ttsProviderId = body.ttsProviderId;
     ttsVoice = body.ttsVoice;
@@ -53,22 +51,8 @@ export async function POST(req: NextRequest) {
       return apiError('INVALID_REQUEST', 400, 'browser-native-tts must be handled client-side');
     }
 
-    const clientBaseUrl = ttsBaseUrl || undefined;
-    if (clientBaseUrl && process.env.NODE_ENV === 'production') {
-      const ssrfError = validateUrlForSSRF(clientBaseUrl);
-      if (ssrfError) {
-        return apiError('INVALID_URL', 403, ssrfError);
-      }
-    }
-
-    const clientKey = ttsApiKey || undefined;
-    const apiKey =
-      clientBaseUrl && clientKey
-        ? clientKey
-        : await resolveTTSApiKey(ttsProviderId, clientKey);
-    const baseUrl = clientBaseUrl
-      ? clientBaseUrl
-      : resolveTTSBaseUrl(ttsProviderId, ttsBaseUrl || undefined);
+    const apiKey = await resolveTTSApiKey(ttsProviderId);
+    const baseUrl = await resolveTTSBaseUrl(ttsProviderId);
 
     // Build TTS config
     const config = {

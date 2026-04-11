@@ -21,9 +21,6 @@ export type DbConfigSection =
 /**
  * Returns the decrypted API key for a provider stored in AdminConfig.
  * Returns '' when the key does not exist or on any error.
- *
- * @param providerId   Provider identifier (e.g. 'anthropic', 'openai')
- * @param configSection  Which sub-config object to look in (default: 'providersConfig')
  */
 export async function resolveApiKeyFromDb(
   providerId: string,
@@ -46,5 +43,30 @@ export async function resolveApiKeyFromDb(
     return decrypt(entry.apiKey);
   } catch {
     return '';
+  }
+}
+
+/**
+ * Returns the base URL for a provider stored in AdminConfig.
+ * Returns undefined when it does not exist or on any error.
+ */
+export async function resolveBaseUrlFromDb(
+  providerId: string,
+  configSection: DbConfigSection = 'providersConfig',
+): Promise<string | undefined> {
+  try {
+    const row = await prisma.adminConfig.findUnique({ where: { key: 'globalConfig' } });
+    if (!row) return undefined;
+
+    const config = JSON.parse(row.value) as Record<
+      string,
+      Record<string, { baseUrl?: string }> | undefined
+    >;
+    const section = config[configSection];
+    if (!section) return undefined;
+
+    return section[providerId]?.baseUrl || undefined;
+  } catch {
+    return undefined;
   }
 }

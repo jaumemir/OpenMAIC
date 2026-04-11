@@ -27,29 +27,25 @@ interface SceneActionsResult {
 function getApiHeaders(): HeadersInit {
   const config = getCurrentModelConfig();
   const settings = useSettingsStore.getState();
-  const imageProviderConfig = settings.imageProvidersConfig?.[settings.imageProviderId];
-  const videoProviderConfig = settings.videoProvidersConfig?.[settings.videoProviderId];
 
   return {
     'Content-Type': 'application/json',
     'x-model': config.modelString || '',
-    'x-api-key': config.apiKey || '',
-    'x-base-url': config.baseUrl || '',
     'x-provider-type': config.providerType || '',
     'x-requires-api-key': String(config.requiresApiKey ?? false),
     // Image generation provider
     'x-image-provider': settings.imageProviderId || '',
     'x-image-model': settings.imageModelId || '',
-    'x-image-api-key': imageProviderConfig?.apiKey || '',
-    'x-image-base-url': imageProviderConfig?.baseUrl || '',
     // Video generation provider
     'x-video-provider': settings.videoProviderId || '',
     'x-video-model': settings.videoModelId || '',
-    'x-video-api-key': videoProviderConfig?.apiKey || '',
-    'x-video-base-url': videoProviderConfig?.baseUrl || '',
     // Media generation toggles (per-user preferences)
-    'x-image-generation-enabled': String(useUserPrefsStore.getState().imageGenerationEnabled ?? false),
-    'x-video-generation-enabled': String(useUserPrefsStore.getState().videoGenerationEnabled ?? false),
+    'x-image-generation-enabled': String(
+      useUserPrefsStore.getState().imageGenerationEnabled ?? false,
+    ),
+    'x-video-generation-enabled': String(
+      useUserPrefsStore.getState().videoGenerationEnabled ?? false,
+    ),
   };
 }
 
@@ -302,7 +298,10 @@ export function useSceneGenerator(options: UseSceneGeneratorOptions = {}) {
             const settings = useSettingsStore.getState();
 
             // TTS generation — failure means the whole scene fails
-            if (useUserPrefsStore.getState().ttsEnabled && settings.ttsProviderId !== 'browser-native-tts') {
+            if (
+              useUserPrefsStore.getState().ttsEnabled &&
+              settings.ttsProviderId !== 'browser-native-tts'
+            ) {
               const ttsResult = await generateTTSForScene(scene, signal);
               if (!ttsResult.success) {
                 if (abortRef.current || store.getState().generationEpoch !== startEpoch) {
@@ -451,7 +450,10 @@ export function useSceneGenerator(options: UseSceneGeneratorOptions = {}) {
 
         // Step 3: TTS
         const settings = useSettingsStore.getState();
-        if (useUserPrefsStore.getState().ttsEnabled && settings.ttsProviderId !== 'browser-native-tts') {
+        if (
+          useUserPrefsStore.getState().ttsEnabled &&
+          settings.ttsProviderId !== 'browser-native-tts'
+        ) {
           const ttsResult = await generateTTSForScene(actionsResult.scene, signal);
           if (!ttsResult.success) {
             store.getState().addFailedOutline(outline);

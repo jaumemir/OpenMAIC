@@ -95,25 +95,17 @@ function GenerationPreviewContent() {
   const getApiHeaders = () => {
     const modelConfig = getCurrentModelConfig();
     const settings = useSettingsStore.getState();
-    const imageProviderConfig = settings.imageProvidersConfig?.[settings.imageProviderId];
-    const videoProviderConfig = settings.videoProvidersConfig?.[settings.videoProviderId];
     return {
       'Content-Type': 'application/json',
       'x-model': modelConfig.modelString,
-      'x-api-key': modelConfig.apiKey,
-      'x-base-url': modelConfig.baseUrl,
       'x-provider-type': modelConfig.providerType || '',
       'x-requires-api-key': modelConfig.requiresApiKey ? 'true' : 'false',
       // Image generation provider
       'x-image-provider': settings.imageProviderId || '',
       'x-image-model': settings.imageModelId || '',
-      'x-image-api-key': imageProviderConfig?.apiKey || '',
-      'x-image-base-url': imageProviderConfig?.baseUrl || '',
       // Video generation provider
       'x-video-provider': settings.videoProviderId || '',
       'x-video-model': settings.videoModelId || '',
-      'x-video-api-key': videoProviderConfig?.apiKey || '',
-      'x-video-base-url': videoProviderConfig?.baseUrl || '',
       // Media generation toggles (per-user preferences)
       'x-image-generation-enabled': String(
         useUserPrefsStore.getState().imageGenerationEnabled ?? false,
