@@ -163,7 +163,7 @@ async function handleIssueComplete(
   config: PBLProjectConfig,
   completedIssue: PBLIssue,
   headers: Record<string, string>,
-  t: (key: string) => string,
+  t: (key: string, options?: Record<string, unknown>) => string,
 ) {
   // Mark current issue as done
   const issue = config.issueboard.issues.find((i) => i.id === completedIssue.id);
