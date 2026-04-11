@@ -36,6 +36,8 @@ export function I18nProvider({ children }: { children: ReactNode }) {
       const raw = stored || navigator.language || defaultLocale;
       const target = resolveLocale(raw);
       if (target !== i18n.language) i18n.changeLanguage(target);
+      // Sync cookie so Server Components see the correct locale on next render.
+      document.cookie = `locale=${target};path=/;max-age=31536000;samesite=lax`;
     } catch {
       // localStorage unavailable, keep default
     }
@@ -45,6 +47,8 @@ export function I18nProvider({ children }: { children: ReactNode }) {
     i18n.changeLanguage(newLocale);
     try {
       localStorage.setItem(LOCALE_STORAGE_KEY, newLocale);
+      // Persist to cookie so Server Components pick it up on next navigation.
+      document.cookie = `locale=${newLocale};path=/;max-age=31536000;samesite=lax`;
     } catch {
       // localStorage unavailable
     }
