@@ -12,6 +12,7 @@
  */
 
 import crypto from 'crypto';
+import { translate, defaultLocale } from '@/lib/i18n';
 
 // ── Tipus ──────────────────────────────────────────────────────────────────
 
@@ -99,6 +100,7 @@ export interface InvitationEmailParams {
   inviterName: string;
   acceptUrl: string;
   expiresInHours: number;
+  locale?: string;
 }
 
 export async function sendInvitationEmail(params: InvitationEmailParams): Promise<void> {
@@ -109,21 +111,20 @@ export async function sendInvitationEmail(params: InvitationEmailParams): Promis
     throw new Error("ACS_SENDER_ADDRESS ha d'estar configurat.");
   }
 
-  const subject = `${params.inviterName} t'ha convidat a OpenMAIC`;
+  const locale = params.locale ?? defaultLocale;
+  const t = (key: string, opts?: Record<string, string>) => translate(locale, key, opts);
 
-  const html = buildInvitationHtml({
+  const subject = t('email.invitation.subject', { inviterName: params.inviterName });
+
+  const templateVars = {
     displayName: params.displayName,
     inviterName: params.inviterName,
     acceptUrl: params.acceptUrl,
     expiresInHours: params.expiresInHours,
-  });
+  };
 
-  const plainText = buildInvitationPlainText({
-    displayName: params.displayName,
-    inviterName: params.inviterName,
-    acceptUrl: params.acceptUrl,
-    expiresInHours: params.expiresInHours,
-  });
+  const html = buildInvitationHtml(templateVars, t, locale);
+  const plainText = buildInvitationPlainText(templateVars, t);
 
   await sendEmail({
     senderAddress,
@@ -147,13 +148,17 @@ interface TemplateVars {
   expiresInHours: number;
 }
 
-function buildInvitationHtml(vars: TemplateVars): string {
+type TFn = (key: string, opts?: Record<string, string>) => string;
+
+function buildInvitationHtml(vars: TemplateVars, t: TFn, locale: string): string {
+  const htmlLang = locale === 'zh-CN' ? 'zh-CN' : locale.startsWith('en') ? 'en' : 'ca';
+  const hours = String(vars.expiresInHours);
   return `<!DOCTYPE html>
-<html lang="ca">
+<html lang="${htmlLang}">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Invitació a OpenMAIC</title>
+  <title>OpenMAIC</title>
 </head>
 <body style="margin:0;padding:0;background-color:#f4f4f5;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
   <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#f4f4f5;padding:40px 0;">
@@ -161,50 +166,49 @@ function buildInvitationHtml(vars: TemplateVars): string {
       <td align="center">
         <table width="560" cellpadding="0" cellspacing="0" border="0" style="background-color:#ffffff;border-radius:8px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.1);">
 
-          <!-- Capçalera -->
+          <!-- Header -->
           <tr>
             <td style="background-color:#18181b;padding:32px 40px;text-align:center;">
               <h1 style="margin:0;color:#ffffff;font-size:24px;font-weight:700;letter-spacing:-0.5px;">OpenMAIC</h1>
-              <p style="margin:8px 0 0;color:#a1a1aa;font-size:13px;">Aula Interactiva amb IA</p>
+              <p style="margin:8px 0 0;color:#a1a1aa;font-size:13px;">${t('email.invitation.subtitle')}</p>
             </td>
           </tr>
 
-          <!-- Cos -->
+          <!-- Body -->
           <tr>
             <td style="padding:40px 40px 32px;">
-              <h2 style="margin:0 0 16px;color:#18181b;font-size:20px;font-weight:600;">Hola, ${escapeHtml(vars.displayName)}!</h2>
+              <h2 style="margin:0 0 16px;color:#18181b;font-size:20px;font-weight:600;">${t('email.invitation.greeting', { displayName: escapeHtml(vars.displayName) })}</h2>
               <p style="margin:0 0 24px;color:#52525b;font-size:15px;line-height:1.6;">
-                <strong>${escapeHtml(vars.inviterName)}</strong> t'ha convidat a unir-te a <strong>OpenMAIC</strong>,
-                la plataforma d'aules interactives amb intel·ligència artificial.
+                ${t('email.invitation.body1', { inviterName: escapeHtml(vars.inviterName) })}
               </p>
               <p style="margin:0 0 32px;color:#52525b;font-size:15px;line-height:1.6;">
-                Clica el botó a continuació per completar el teu registre i activar el compte.
+                ${t('email.invitation.body2')}
               </p>
 
-              <!-- Botó CTA -->
+              <!-- CTA -->
               <table cellpadding="0" cellspacing="0" border="0" width="100%">
                 <tr>
                   <td align="center">
                     <a href="${vars.acceptUrl}"
                        style="display:inline-block;background-color:#18181b;color:#ffffff;text-decoration:none;font-size:15px;font-weight:600;padding:14px 32px;border-radius:6px;letter-spacing:0.2px;">
-                      Acceptar invitació
+                      ${t('email.invitation.cta')}
                     </a>
                   </td>
                 </tr>
               </table>
 
-              <!-- Avís TTL -->
+              <!-- TTL notice -->
               <p style="margin:32px 0 0;color:#a1a1aa;font-size:13px;text-align:center;">
-                Aquest enllaç és vàlid durant ${vars.expiresInHours} hores.
+                ${t('email.invitation.ttlNotice', { hours })}
               </p>
             </td>
           </tr>
 
-          <!-- URL alternativa -->
+          <!-- Fallback URL -->
           <tr>
             <td style="padding:0 40px 32px;">
               <div style="background-color:#f4f4f5;border-radius:6px;padding:16px;">
-                <p style="margin:0 0 8px;color:#71717a;font-size:12px;">Si el botó no funciona, copia aquest URL al teu navegador:</p>
+                <p style="margin:0 0 8px;color:#71717a;font-size:12px;">${t('email.common.urlFallbackLabel')}</p>
                 <p style="margin:0;font-size:12px;word-break:break-all;">
                   <a href="${vars.acceptUrl}" style="color:#18181b;">${vars.acceptUrl}</a>
                 </p>
@@ -212,15 +216,11 @@ function buildInvitationHtml(vars: TemplateVars): string {
             </td>
           </tr>
 
-          <!-- Peu -->
+          <!-- Footer -->
           <tr>
             <td style="padding:24px 40px;border-top:1px solid #f4f4f5;text-align:center;">
-              <p style="margin:0;color:#a1a1aa;font-size:12px;">
-                Si no esperaves aquesta invitació, pots ignorar aquest missatge.
-              </p>
-              <p style="margin:8px 0 0;color:#a1a1aa;font-size:12px;">
-                OpenMAIC — Plataforma open source sota llicència AGPL-3.0
-              </p>
+              <p style="margin:0;color:#a1a1aa;font-size:12px;">${t('email.invitation.ignore')}</p>
+              <p style="margin:8px 0 0;color:#a1a1aa;font-size:12px;">${t('email.common.footer')}</p>
             </td>
           </tr>
 
@@ -232,19 +232,20 @@ function buildInvitationHtml(vars: TemplateVars): string {
 </html>`;
 }
 
-function buildInvitationPlainText(vars: TemplateVars): string {
-  return `Hola, ${vars.displayName}!
+function buildInvitationPlainText(vars: TemplateVars, t: TFn): string {
+  const hours = String(vars.expiresInHours);
+  return `${t('email.invitation.greeting', { displayName: vars.displayName })}
 
-${vars.inviterName} t'ha convidat a unir-te a OpenMAIC, la plataforma d'aules interactives amb IA.
+${t('email.invitation.plainBody', { inviterName: vars.inviterName })}
 
-Per completar el teu registre, accedeix a:
+${t('email.invitation.plainCta')}
 ${vars.acceptUrl}
 
-Aquest enllaç és vàlid durant ${vars.expiresInHours} hores.
+${t('email.invitation.ttlNotice', { hours })}
 
-Si no esperaves aquesta invitació, pots ignorar aquest missatge.
+${t('email.invitation.ignore')}
 
-OpenMAIC — Plataforma open source sota llicència AGPL-3.0
+${t('email.common.footer')}
 `;
 }
 
@@ -265,21 +266,25 @@ export interface PasswordResetEmailParams {
   firstName: string;
   resetUrl: string;
   expiresInHours: number;
+  locale?: string;
 }
 
 export async function sendPasswordResetEmail(params: PasswordResetEmailParams): Promise<void> {
   const senderAddress = process.env.ACS_SENDER_ADDRESS;
-  const senderDisplayName = process.env.ACS_SENDER_DISPLAY_NAME ?? 'OpenMAIC';
 
   if (!senderAddress) {
     throw new Error("ACS_SENDER_ADDRESS ha d'estar configurat.");
   }
 
+  const locale = params.locale ?? defaultLocale;
+  const t = (key: string, opts?: Record<string, string>) => translate(locale, key, opts);
+  const htmlLang = locale === 'zh-CN' ? 'zh-CN' : locale.startsWith('en') ? 'en' : 'ca';
+  const hours = String(params.expiresInHours);
   const firstName = escapeHtml(params.firstName);
   const resetUrl = escapeHtml(params.resetUrl);
 
   const html = `<!DOCTYPE html>
-<html lang="ca">
+<html lang="${htmlLang}">
 <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
 <body style="margin:0;padding:0;background-color:#f9f9f9;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
   <table width="100%" cellpadding="0" cellspacing="0">
@@ -287,38 +292,37 @@ export async function sendPasswordResetEmail(params: PasswordResetEmailParams): 
       <td align="center" style="padding:40px 16px;">
         <table width="100%" style="max-width:520px;background:#ffffff;border-radius:8px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.1);">
 
-          <!-- Capçalera -->
+          <!-- Header -->
           <tr>
             <td style="padding:32px 40px 24px;border-bottom:1px solid #f4f4f5;">
               <h1 style="margin:0;font-size:20px;font-weight:700;color:#18181b;">OpenMAIC</h1>
             </td>
           </tr>
 
-          <!-- Cos -->
+          <!-- Body -->
           <tr>
             <td style="padding:32px 40px 24px;">
-              <p style="margin:0 0 16px;font-size:16px;color:#18181b;">Hola, ${firstName}!</p>
+              <p style="margin:0 0 16px;font-size:16px;color:#18181b;">${t('email.passwordReset.greeting', { firstName })}</p>
               <p style="margin:0 0 24px;font-size:14px;color:#71717a;line-height:1.6;">
-                Hem rebut una sol·licitud per canviar la contrasenya del teu compte d'OpenMAIC.
-                Si no has estat tu, pots ignorar aquest correu i la contrasenya no canviarà.
+                ${t('email.passwordReset.body')}
               </p>
               <p style="margin:0 0 32px;text-align:center;">
                 <a href="${resetUrl}"
                    style="display:inline-block;background-color:#18181b;color:#ffffff;text-decoration:none;padding:12px 28px;border-radius:6px;font-size:14px;font-weight:500;">
-                  Canviar la contrasenya
+                  ${t('email.passwordReset.cta')}
                 </a>
               </p>
               <p style="margin:0;font-size:13px;color:#a1a1aa;">
-                Aquest enllaç és vàlid durant <strong>${params.expiresInHours} hora${params.expiresInHours !== 1 ? 's' : ''}</strong>.
+                ${t('email.passwordReset.ttlNotice', { hours })}
               </p>
             </td>
           </tr>
 
-          <!-- URL alternativa -->
+          <!-- Fallback URL -->
           <tr>
             <td style="padding:0 40px 32px;">
               <div style="background-color:#f4f4f5;border-radius:6px;padding:16px;">
-                <p style="margin:0 0 8px;color:#71717a;font-size:12px;">Si el botó no funciona, copia aquest URL al teu navegador:</p>
+                <p style="margin:0 0 8px;color:#71717a;font-size:12px;">${t('email.common.urlFallbackLabel')}</p>
                 <p style="margin:0;font-size:12px;word-break:break-all;">
                   <a href="${resetUrl}" style="color:#18181b;">${resetUrl}</a>
                 </p>
@@ -326,15 +330,11 @@ export async function sendPasswordResetEmail(params: PasswordResetEmailParams): 
             </td>
           </tr>
 
-          <!-- Peu -->
+          <!-- Footer -->
           <tr>
             <td style="padding:24px 40px;border-top:1px solid #f4f4f5;text-align:center;">
-              <p style="margin:0;color:#a1a1aa;font-size:12px;">
-                Si no has sol·licitat cap canvi de contrasenya, pots ignorar aquest missatge.
-              </p>
-              <p style="margin:8px 0 0;color:#a1a1aa;font-size:12px;">
-                OpenMAIC — Plataforma open source sota llicència AGPL-3.0
-              </p>
+              <p style="margin:0;color:#a1a1aa;font-size:12px;">${t('email.passwordReset.ignore')}</p>
+              <p style="margin:8px 0 0;color:#a1a1aa;font-size:12px;">${t('email.common.footer')}</p>
             </td>
           </tr>
 
@@ -345,18 +345,18 @@ export async function sendPasswordResetEmail(params: PasswordResetEmailParams): 
 </body>
 </html>`;
 
-  const plainText = `Hola, ${params.firstName}!
+  const plainText = `${t('email.passwordReset.greeting', { firstName: params.firstName })}
 
-Hem rebut una sol·licitud per canviar la contrasenya del teu compte d'OpenMAIC.
+${t('email.passwordReset.body')}
 
-Per canviar la contrasenya, accedeix a:
+${t('email.passwordReset.plainCta')}
 ${params.resetUrl}
 
-Aquest enllaç és vàlid durant ${params.expiresInHours} hora${params.expiresInHours !== 1 ? 's' : ''}.
+${t('email.passwordReset.ttlNotice', { hours })}
 
-Si no has sol·licitat cap canvi de contrasenya, pots ignorar aquest missatge.
+${t('email.passwordReset.ignore')}
 
-OpenMAIC — Plataforma open source sota llicència AGPL-3.0
+${t('email.common.footer')}
 `;
 
   await sendEmail({
@@ -365,7 +365,7 @@ OpenMAIC — Plataforma open source sota llicència AGPL-3.0
       to: [{ address: params.to, displayName: params.firstName }],
     },
     content: {
-      subject: 'OpenMAIC — Sol·licitud de canvi de contrasenya',
+      subject: t('email.passwordReset.subject'),
       html,
       plainText,
     },

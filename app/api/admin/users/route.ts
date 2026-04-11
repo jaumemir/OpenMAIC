@@ -9,6 +9,7 @@ import { prisma } from '@/lib/prisma';
 import { requireAuth, apiError, apiSuccess } from '@/lib/server/api-response';
 import { auditLog, extractRequestMeta } from '@/lib/audit';
 import { sendInvitationEmail } from '@/lib/email/acs';
+import { VALID_LOCALES, defaultLocale, type Locale } from '@/lib/i18n';
 
 // ── GET /api/admin/users ───────────────────────────────────────────────────
 
@@ -55,6 +56,9 @@ export async function GET(req: NextRequest) {
 // ── POST /api/admin/users ──────────────────────────────────────────────────
 
 export async function POST(req: NextRequest) {
+  const rawLocale = req.cookies.get('locale')?.value;
+  const locale: Locale = (VALID_LOCALES.includes(rawLocale as Locale) ? rawLocale : defaultLocale) as Locale;
+
   const user = await requireAuth(req);
   if ('status' in user && user instanceof Response) return user;
   if ((user as { role: string }).role !== 'admin') {
@@ -124,6 +128,7 @@ export async function POST(req: NextRequest) {
       inviterName,
       acceptUrl,
       expiresInHours: ttlHours,
+      locale,
     });
     emailSent = true;
   } catch (err) {

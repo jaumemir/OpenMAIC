@@ -1065,5 +1065,32 @@
     "voice": "Veu",
     "speed": "Velocitat",
     "language": "Idioma"
+  },
+  "email": {
+    "common": {
+      "urlFallbackLabel": "Si el botó no funciona, copia aquest URL al teu navegador:",
+      "footer": "OpenMAIC — Plataforma open source sota llicència AGPL-3.0"
+    },
+    "invitation": {
+      "subject": "{{inviterName}} t'ha convidat a OpenMAIC",
+      "subtitle": "Aula Interactiva amb IA",
+      "greeting": "Hola, {{displayName}}!",
+      "body1": "{{inviterName}} t'ha convidat a unir-te a OpenMAIC, la plataforma d'aules interactives amb intel·ligència artificial.",
+      "body2": "Clica el botó a continuació per completar el teu registre i activar el compte.",
+      "cta": "Acceptar invitació",
+      "ttlNotice": "Aquest enllaç és vàlid durant {{hours}} hores.",
+      "plainBody": "{{inviterName}} t'ha convidat a unir-te a OpenMAIC, la plataforma d'aules interactives amb IA.",
+      "plainCta": "Per completar el teu registre, accedeix a:",
+      "ignore": "Si no esperaves aquesta invitació, pots ignorar aquest missatge."
+    },
+    "passwordReset": {
+      "subject": "OpenMAIC — Sol·licitud de canvi de contrasenya",
+      "greeting": "Hola, {{firstName}}!",
+      "body": "Hem rebut una sol·licitud per canviar la contrasenya del teu compte d'OpenMAIC. Si no has estat tu, pots ignorar aquest correu i la contrasenya no canviarà.",
+      "cta": "Canviar la contrasenya",
+      "ttlNotice": "Aquest enllaç és vàlid durant {{hours}} hores.",
+      "plainCta": "Per canviar la contrasenya, accedeix a:",
+      "ignore": "Si no has sol·licitat cap canvi de contrasenya, pots ignorar aquest missatge."
+    }
   }
 }

@@ -1065,5 +1065,32 @@
     "voice": "Voice",
     "speed": "Speed",
     "language": "Language"
+  },
+  "email": {
+    "common": {
+      "urlFallbackLabel": "If the button doesn't work, copy this URL into your browser:",
+      "footer": "OpenMAIC — Open source platform under AGPL-3.0 licence"
+    },
+    "invitation": {
+      "subject": "{{inviterName}} has invited you to OpenMAIC",
+      "subtitle": "AI-Powered Interactive Classroom",
+      "greeting": "Hello, {{displayName}}!",
+      "body1": "{{inviterName}} has invited you to join OpenMAIC, the AI-powered interactive classroom platform.",
+      "body2": "Click the button below to complete your registration and activate your account.",
+      "cta": "Accept invitation",
+      "ttlNotice": "This link is valid for {{hours}} hours.",
+      "plainBody": "{{inviterName}} has invited you to join OpenMAIC, the AI-powered interactive classroom platform.",
+      "plainCta": "To complete your registration, go to:",
+      "ignore": "If you were not expecting this invitation, you can ignore this message."
+    },
+    "passwordReset": {
+      "subject": "OpenMAIC — Password reset request",
+      "greeting": "Hello, {{firstName}}!",
+      "body": "We received a request to reset the password for your OpenMAIC account. If this was not you, you can ignore this email and your password will not change.",
+      "cta": "Reset password",
+      "ttlNotice": "This link is valid for {{hours}} hours.",
+      "plainCta": "To reset your password, go to:",
+      "ignore": "If you did not request a password reset, you can ignore this message."
+    }
   }
 }

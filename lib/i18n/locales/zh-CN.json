@@ -1065,5 +1065,32 @@
     "voice": "音色",
     "speed": "语速",
     "language": "语言"
+  },
+  "email": {
+    "common": {
+      "urlFallbackLabel": "如果按钮无法使用，请将此链接复制到浏览器：",
+      "footer": "OpenMAIC — 基于 AGPL-3.0 协议的开源平台"
+    },
+    "invitation": {
+      "subject": "{{inviterName}} 邀请您加入 OpenMAIC",
+      "subtitle": "AI 驱动的互动课堂",
+      "greeting": "您好，{{displayName}}！",
+      "body1": "{{inviterName}} 邀请您加入 OpenMAIC，这是一个基于人工智能的互动课堂平台。",
+      "body2": "点击下方按钮完成注册并激活您的账户。",
+      "cta": "接受邀请",
+      "ttlNotice": "此链接有效期为 {{hours}} 小时。",
+      "plainBody": "{{inviterName}} 邀请您加入 OpenMAIC，这是一个基于人工智能的互动课堂平台。",
+      "plainCta": "完成注册，请访问：",
+      "ignore": "如果您未预期收到此邀请，可以忽略此邮件。"
+    },
+    "passwordReset": {
+      "subject": "OpenMAIC — 密码重置请求",
+      "greeting": "您好，{{firstName}}！",
+      "body": "我们收到了重置您 OpenMAIC 账户密码的请求。如果不是您本人操作，可以忽略此邮件，密码将不会更改。",
+      "cta": "重置密码",
+      "ttlNotice": "此链接有效期为 {{hours}} 小时。",
+      "plainCta": "重置密码，请访问：",
+      "ignore": "如果您未请求密码重置，可以忽略此邮件。"
+    }
   }
 }

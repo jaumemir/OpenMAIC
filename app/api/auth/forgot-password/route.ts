@@ -17,6 +17,7 @@ export const runtime = 'nodejs';
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { sendPasswordResetEmail } from '@/lib/email/acs';
+import { VALID_LOCALES, defaultLocale, type Locale } from '@/lib/i18n';
 
 const TOKEN_TTL_HOURS = parseInt(process.env.PASSWORD_RESET_TOKEN_TTL_HOURS ?? '1', 10);
 
@@ -28,6 +29,9 @@ const GENERIC_RESPONSE = {
 };
 
 export async function POST(req: NextRequest) {
+  const rawLocale = req.cookies.get('locale')?.value;
+  const locale: Locale = (VALID_LOCALES.includes(rawLocale as Locale) ? rawLocale : defaultLocale) as Locale;
+
   let body: unknown;
   try {
     body = await req.json();
@@ -86,6 +90,7 @@ export async function POST(req: NextRequest) {
           firstName,
           resetUrl,
           expiresInHours: TOKEN_TTL_HOURS,
+          locale,
         });
       } catch {
         // Dev sense ACS: mostra l'URL als logs del servidor
