@@ -29,7 +29,9 @@ export function ThemesSettings() {
     }
   }, [t]);
 
-  useEffect(() => { reload(); }, [reload]);
+  useEffect(() => {
+    reload();
+  }, [reload]);
 
   const handleDelete = async (id: string) => {
     if (!confirm(t('settings.themes.confirmDelete'))) return;
@@ -46,7 +48,10 @@ export function ThemesSettings() {
 
   const handleExport = async (id: string) => {
     const res = await fetch(`/api/themes/${id}/export`);
-    if (!res.ok) { toast.error(t('settings.themes.exportError')); return; }
+    if (!res.ok) {
+      toast.error(t('settings.themes.exportError'));
+      return;
+    }
     const blob = await res.blob();
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -132,22 +137,40 @@ export function ThemesSettings() {
             {/* Actions */}
             <div className="flex items-center gap-1.5 shrink-0">
               {theme.id !== themeId && (
-                <Button type="button" size="sm" variant="outline" className="h-7 text-xs px-2"
-                  onClick={() => setTheme(theme.id)}>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  className="h-7 text-xs px-2"
+                  onClick={() => setTheme(theme.id)}
+                >
                   {t('settings.themes.activate')}
                 </Button>
               )}
-              <Button type="button" size="sm" variant="ghost" className="h-7 w-7 p-0"
+              <Button
+                type="button"
+                size="sm"
+                variant="ghost"
+                className="h-7 w-7 p-0"
                 onClick={() => handleExport(theme.id)}
-                title={t('settings.themes.export')}>
+                title={t('settings.themes.export')}
+              >
                 <Download className="h-3.5 w-3.5" />
               </Button>
               <Button
-                type="button" size="sm" variant="ghost"
-                className={cn('h-7 w-7 p-0', theme.locked || theme.builtIn ? 'opacity-30 cursor-not-allowed' : 'hover:text-destructive')}
+                type="button"
+                size="sm"
+                variant="ghost"
+                className={cn(
+                  'h-7 w-7 p-0',
+                  theme.locked || theme.builtIn
+                    ? 'opacity-30 cursor-not-allowed'
+                    : 'hover:text-destructive',
+                )}
                 disabled={theme.locked || theme.builtIn}
                 onClick={() => handleDelete(theme.id)}
-                title={t('settings.themes.delete')}>
+                title={t('settings.themes.delete')}
+              >
                 <Trash2 className="h-3.5 w-3.5" />
               </Button>
             </div>

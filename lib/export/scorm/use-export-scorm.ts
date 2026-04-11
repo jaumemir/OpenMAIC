@@ -116,7 +116,12 @@ export function useExportScorm(): {
           const scene = exportableScenes[i];
 
           if (scene.content.type === 'slide') {
-            const res = buildSlideSection({ scene, sceneIndex: i, assetMap, includeVideos: options.includeVideos });
+            const res = buildSlideSection({
+              scene,
+              sceneIndex: i,
+              assetMap,
+              includeVideos: options.includeVideos,
+            });
             sectionResults.push({ html: res.html, meta: res.meta, title: scene.title });
             if (res.needsKatex) needsKatex = true;
           } else if (scene.content.type === 'quiz') {

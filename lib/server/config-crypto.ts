@@ -68,7 +68,9 @@ export function decrypt(ciphertext: string): string {
  * Funciona per a ProvidersConfig, ttsProvidersConfig, asrProvidersConfig, etc.
  * Retorna una còpia nova (no muta l'original).
  */
-export function encryptProviderApiKeys<T extends Record<string, { apiKey?: string }>>(config: T): T {
+export function encryptProviderApiKeys<T extends Record<string, { apiKey?: string }>>(
+  config: T,
+): T {
   const result = {} as T;
   for (const [pid, cfg] of Object.entries(config)) {
     result[pid as keyof T] = {
@@ -84,7 +86,9 @@ export function encryptProviderApiKeys<T extends Record<string, { apiKey?: strin
  * Funciona per a ProvidersConfig, ttsProvidersConfig, asrProvidersConfig, etc.
  * Retorna una còpia nova (no muta l'original).
  */
-export function decryptProviderApiKeys<T extends Record<string, { apiKey?: string }>>(config: T): T {
+export function decryptProviderApiKeys<T extends Record<string, { apiKey?: string }>>(
+  config: T,
+): T {
   const result = {} as T;
   for (const [pid, cfg] of Object.entries(config)) {
     result[pid as keyof T] = {

@@ -37,7 +37,6 @@ export default function AdminNav({ displayName }: AdminNavProps) {
   return (
     <nav className="border-b border-border/50 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl sticky top-0 z-40">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between gap-4">
-
         {/* Esquerra: breadcrumb */}
         <div className="flex items-center gap-1.5 text-sm min-w-0">
           <Link
@@ -86,7 +85,6 @@ export default function AdminNav({ displayName }: AdminNavProps) {
             <span className="hidden sm:inline">Sortir</span>
           </button>
         </div>
-
       </div>
     </nav>
   );

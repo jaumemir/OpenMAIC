@@ -5,15 +5,11 @@ import { inferAdditionalFields } from 'better-auth/client/plugins';
 import type { auth } from './server';
 
 export const authClient = createAuthClient({
-  baseURL: typeof window !== 'undefined' ? window.location.origin : (process.env.APP_URL ?? 'http://localhost:3000'),
-  plugins: [
-    inferAdditionalFields<typeof auth>(),
-  ],
+  baseURL:
+    typeof window !== 'undefined'
+      ? window.location.origin
+      : (process.env.APP_URL ?? 'http://localhost:3000'),
+  plugins: [inferAdditionalFields<typeof auth>()],
 });
 
-export const {
-  signIn,
-  signOut,
-  signUp,
-  useSession,
-} = authClient;
+export const { signIn, signOut, signUp, useSession } = authClient;

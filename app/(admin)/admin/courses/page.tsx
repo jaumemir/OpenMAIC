@@ -67,65 +67,78 @@ export default function AdminCoursesPage() {
         </p>
       </div>
 
-        {loading ? (
-          <div className="flex items-center justify-center py-16 text-muted-foreground">
-            <Loader2 className="w-5 h-5 animate-spin mr-2" />
-            Carregant…
-          </div>
-        ) : stages.length === 0 ? (
-          <div className="rounded-xl border border-border/60 py-14 text-center text-muted-foreground text-sm bg-white/60 dark:bg-slate-900/50 shadow-sm">
-            Encara no hi ha cap curs generat.
-          </div>
-        ) : (
-          <div className="rounded-xl border border-border/60 overflow-hidden bg-white/60 dark:bg-slate-900/50 shadow-sm">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-border/60 bg-muted/40">
-                  <th className="text-left px-4 py-2.5 font-medium text-muted-foreground">Nom</th>
-                  <th className="text-left px-4 py-2.5 font-medium text-muted-foreground hidden lg:table-cell">Stage ID</th>
-                  <th className="text-left px-4 py-2.5 font-medium text-muted-foreground">Escenes</th>
-                  <th className="text-left px-4 py-2.5 font-medium text-muted-foreground">Propietari</th>
-                  <th className="text-left px-4 py-2.5 font-medium text-muted-foreground hidden sm:table-cell">Data creació</th>
-                  <th className="px-4 py-2.5" />
+      {loading ? (
+        <div className="flex items-center justify-center py-16 text-muted-foreground">
+          <Loader2 className="w-5 h-5 animate-spin mr-2" />
+          Carregant…
+        </div>
+      ) : stages.length === 0 ? (
+        <div className="rounded-xl border border-border/60 py-14 text-center text-muted-foreground text-sm bg-white/60 dark:bg-slate-900/50 shadow-sm">
+          Encara no hi ha cap curs generat.
+        </div>
+      ) : (
+        <div className="rounded-xl border border-border/60 overflow-hidden bg-white/60 dark:bg-slate-900/50 shadow-sm">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-border/60 bg-muted/40">
+                <th className="text-left px-4 py-2.5 font-medium text-muted-foreground">Nom</th>
+                <th className="text-left px-4 py-2.5 font-medium text-muted-foreground hidden lg:table-cell">
+                  Stage ID
+                </th>
+                <th className="text-left px-4 py-2.5 font-medium text-muted-foreground">Escenes</th>
+                <th className="text-left px-4 py-2.5 font-medium text-muted-foreground">
+                  Propietari
+                </th>
+                <th className="text-left px-4 py-2.5 font-medium text-muted-foreground hidden sm:table-cell">
+                  Data creació
+                </th>
+                <th className="px-4 py-2.5" />
+              </tr>
+            </thead>
+            <tbody>
+              {stages.map((stage) => (
+                <tr
+                  key={stage.id}
+                  className="border-t border-border/40 hover:bg-muted/20 transition-colors"
+                >
+                  <td className="px-4 py-2.5 font-medium max-w-xs truncate" title={stage.name}>
+                    {stage.name || (
+                      <span className="text-muted-foreground italic">Sense títol</span>
+                    )}
+                  </td>
+                  <td className="px-4 py-2.5 font-mono text-xs text-muted-foreground select-all hidden lg:table-cell">
+                    {stage.id}
+                  </td>
+                  <td className="px-4 py-2.5 text-muted-foreground text-xs tabular-nums">
+                    {stage.sceneCount}
+                  </td>
+                  <td className="px-4 py-2.5 text-muted-foreground text-xs">
+                    {stage.owner ? (
+                      <span title={stage.owner.userId}>{stage.owner.email}</span>
+                    ) : (
+                      <span className="italic text-muted-foreground/50">Desconegut</span>
+                    )}
+                  </td>
+                  <td className="px-4 py-2.5 text-muted-foreground text-xs whitespace-nowrap hidden sm:table-cell">
+                    {new Date(stage.createdAt).toLocaleString('ca-ES')}
+                  </td>
+                  <td className="px-4 py-2.5 text-right">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="text-destructive hover:text-destructive hover:bg-destructive/10 h-7 w-7"
+                      onClick={() => setDeleteId(stage.id)}
+                      title="Eliminar curs"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </Button>
+                  </td>
                 </tr>
-              </thead>
-              <tbody>
-                {stages.map((stage) => (
-                  <tr key={stage.id} className="border-t border-border/40 hover:bg-muted/20 transition-colors">
-                    <td className="px-4 py-2.5 font-medium max-w-xs truncate" title={stage.name}>
-                      {stage.name || <span className="text-muted-foreground italic">Sense títol</span>}
-                    </td>
-                    <td className="px-4 py-2.5 font-mono text-xs text-muted-foreground select-all hidden lg:table-cell">
-                      {stage.id}
-                    </td>
-                    <td className="px-4 py-2.5 text-muted-foreground text-xs tabular-nums">{stage.sceneCount}</td>
-                    <td className="px-4 py-2.5 text-muted-foreground text-xs">
-                      {stage.owner ? (
-                        <span title={stage.owner.userId}>{stage.owner.email}</span>
-                      ) : (
-                        <span className="italic text-muted-foreground/50">Desconegut</span>
-                      )}
-                    </td>
-                    <td className="px-4 py-2.5 text-muted-foreground text-xs whitespace-nowrap hidden sm:table-cell">
-                      {new Date(stage.createdAt).toLocaleString('ca-ES')}
-                    </td>
-                    <td className="px-4 py-2.5 text-right">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="text-destructive hover:text-destructive hover:bg-destructive/10 h-7 w-7"
-                        onClick={() => setDeleteId(stage.id)}
-                        title="Eliminar curs"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </Button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
 
       <AlertDialog open={!!deleteId} onOpenChange={(open) => !open && setDeleteId(null)}>
         <AlertDialogContent>

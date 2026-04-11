@@ -24,12 +24,12 @@ import type { AssetMap } from './asset-collector';
 
 export interface SlideSceneMeta {
   type: 'slide';
-  sceneId: string;        // e.g. "scene-0"
-  canvasId: string;       // e.g. "canvas-0"
-  scalerId: string;       // e.g. "scaler-0"
-  cw: number;             // canvas width px
-  ch: number;             // canvas height px
-  narrIds: string[];      // IDs of <audio> narration elements to chain-play
+  sceneId: string; // e.g. "scene-0"
+  canvasId: string; // e.g. "canvas-0"
+  scalerId: string; // e.g. "scaler-0"
+  cw: number; // canvas width px
+  ch: number; // canvas height px
+  narrIds: string[]; // IDs of <audio> narration elements to chain-play
   hasNarration: boolean;
 }
 
@@ -87,7 +87,13 @@ function gradientCss(g: Gradient): string {
     : `linear-gradient(${g.rotate}deg, ${stops})`;
 }
 
-function elBaseStyle(el: { left: number; top: number; width: number; height: number; rotate: number }): string {
+function elBaseStyle(el: {
+  left: number;
+  top: number;
+  width: number;
+  height: number;
+  rotate: number;
+}): string {
   return `position:absolute;left:${el.left}px;top:${el.top}px;width:${el.width}px;height:${el.height}px;${el.rotate ? `transform:rotate(${el.rotate}deg);` : ''}`;
 }
 
@@ -127,7 +133,8 @@ function renderImage(el: PPTImageElement, assetMap: AssetMap): string {
   }
   const flipH = el.flipH ? 'scaleX(-1)' : '';
   const flipV = el.flipV ? 'scaleY(-1)' : '';
-  const flipT = (flipH || flipV) && !el.rotate ? `transform:${[flipH, flipV].filter(Boolean).join(' ')};` : '';
+  const flipT =
+    (flipH || flipV) && !el.rotate ? `transform:${[flipH, flipV].filter(Boolean).join(' ')};` : '';
   const colorMask = el.colorMask
     ? `<div style="position:absolute;inset:0;background:${el.colorMask};pointer-events:none;"></div>`
     : '';
@@ -162,10 +169,12 @@ function renderShape(el: PPTShapeElement): string {
   const opacity = el.opacity !== undefined ? `opacity:${el.opacity};` : '';
   const flipH = el.flipH ? 'scale(-1,1)' : '';
   const flipV = el.flipV ? 'scale(1,-1)' : '';
-  const svgTransform = (flipH || flipV) ? ` transform="${[flipH, flipV].filter(Boolean).join(' ')}"` : '';
-  const outline = el.outline?.color && el.outline.width
-    ? `stroke="${escHtml(el.outline.color)}" stroke-width="${el.outline.width}" stroke-dasharray="${el.outline.style === 'dashed' ? '8 4' : el.outline.style === 'dotted' ? '2 4' : 'none'}"`
-    : 'stroke="none"';
+  const svgTransform =
+    flipH || flipV ? ` transform="${[flipH, flipV].filter(Boolean).join(' ')}"` : '';
+  const outline =
+    el.outline?.color && el.outline.width
+      ? `stroke="${escHtml(el.outline.color)}" stroke-width="${el.outline.width}" stroke-dasharray="${el.outline.style === 'dashed' ? '8 4' : el.outline.style === 'dotted' ? '2 4' : 'none'}"`
+      : 'stroke="none"';
   let text = '';
   if (el.text?.content) {
     const t = el.text;
@@ -187,7 +196,12 @@ function renderLine(el: PPTLineElement): string {
   const minY = Math.min(sy, ey);
   const w = Math.max(Math.abs(ex - sx), 2);
   const h = Math.max(Math.abs(ey - sy), 2);
-  const dash = el.style === 'dashed' ? 'stroke-dasharray="8 4"' : el.style === 'dotted' ? 'stroke-dasharray="2 4"' : '';
+  const dash =
+    el.style === 'dashed'
+      ? 'stroke-dasharray="8 4"'
+      : el.style === 'dotted'
+        ? 'stroke-dasharray="2 4"'
+        : '';
   return `<div style="position:absolute;left:${minX}px;top:${minY}px;width:${w}px;height:${h}px;overflow:visible;">
   <svg style="overflow:visible;width:${w}px;height:${h}px;" viewBox="${minX} ${minY} ${w} ${h}">
     <line x1="${sx}" y1="${sy}" x2="${ex}" y2="${ey}" stroke="${escHtml(el.color)}" stroke-width="2" ${dash}/>
@@ -228,7 +242,9 @@ function renderTable(el: PPTTableElement): string {
         s.backcolor ? `background:${s.backcolor}` : '',
         s.fontsize ? `font-size:${s.fontsize}` : '',
         s.align ? `text-align:${s.align}` : '',
-      ].filter(Boolean).join(';');
+      ]
+        .filter(Boolean)
+        .join(';');
       const cs = cell.colspan > 1 ? ` colspan="${cell.colspan}"` : '';
       const rs = cell.rowspan > 1 ? ` rowspan="${cell.rowspan}"` : '';
       tbody += `<td${cs}${rs} style="border:1px solid ${escHtml(el.outline.color ?? '#ccc')};padding:4px;${css}">${cell.text}</td>`;
@@ -286,16 +302,26 @@ function renderAudio(el: PPTAudioElement, assetMap: AssetMap): string {
 
 function renderElement(el: PPTElement, assetMap: AssetMap, includeVideos: boolean): string {
   switch (el.type) {
-    case 'text': return renderText(el as PPTTextElement);
-    case 'image': return renderImage(el as PPTImageElement, assetMap);
-    case 'shape': return renderShape(el as PPTShapeElement);
-    case 'line': return renderLine(el as PPTLineElement);
-    case 'chart': return renderChart(el as PPTChartElement);
-    case 'table': return renderTable(el as PPTTableElement);
-    case 'latex': return renderLatex(el as PPTLatexElement);
-    case 'video': return renderVideo(el as PPTVideoElement, assetMap, includeVideos);
-    case 'audio': return renderAudio(el as PPTAudioElement, assetMap);
-    default: return '';
+    case 'text':
+      return renderText(el as PPTTextElement);
+    case 'image':
+      return renderImage(el as PPTImageElement, assetMap);
+    case 'shape':
+      return renderShape(el as PPTShapeElement);
+    case 'line':
+      return renderLine(el as PPTLineElement);
+    case 'chart':
+      return renderChart(el as PPTChartElement);
+    case 'table':
+      return renderTable(el as PPTTableElement);
+    case 'latex':
+      return renderLatex(el as PPTLatexElement);
+    case 'video':
+      return renderVideo(el as PPTVideoElement, assetMap, includeVideos);
+    case 'audio':
+      return renderAudio(el as PPTAudioElement, assetMap);
+    default:
+      return '';
   }
 }
 

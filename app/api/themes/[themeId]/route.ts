@@ -9,10 +9,7 @@ function isValidThemeId(id: string): boolean {
 }
 
 // GET /api/themes/[themeId]
-export async function GET(
-  _req: Request,
-  { params }: { params: Params },
-) {
+export async function GET(_req: Request, { params }: { params: Params }) {
   const { themeId } = await params;
   if (!isValidThemeId(themeId)) {
     return NextResponse.json({ error: 'Invalid theme id' }, { status: 400 });
@@ -30,10 +27,7 @@ export async function GET(
 }
 
 // DELETE /api/themes/[themeId]
-export async function DELETE(
-  _req: Request,
-  { params }: { params: Params },
-) {
+export async function DELETE(_req: Request, { params }: { params: Params }) {
   const { themeId } = await params;
   if (!isValidThemeId(themeId)) {
     return NextResponse.json({ error: 'Invalid theme id' }, { status: 400 });

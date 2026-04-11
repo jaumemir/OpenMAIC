@@ -183,7 +183,15 @@ interface SettingsDialogProps {
 }
 
 // Seccions exclusives d'admin (requereixen configurar API keys de proveïdors)
-const ADMIN_ONLY_SECTIONS: SettingsSection[] = ['providers', 'image', 'video', 'tts', 'asr', 'pdf', 'web-search'];
+const ADMIN_ONLY_SECTIONS: SettingsSection[] = [
+  'providers',
+  'image',
+  'video',
+  'tts',
+  'asr',
+  'pdf',
+  'web-search',
+];
 
 export function SettingsDialog({ open, onOpenChange, initialSection }: SettingsDialogProps) {
   const { t } = useI18n();
@@ -229,12 +237,11 @@ export function SettingsDialog({ open, onOpenChange, initialSection }: SettingsD
   useEffect(() => {
     if (open) {
       const target = initialSection ?? defaultSection;
-      const resolvedSection =
-        !isAdmin && ADMIN_ONLY_SECTIONS.includes(target) ? 'themes' : target;
+      const resolvedSection = !isAdmin && ADMIN_ONLY_SECTIONS.includes(target) ? 'themes' : target;
       // eslint-disable-next-line react-hooks/set-state-in-effect -- Sync section from prop when dialog opens
       setActiveSection(resolvedSection);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps -- defaultSection depèn de isAdmin que ve de session
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- defaultSection depèn de isAdmin que ve de session
   }, [open, initialSection, isAdmin]);
 
   // Model editing state
@@ -791,7 +798,6 @@ export function SettingsDialog({ open, onOpenChange, initialSection }: SettingsD
               <Paintbrush className="h-4 w-4 shrink-0" />
               <span className="truncate">{t('settings.themesSettings')}</span>
             </button>
-
           </div>
 
           {/* Sidebar resize handle */}

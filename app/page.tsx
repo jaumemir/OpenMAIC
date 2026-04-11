@@ -117,7 +117,11 @@ function HomePage() {
         updates.language = savedLanguage;
       } else {
         const lang = navigator.language ?? '';
-        const detected: 'zh-CN' | 'en-US' | 'ca' = lang.startsWith('zh') ? 'zh-CN' : lang.startsWith('ca') ? 'ca' : 'en-US';
+        const detected: 'zh-CN' | 'en-US' | 'ca' = lang.startsWith('zh')
+          ? 'zh-CN'
+          : lang.startsWith('ca')
+            ? 'ca'
+            : 'en-US';
         updates.language = detected;
       }
       if (Object.keys(updates).length > 0) {
@@ -193,24 +197,20 @@ function HomePage() {
           useUserPrefsStore.getState().hydrate(data.preferences);
           // Sincronitzar avatar i bio al profile store (sense reescriure a la BD)
           const { avatar, bio } = data.preferences;
-          useUserProfileStore.getState().hydrateProfile(
-            avatar ?? '/avatars/user.png',
-            bio ?? '',
-          );
+          useUserProfileStore.getState().hydrateProfile(avatar ?? '/avatars/user.png', bio ?? '');
         }
       })
       .catch(() => {});
 
     // Hidratar el nickname des del perfil de sessió (nom llegit de la BD, no editable aquí)
     fetch('/api/user/me')
-      .then((r) => r.ok ? r.json() : null)
+      .then((r) => (r.ok ? r.json() : null))
       .then((profile: { firstName?: string; lastName?: string } | null) => {
         if (!profile) return;
         const name = [profile.firstName, profile.lastName].filter(Boolean).join(' ');
         if (name) useUserProfileStore.getState().setNickname(name);
       })
       .catch(() => {});
-
   }, [sessionUser?.id]);
 
   const handleDelete = (id: string, e: React.MouseEvent) => {
@@ -259,8 +259,7 @@ function HomePage() {
         });
 
         if (
-          (err.code === 'BROWSER_NATIVE_UNSUPPORTED' ||
-            err.code === 'TTS_NOT_CONFIGURED') &&
+          (err.code === 'BROWSER_NATIVE_UNSUPPORTED' || err.code === 'TTS_NOT_CONFIGURED') &&
           (!sessionUser || sessionUser.role === 'admin')
         ) {
           setSettingsSection('tts');
@@ -435,7 +434,7 @@ function HomePage() {
             }}
             className="flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-bold text-gray-500 dark:text-gray-400 hover:bg-white dark:hover:bg-gray-700 hover:text-gray-800 dark:hover:text-gray-200 hover:shadow-sm transition-all"
           >
-            {{ 'zh-CN': 'CN', 'en-US': 'EN', 'ca': 'CA' }[locale] ?? 'EN'}
+            {{ 'zh-CN': 'CN', 'en-US': 'EN', ca: 'CA' }[locale] ?? 'EN'}
           </button>
           {languageOpen && (
             <div className="absolute top-full mt-2 right-0 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg overflow-hidden z-50 min-w-[120px]">
@@ -580,7 +579,16 @@ function HomePage() {
               </span>
             </div>
             <button
-              onClick={() => signOut({ fetchOptions: { onSuccess: () => { router.push('/login'); router.refresh(); } } })}
+              onClick={() =>
+                signOut({
+                  fetchOptions: {
+                    onSuccess: () => {
+                      router.push('/login');
+                      router.refresh();
+                    },
+                  },
+                })
+              }
               className="p-2 rounded-full text-gray-400 dark:text-gray-500 hover:bg-white dark:hover:bg-gray-700 hover:text-gray-800 dark:hover:text-gray-200 hover:shadow-sm transition-all"
               title="Tancar sessió"
             >

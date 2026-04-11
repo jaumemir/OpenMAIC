@@ -266,14 +266,15 @@ async function generateAzureFoundryTTS(
   config: TTSModelConfig,
   text: string,
 ): Promise<TTSGenerationResult> {
-  const baseUrl = (config.baseUrl || '').trim() || TTS_PROVIDERS['azure-foundry-tts'].defaultBaseUrl!;
+  const baseUrl =
+    (config.baseUrl || '').trim() || TTS_PROVIDERS['azure-foundry-tts'].defaultBaseUrl!;
 
   // Guard: detect unconfigured placeholder URL
   if (baseUrl.includes('{resource}')) {
     throw new Error(
       'Azure AI Foundry TTS: Base URL not configured. ' +
-      'Replace {resource} with your actual Azure resource name, e.g. ' +
-      'https://my-resource.cognitiveservices.azure.com',
+        'Replace {resource} with your actual Azure resource name, e.g. ' +
+        'https://my-resource.cognitiveservices.azure.com',
     );
   }
 
@@ -311,8 +312,8 @@ async function generateAzureFoundryTTS(
     const body = await response.text().catch(() => '');
     throw new Error(
       `Azure AI Foundry TTS error ${response.status} (${response.statusText})` +
-      (body ? `: ${body.slice(0, 200)}` : '') +
-      ` — endpoint: ${endpoint}`,
+        (body ? `: ${body.slice(0, 200)}` : '') +
+        ` — endpoint: ${endpoint}`,
     );
   }
 

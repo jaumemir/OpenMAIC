@@ -155,8 +155,8 @@ export const stageCa = {
     generationFailed: 'Error en la generació',
     confirmSwitchTitle: 'Canviar escena',
     confirmSwitchMessage:
-      'Hi ha un tema en curs. Canviar d\'escena finalitzarà el tema actual. Esteu segurs?',
-    generatingNextPage: 'L\'escena s\'està generant, espereu si us plau...',
+      "Hi ha un tema en curs. Canviar d'escena finalitzarà el tema actual. Esteu segurs?",
+    generatingNextPage: "L'escena s'està generant, espereu si us plau...",
     fullscreen: 'Pantalla completa',
     exitFullscreen: 'Sortir de pantalla completa',
   },
@@ -212,7 +212,7 @@ export const stageCa = {
     inputPlaceholder: 'Escriviu el vostre missatge...',
     listening: 'Escoltant...',
     processing: 'Processant...',
-    noSpeechDetected: 'No s\'ha detectat veu, torneu-ho a intentar',
+    noSpeechDetected: "No s'ha detectat veu, torneu-ho a intentar",
     discussionEnded: 'Discussió finalitzada',
     qaEnded: 'P&R finalitzat',
     thinking: 'Pensant',
@@ -229,7 +229,8 @@ export const stageCa = {
   },
   pbl: {
     legacyFormat: 'Aquesta escena PBL utilitza un format antic. Torneu a generar el curs.',
-    emptyProject: 'El projecte PBL encara no s\'ha generat. Creeu-lo mitjançant la generació de cursos.',
+    emptyProject:
+      "El projecte PBL encara no s'ha generat. Creeu-lo mitjançant la generació de cursos.",
     roleSelection: {
       title: 'Trieu el vostre rol',
       description: 'Seleccioneu un rol per col·laborar en el projecte',
@@ -268,20 +269,21 @@ export const stageCa = {
       },
       step2: {
         title: 'Pas 2: Completeu les tasques',
-        desc: 'Cada tasca representa un objectiu d\'aprenentatge:',
+        desc: "Cada tasca representa un objectiu d'aprenentatge:",
         s1: {
           title: 'Veieu la tasca actual',
           desc: 'Comproveu el títol, la descripció i el responsable de la tasca',
         },
         s2: {
           title: 'Obteniu orientació',
-          example: '@question Per on haig de començar?\n@question Com implemento aquesta funcionalitat?',
-          desc: 'L\'Agent de Preguntes proporciona preguntes orientadores i pistes (sense respostes directes)',
+          example:
+            '@question Per on haig de començar?\n@question Com implemento aquesta funcionalitat?',
+          desc: "L'Agent de Preguntes proporciona preguntes orientadores i pistes (sense respostes directes)",
         },
         s3: {
           title: 'Envieu el vostre treball',
           example: '@judge Ja he acabat, comproveu les meves Notes',
-          desc: 'L\'Agent Avaluador avalua el vostre treball i dona comentaris:',
+          desc: "L'Agent Avaluador avalua el vostre treball i dona comentaris:",
           complete: 'Passa automàticament a la tasca següent',
           revision: 'Millora basant-te en els comentaris',
         },

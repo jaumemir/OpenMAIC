@@ -11,10 +11,7 @@ function isValidThemeId(id: string): boolean {
 }
 
 // GET /api/themes/[themeId]/assets/[filename]
-export async function GET(
-  _req: Request,
-  { params }: { params: Params },
-) {
+export async function GET(_req: Request, { params }: { params: Params }) {
   const { themeId, filename } = await params;
 
   if (!isValidThemeId(themeId)) {
@@ -35,9 +32,13 @@ export async function GET(
     const buffer = await fs.readFile(assetPath);
     const ext = path.extname(safe).toLowerCase();
     const contentType =
-      ext === '.svg' ? 'image/svg+xml' :
-      ext === '.png' ? 'image/png' :
-      ext === '.jpg' || ext === '.jpeg' ? 'image/jpeg' : 'application/octet-stream';
+      ext === '.svg'
+        ? 'image/svg+xml'
+        : ext === '.png'
+          ? 'image/png'
+          : ext === '.jpg' || ext === '.jpeg'
+            ? 'image/jpeg'
+            : 'application/octet-stream';
     return new NextResponse(buffer, {
       headers: {
         'Content-Type': contentType,

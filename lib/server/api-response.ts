@@ -62,9 +62,7 @@ export type AuthedUser = {
  * Comprova que hi ha sessió activa. Retorna l'usuari o una NextResponse 401.
  * Ús: `const result = await requireAuth(req); if (result instanceof NextResponse) return result;`
  */
-export async function requireAuth(
-  req: NextRequest,
-): Promise<AuthedUser | NextResponse> {
+export async function requireAuth(req: NextRequest): Promise<AuthedUser | NextResponse> {
   const session = await getSession(req);
   if (!session) {
     return apiError('UNAUTHORIZED', 401, 'Cal autenticar-se per accedir a aquest recurs.');

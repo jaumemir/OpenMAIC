@@ -37,7 +37,7 @@ export const auth = betterAuth({
 
   session: {
     expiresIn: 60 * 60 * 24 * 7, // 7 dies
-    updateAge: 60 * 60 * 24,      // Renovar si queden menys de 24h
+    updateAge: 60 * 60 * 24, // Renovar si queden menys de 24h
     cookieCache: {
       enabled: true,
       maxAge: 60 * 5, // Cache 5 minuts al client
@@ -60,7 +60,6 @@ export const auth = betterAuth({
     },
   },
 
-
   // Configuració de cookies
   advanced: {
     defaultCookieAttributes: {
@@ -69,7 +68,6 @@ export const auth = betterAuth({
       secure: process.env.NODE_ENV === 'production',
     },
   },
-
 });
 
 export type Session = typeof auth.$Infer.Session;

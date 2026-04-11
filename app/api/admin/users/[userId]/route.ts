@@ -16,7 +16,14 @@ type Params = { params: Promise<{ userId: string }> };
 
 const ALLOWED_ROLES = ['admin', 'user'];
 const ALLOWED_STATUSES = ['active', 'pending', 'inactive'];
-const PROFILE_FIELDS = ['firstName', 'lastName', 'organization', 'department', 'jobTitle', 'city'] as const;
+const PROFILE_FIELDS = [
+  'firstName',
+  'lastName',
+  'organization',
+  'department',
+  'jobTitle',
+  'city',
+] as const;
 
 // ── PATCH /api/admin/users/[userId] ───────────────────────────────────────
 
@@ -38,7 +45,11 @@ export async function PATCH(req: NextRequest, { params }: Params) {
   }
 
   if (userId === (currentUser as { id: string }).id) {
-    return apiError('INVALID_REQUEST', 400, 'No pots modificar el teu propi compte des del panell.');
+    return apiError(
+      'INVALID_REQUEST',
+      400,
+      'No pots modificar el teu propi compte des del panell.',
+    );
   }
 
   let body: unknown;
@@ -56,13 +67,21 @@ export async function PATCH(req: NextRequest, { params }: Params) {
   const userUpdates: Record<string, string> = {};
   if (role !== undefined) {
     if (typeof role !== 'string' || !ALLOWED_ROLES.includes(role)) {
-      return apiError('INVALID_REQUEST', 400, `Rol invàlid. Permesos: ${ALLOWED_ROLES.join(', ')}.`);
+      return apiError(
+        'INVALID_REQUEST',
+        400,
+        `Rol invàlid. Permesos: ${ALLOWED_ROLES.join(', ')}.`,
+      );
     }
     userUpdates.role = role;
   }
   if (status !== undefined) {
     if (typeof status !== 'string' || !ALLOWED_STATUSES.includes(status)) {
-      return apiError('INVALID_REQUEST', 400, `Estat invàlid. Permesos: ${ALLOWED_STATUSES.join(', ')}.`);
+      return apiError(
+        'INVALID_REQUEST',
+        400,
+        `Estat invàlid. Permesos: ${ALLOWED_STATUSES.join(', ')}.`,
+      );
     }
     userUpdates.status = status;
   }
@@ -85,7 +104,9 @@ export async function PATCH(req: NextRequest, { params }: Params) {
 
   // ── Aplicar canvis ───────────────────────────────────────────────────────
   const [updated] = await Promise.all([
-    hasUserChanges ? prisma.user.update({ where: { id: userId }, data: userUpdates }) : Promise.resolve(target),
+    hasUserChanges
+      ? prisma.user.update({ where: { id: userId }, data: userUpdates })
+      : Promise.resolve(target),
     hasProfileChanges
       ? prisma.userProfile.upsert({
           where: { userId },

@@ -11,7 +11,14 @@ export async function GET(req: NextRequest) {
 
   const profile = await prisma.userProfile.findUnique({
     where: { userId: user.id },
-    select: { firstName: true, lastName: true, organization: true, department: true, jobTitle: true, city: true },
+    select: {
+      firstName: true,
+      lastName: true,
+      organization: true,
+      department: true,
+      jobTitle: true,
+      city: true,
+    },
   });
 
   if (!profile) {

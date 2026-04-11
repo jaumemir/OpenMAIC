@@ -42,10 +42,7 @@ function buildAcsHeaders(
   const date = new Date().toUTCString();
 
   // SHA-256 del body (base64)
-  const contentHash = crypto
-    .createHash('sha256')
-    .update(bodyString, 'utf8')
-    .digest('base64');
+  const contentHash = crypto.createHash('sha256').update(bodyString, 'utf8').digest('base64');
 
   // String a signar: METHOD\npath?query\ndate;host;contentHash
   const stringToSign = `POST\n${url.pathname}${url.search}\n${date};${host};${contentHash}`;
@@ -74,9 +71,7 @@ export async function sendEmail(payload: AcsEmailPayload): Promise<void> {
   const accessKey = process.env.ACS_ACCESS_KEY;
 
   if (!endpoint || !accessKey) {
-    throw new Error(
-      "ACS_ENDPOINT i ACS_ACCESS_KEY han d'estar configurats per enviar emails.",
-    );
+    throw new Error("ACS_ENDPOINT i ACS_ACCESS_KEY han d'estar configurats per enviar emails.");
   }
 
   const url = `${endpoint}/emails:send?api-version=2023-03-31`;
@@ -370,7 +365,7 @@ OpenMAIC — Plataforma open source sota llicència AGPL-3.0
       to: [{ address: params.to, displayName: params.firstName }],
     },
     content: {
-      subject: "OpenMAIC — Sol·licitud de canvi de contrasenya",
+      subject: 'OpenMAIC — Sol·licitud de canvi de contrasenya',
       html,
       plainText,
     },

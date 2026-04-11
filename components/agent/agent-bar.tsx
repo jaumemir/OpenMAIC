@@ -85,9 +85,11 @@ function AgentVoicePill({
         (typeof localStorage !== 'undefined' && localStorage.getItem('generationLanguage')) ||
         'zh-CN';
       const previewText =
-        courseLanguage === 'zh-CN' ? '欢迎来到AI课堂' :
-        courseLanguage === 'ca' ? "Benvingut a l'aula d'IA" :
-        'Welcome to AI Classroom';
+        courseLanguage === 'zh-CN'
+          ? '欢迎来到AI课堂'
+          : courseLanguage === 'ca'
+            ? "Benvingut a l'aula d'IA"
+            : 'Welcome to AI Classroom';
 
       if (providerId === 'browser-native-tts') {
         const { promise, cancel } = playBrowserTTSPreview({ text: previewText, voice: voiceId });
@@ -313,9 +315,11 @@ function TeacherVoicePill({
         (typeof localStorage !== 'undefined' && localStorage.getItem('generationLanguage')) ||
         'zh-CN';
       const previewText =
-        courseLanguage === 'zh-CN' ? '欢迎来到AI课堂' :
-        courseLanguage === 'ca' ? "Benvingut a l'aula d'IA" :
-        'Welcome to AI Classroom';
+        courseLanguage === 'zh-CN'
+          ? '欢迎来到AI课堂'
+          : courseLanguage === 'ca'
+            ? "Benvingut a l'aula d'IA"
+            : 'Welcome to AI Classroom';
 
       if (providerId === 'browser-native-tts') {
         const { promise, cancel } = playBrowserTTSPreview({ text: previewText, voice: voiceId });

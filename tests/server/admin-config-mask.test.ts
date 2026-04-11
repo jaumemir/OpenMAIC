@@ -5,7 +5,9 @@ import type { SerializableSettings } from '@/app/api/admin/config/providers/rout
 const SENTINEL = '__STORED__';
 
 // Helper per crear SerializableSettings de test sense haver de satisfer tots els camps
-function cfg(partial: Record<string, { apiKey: string; [k: string]: unknown }>): SerializableSettings {
+function cfg(
+  partial: Record<string, { apiKey: string; [k: string]: unknown }>,
+): SerializableSettings {
   return { providersConfig: partial as SerializableSettings['providersConfig'] };
 }
 

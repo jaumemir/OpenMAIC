@@ -27,13 +27,27 @@ function maskSection(section: ProviderSection | undefined): ProviderSection | un
 export function maskApiKeys(config: SerializableSettings): SerializableSettings {
   return {
     ...config,
-    providersConfig: maskSection(config.providersConfig as ProviderSection | undefined) as SerializableSettings['providersConfig'],
-    ttsProvidersConfig: maskSection(config.ttsProvidersConfig as ProviderSection | undefined) as SerializableSettings['ttsProvidersConfig'],
-    asrProvidersConfig: maskSection(config.asrProvidersConfig as ProviderSection | undefined) as SerializableSettings['asrProvidersConfig'],
-    pdfProvidersConfig: maskSection(config.pdfProvidersConfig as ProviderSection | undefined) as SerializableSettings['pdfProvidersConfig'],
-    imageProvidersConfig: maskSection(config.imageProvidersConfig as ProviderSection | undefined) as SerializableSettings['imageProvidersConfig'],
-    videoProvidersConfig: maskSection(config.videoProvidersConfig as ProviderSection | undefined) as SerializableSettings['videoProvidersConfig'],
-    webSearchProvidersConfig: maskSection(config.webSearchProvidersConfig as ProviderSection | undefined) as SerializableSettings['webSearchProvidersConfig'],
+    providersConfig: maskSection(
+      config.providersConfig as ProviderSection | undefined,
+    ) as SerializableSettings['providersConfig'],
+    ttsProvidersConfig: maskSection(
+      config.ttsProvidersConfig as ProviderSection | undefined,
+    ) as SerializableSettings['ttsProvidersConfig'],
+    asrProvidersConfig: maskSection(
+      config.asrProvidersConfig as ProviderSection | undefined,
+    ) as SerializableSettings['asrProvidersConfig'],
+    pdfProvidersConfig: maskSection(
+      config.pdfProvidersConfig as ProviderSection | undefined,
+    ) as SerializableSettings['pdfProvidersConfig'],
+    imageProvidersConfig: maskSection(
+      config.imageProvidersConfig as ProviderSection | undefined,
+    ) as SerializableSettings['imageProvidersConfig'],
+    videoProvidersConfig: maskSection(
+      config.videoProvidersConfig as ProviderSection | undefined,
+    ) as SerializableSettings['videoProvidersConfig'],
+    webSearchProvidersConfig: maskSection(
+      config.webSearchProvidersConfig as ProviderSection | undefined,
+    ) as SerializableSettings['webSearchProvidersConfig'],
   };
 }
 

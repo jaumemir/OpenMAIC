@@ -23,7 +23,8 @@ const TOKEN_TTL_HOURS = parseInt(process.env.PASSWORD_RESET_TOKEN_TTL_HOURS ?? '
 // Resposta genèrica idèntica per a tots els casos (anti-enumeració)
 const GENERIC_RESPONSE = {
   ok: true,
-  message: "Si el correu electrònic és vàlid, rebràs un missatge amb instruccions per canviar la contrasenya.",
+  message:
+    'Si el correu electrònic és vàlid, rebràs un missatge amb instruccions per canviar la contrasenya.',
 };
 
 export async function POST(req: NextRequest) {
@@ -34,9 +35,10 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(GENERIC_RESPONSE, { status: 202 });
   }
 
-  const email = typeof (body as Record<string, unknown>).email === 'string'
-    ? ((body as Record<string, unknown>).email as string).trim().toLowerCase()
-    : null;
+  const email =
+    typeof (body as Record<string, unknown>).email === 'string'
+      ? ((body as Record<string, unknown>).email as string).trim().toLowerCase()
+      : null;
 
   if (!email) {
     return NextResponse.json(GENERIC_RESPONSE, { status: 202 });
@@ -79,7 +81,12 @@ export async function POST(req: NextRequest) {
       // Enviar email (si no hi ha ACS configurat, log en dev)
       const firstName = user.profile?.firstName ?? '';
       try {
-        await sendPasswordResetEmail({ to: email, firstName, resetUrl, expiresInHours: TOKEN_TTL_HOURS });
+        await sendPasswordResetEmail({
+          to: email,
+          firstName,
+          resetUrl,
+          expiresInHours: TOKEN_TTL_HOURS,
+        });
       } catch {
         // Dev sense ACS: mostra l'URL als logs del servidor
         console.info(`[forgot-password] *** URL reset (dev, ACS no configurat): ${resetUrl} ***`);

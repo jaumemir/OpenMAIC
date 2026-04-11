@@ -24,12 +24,16 @@ export function runSceneContentGenerationJob(jobId: string): Promise<void> {
       }
 
       if (job.status === 'running') {
-        log.info(`Scene content generation job ${jobId} is already running, skipping duplicate start`);
+        log.info(
+          `Scene content generation job ${jobId} is already running, skipping duplicate start`,
+        );
         return;
       }
 
       if (job.status === 'succeeded') {
-        log.info(`Scene content generation job ${jobId} already succeeded, skipping duplicate start`);
+        log.info(
+          `Scene content generation job ${jobId} already succeeded, skipping duplicate start`,
+        );
         return;
       }
 

@@ -30,7 +30,8 @@ function escHtml(s: string): string {
 function renderQuestion(q: QuizQuestion, idx: number, sceneIndex: number): string {
   if (q.type === 'short_answer' || !q.options?.length) return '';
   const inputType = q.type === 'multiple' ? 'checkbox' : 'radio';
-  const multiHint = q.type === 'multiple' ? ' <span class="om-qhint">(select all that apply)</span>' : '';
+  const multiHint =
+    q.type === 'multiple' ? ' <span class="om-qhint">(select all that apply)</span>' : '';
   // Prefix IDs with sceneIndex to avoid conflicts when multiple quizzes share question IDs
   const blockId = `qblock_${sceneIndex}_${escHtml(q.id)}`;
   const analysisId = `analysis_${sceneIndex}_${escHtml(q.id)}`;
@@ -84,9 +85,10 @@ export function buildQuizSection(scene: Scene, sceneIndex: number): QuizSectionR
   const html = `<section id="${sceneId}" class="om-scene om-quiz" data-title="${escHtml(scene.title)}" style="display:none">
   <div class="om-quiz-scroll">
     <h2 class="om-quiz-title">${escHtml(scene.title)}</h2>
-    ${noQuestions
-      ? '<p style="color:#6e6e73;">No gradable questions in this section.</p>'
-      : questionsHtml
+    ${
+      noQuestions
+        ? '<p style="color:#6e6e73;">No gradable questions in this section.</p>'
+        : questionsHtml
     }
     <div id="result_${sceneIndex}" class="om-result" style="display:none"></div>
     <button id="submit_${sceneIndex}" class="om-submit"${noQuestions ? ' disabled' : ''}>

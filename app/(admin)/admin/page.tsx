@@ -29,16 +29,39 @@ export default async function AdminDashboardPage() {
       {/* Estadístiques */}
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-10">
         <StatCard title="Usuaris registrats" value={userCount} />
-        <StatCard title="Accions avui" value={recentLogs.filter((l) => isToday(l.createdAt)).length} />
+        <StatCard
+          title="Accions avui"
+          value={recentLogs.filter((l) => isToday(l.createdAt)).length}
+        />
         <StatCard title="Accions (últimes 24h)" value={recentLogs.length} />
       </div>
 
       {/* Navegació */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
-        <AdminNavCard href="/admin/users"   icon={Users}         title="Usuaris"          description="Gestiona usuaris i invitacions" />
-        <AdminNavCard href="/admin/config"  icon={Settings}      title="Configuració"     description="Models permesos i paràmetres globals" />
-        <AdminNavCard href="/admin/courses" icon={BookOpen}      title="Cursos generats"  description="Tots els cursos del sistema" />
-        <AdminNavCard href="/admin/audit"   icon={ClipboardList} title="Auditoria"        description="Log complet d'accions" />
+        <AdminNavCard
+          href="/admin/users"
+          icon={Users}
+          title="Usuaris"
+          description="Gestiona usuaris i invitacions"
+        />
+        <AdminNavCard
+          href="/admin/config"
+          icon={Settings}
+          title="Configuració"
+          description="Models permesos i paràmetres globals"
+        />
+        <AdminNavCard
+          href="/admin/courses"
+          icon={BookOpen}
+          title="Cursos generats"
+          description="Tots els cursos del sistema"
+        />
+        <AdminNavCard
+          href="/admin/audit"
+          icon={ClipboardList}
+          title="Auditoria"
+          description="Log complet d'accions"
+        />
       </div>
 
       {/* Activitat recent */}
@@ -50,17 +73,23 @@ export default async function AdminDashboardPage() {
               <tr className="border-b border-border/60 bg-muted/40">
                 <th className="text-left px-4 py-2.5 font-medium text-muted-foreground">Acció</th>
                 <th className="text-left px-4 py-2.5 font-medium text-muted-foreground">Usuari</th>
-                <th className="text-left px-4 py-2.5 font-medium text-muted-foreground hidden sm:table-cell">Entitat</th>
+                <th className="text-left px-4 py-2.5 font-medium text-muted-foreground hidden sm:table-cell">
+                  Entitat
+                </th>
                 <th className="text-left px-4 py-2.5 font-medium text-muted-foreground">Data</th>
               </tr>
             </thead>
             <tbody>
               {recentLogs.map((log) => (
-                <tr key={log.id} className="border-t border-border/40 hover:bg-muted/20 transition-colors">
+                <tr
+                  key={log.id}
+                  className="border-t border-border/40 hover:bg-muted/20 transition-colors"
+                >
                   <td className="px-4 py-2.5 font-mono text-xs">{log.action}</td>
                   <td className="px-4 py-2.5 text-muted-foreground text-xs">
                     {log.user
-                      ? `${log.user.profile?.firstName ?? ''} ${log.user.profile?.lastName ?? ''}`.trim() || log.user.email
+                      ? `${log.user.profile?.firstName ?? ''} ${log.user.profile?.lastName ?? ''}`.trim() ||
+                        log.user.email
                       : 'Sistema'}
                   </td>
                   <td className="px-4 py-2.5 text-muted-foreground text-xs hidden sm:table-cell">

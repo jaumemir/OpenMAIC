@@ -66,9 +66,7 @@ function markStaleIfNeeded(job: ClassroomGenerationJob): ClassroomGenerationJob 
 function buildInputSummary(input: GenerateClassroomInput): ClassroomGenerationJob['inputSummary'] {
   return {
     requirementPreview:
-      input.requirement.length > 200
-        ? `${input.requirement.slice(0, 197)}...`
-        : input.requirement,
+      input.requirement.length > 200 ? `${input.requirement.slice(0, 197)}...` : input.requirement,
     language: input.language || 'zh-CN',
     hasPdf: !!input.pdfContent,
     pdfTextLength: input.pdfContent?.text.length || 0,
@@ -115,7 +113,9 @@ function dbRowToJob(row: PrismaClassroomJob): ClassroomGenerationJob {
     },
     scenesGenerated: row.scenesGenerated,
     totalScenes: row.totalScenes ?? undefined,
-    result: row.result ? fromDbJson<ClassroomGenerationJob['result']>(row.result) ?? undefined : undefined,
+    result: row.result
+      ? (fromDbJson<ClassroomGenerationJob['result']>(row.result) ?? undefined)
+      : undefined,
     error: row.error ?? undefined,
   };
 }

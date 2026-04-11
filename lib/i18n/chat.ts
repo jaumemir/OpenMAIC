@@ -127,11 +127,11 @@ export const chatCa = {
   },
   agentBar: {
     readyToLearn: 'Preparats per aprendre junts?',
-    expandedTitle: 'Configuració de rols de l\'aula',
-    configTooltip: 'Clic per configurar els rols de l\'aula',
+    expandedTitle: "Configuració de rols de l'aula",
+    configTooltip: "Clic per configurar els rols de l'aula",
     voiceLabel: 'Veu',
     voiceLoading: 'Carregant...',
-    voiceAutoAssign: 'Les veus s\'assignaran automàticament',
+    voiceAutoAssign: "Les veus s'assignaran automàticament",
   },
   proactiveCard: {
     discussion: 'Discussió',

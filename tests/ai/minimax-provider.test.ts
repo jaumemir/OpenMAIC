@@ -1,6 +1,10 @@
 import { describe, expect, it } from 'vitest';
 
-import { finalizeProviderRequestUrl, getProvider, resolveProviderBaseUrl } from '@/lib/ai/providers';
+import {
+  finalizeProviderRequestUrl,
+  getProvider,
+  resolveProviderBaseUrl,
+} from '@/lib/ai/providers';
 
 describe('MiniMax provider defaults', () => {
   it('uses the Anthropic-compatible v1 endpoint by default', () => {

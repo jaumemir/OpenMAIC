@@ -41,7 +41,7 @@ export default function ResetPasswordForm() {
         }
       })
       .catch(() => {
-        setTokenError("Error de connexió. Torna-ho a intentar.");
+        setTokenError('Error de connexió. Torna-ho a intentar.');
       })
       .finally(() => setValidating(false));
   }, [token]);
@@ -105,7 +105,9 @@ export default function ResetPasswordForm() {
             <Button className="w-full">Sol·licitar un nou enllaç</Button>
           </Link>
           <Link href="/login">
-            <Button variant="outline" className="w-full">Tornar a l&apos;accés</Button>
+            <Button variant="outline" className="w-full">
+              Tornar a l&apos;accés
+            </Button>
           </Link>
         </CardContent>
       </Card>
@@ -118,7 +120,8 @@ export default function ResetPasswordForm() {
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl">Contrasenya canviada</CardTitle>
           <CardDescription>
-            La teva contrasenya s&apos;ha actualitzat correctament. Seràs redirigit a l&apos;accés en uns moments.
+            La teva contrasenya s&apos;ha actualitzat correctament. Seràs redirigit a l&apos;accés
+            en uns moments.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -172,7 +175,11 @@ export default function ResetPasswordForm() {
             )}
           </div>
           {submitError && <p className="text-sm text-destructive">{submitError}</p>}
-          <Button type="submit" className="w-full" disabled={loading || (!!confirmPassword && password !== confirmPassword)}>
+          <Button
+            type="submit"
+            className="w-full"
+            disabled={loading || (!!confirmPassword && password !== confirmPassword)}
+          >
             {loading ? 'Desant...' : 'Canviar la contrasenya'}
           </Button>
         </form>

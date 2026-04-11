@@ -16,14 +16,21 @@ export interface InteractiveSectionResult {
 }
 
 function escHtml(s: string): string {
-  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  return s
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
 }
 
 /**
  * Builds the HTML <section> fragment for an interactive scene.
  * The interactive HTML is sandboxed in an iframe (allow-scripts + allow-same-origin).
  */
-export function buildInteractiveSection(scene: Scene, sceneIndex: number): InteractiveSectionResult {
+export function buildInteractiveSection(
+  scene: Scene,
+  sceneIndex: number,
+): InteractiveSectionResult {
   const content = scene.content as InteractiveContent;
   const sceneId = `scene-${sceneIndex}`;
 

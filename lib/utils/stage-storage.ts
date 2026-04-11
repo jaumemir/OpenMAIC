@@ -67,7 +67,9 @@ export async function loadStageData(stageId: string): Promise<StageStoreData | n
   try {
     const data = await serverLoadStageData(stageId);
     if (data) {
-      log.info(`Loaded stage: ${stageId}, scenes: ${data.scenes.length}, chats: ${data.chats.length}`);
+      log.info(
+        `Loaded stage: ${stageId}, scenes: ${data.scenes.length}, chats: ${data.chats.length}`,
+      );
     } else {
       log.info(`Stage not found: ${stageId}`);
     }

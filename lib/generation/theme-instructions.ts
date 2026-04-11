@@ -16,7 +16,9 @@ export async function resolveThemeInstructions(themeId: string | undefined): Pro
   return custom?.modelInstructions ?? '';
 }
 
-export async function resolveThemeManifest(themeId: string | undefined): Promise<ThemeManifest | null> {
+export async function resolveThemeManifest(
+  themeId: string | undefined,
+): Promise<ThemeManifest | null> {
   if (!themeId) return null;
   const builtIn = getBuiltInTheme(themeId);
   if (builtIn) return builtIn;
@@ -28,7 +30,11 @@ export async function resolveThemeCSS(themeId: string | undefined): Promise<stri
   const builtIn = getBuiltInTheme(themeId);
   if (builtIn) {
     const cssPath = path.join(process.cwd(), 'lib', 'themes', themeId, 'styles.css');
-    try { return await fs.readFile(cssPath, 'utf-8'); } catch { return ''; }
+    try {
+      return await fs.readFile(cssPath, 'utf-8');
+    } catch {
+      return '';
+    }
   }
   return (await loadCustomThemeCSS(themeId)) ?? '';
 }

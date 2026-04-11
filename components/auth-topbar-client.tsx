@@ -17,7 +17,14 @@ export default function AuthTopbarClient({ name, email, role }: AuthTopbarClient
   const router = useRouter();
 
   async function handleLogout() {
-    await signOut({ fetchOptions: { onSuccess: () => { router.push('/login'); router.refresh(); } } });
+    await signOut({
+      fetchOptions: {
+        onSuccess: () => {
+          router.push('/login');
+          router.refresh();
+        },
+      },
+    });
   }
 
   // Inicials per a l'avatar
@@ -43,11 +50,19 @@ export default function AuthTopbarClient({ name, email, role }: AuthTopbarClient
         <div className="w-7 h-7 rounded-full bg-primary/10 text-primary flex items-center justify-center text-xs font-semibold select-none">
           {initials || email[0]?.toUpperCase()}
         </div>
-        <span className="text-sm text-foreground hidden sm:block max-w-[120px] truncate">{name}</span>
+        <span className="text-sm text-foreground hidden sm:block max-w-[120px] truncate">
+          {name}
+        </span>
       </div>
 
       {/* Logout */}
-      <Button variant="ghost" size="icon" className="h-8 w-8" title="Tancar sessió" onClick={handleLogout}>
+      <Button
+        variant="ghost"
+        size="icon"
+        className="h-8 w-8"
+        title="Tancar sessió"
+        onClick={handleLogout}
+      >
         <LogOut className="h-3.5 w-3.5" />
       </Button>
     </div>

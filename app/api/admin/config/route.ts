@@ -47,7 +47,11 @@ export async function PUT(req: NextRequest) {
   const allowedKeys = ['allowedModels'];
   const invalidKeys = Object.keys(updates).filter((k) => !allowedKeys.includes(k));
   if (invalidKeys.length > 0) {
-    return apiError('INVALID_REQUEST', 400, `Claus de configuració no permeses: ${invalidKeys.join(', ')}.`);
+    return apiError(
+      'INVALID_REQUEST',
+      400,
+      `Claus de configuració no permeses: ${invalidKeys.join(', ')}.`,
+    );
   }
 
   const meta = extractRequestMeta(req);

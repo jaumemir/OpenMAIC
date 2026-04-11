@@ -24,8 +24,14 @@ export function ThemePopover() {
     setError(false);
     fetch('/api/themes')
       .then((r) => r.json())
-      .then((data: ThemeListItem[]) => { setThemes(data); setLoading(false); })
-      .catch(() => { setError(true); setLoading(false); });
+      .then((data: ThemeListItem[]) => {
+        setThemes(data);
+        setLoading(false);
+      })
+      .catch(() => {
+        setError(true);
+        setLoading(false);
+      });
   }, [open]);
 
   const active = themes.find((th) => th.id === themeId);
@@ -51,9 +57,7 @@ export function ThemePopover() {
               ) : (
                 <Paintbrush className="size-3.5" />
               )}
-              <span className="max-w-[56px] truncate">
-                {active?.name ?? t('toolbar.theme')}
-              </span>
+              <span className="max-w-[56px] truncate">{active?.name ?? t('toolbar.theme')}</span>
             </button>
           </PopoverTrigger>
         </TooltipTrigger>
@@ -74,12 +78,13 @@ export function ThemePopover() {
           <button
             key={theme.id}
             type="button"
-            onClick={() => { setTheme(theme.id); setOpen(false); }}
+            onClick={() => {
+              setTheme(theme.id);
+              setOpen(false);
+            }}
             className={cn(
               'w-full flex items-center gap-2.5 px-2 py-1.5 rounded-md text-sm transition-colors text-left',
-              theme.id === themeId
-                ? 'bg-primary/10 text-primary'
-                : 'hover:bg-muted',
+              theme.id === themeId ? 'bg-primary/10 text-primary' : 'hover:bg-muted',
             )}
           >
             <span
@@ -92,9 +97,7 @@ export function ThemePopover() {
                 {t('toolbar.activeTheme')}
               </span>
             )}
-            {theme.builtIn && (
-              <span className="text-[9px] text-muted-foreground">🔒</span>
-            )}
+            {theme.builtIn && <span className="text-[9px] text-muted-foreground">🔒</span>}
           </button>
         ))}
       </PopoverContent>

@@ -37,8 +37,8 @@ export default function ForgotPasswordPage() {
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl">Comprova el correu</CardTitle>
           <CardDescription>
-            Si el correu electrònic és vàlid, rebràs un missatge amb instruccions
-            per canviar la contrasenya en els propers minuts.
+            Si el correu electrònic és vàlid, rebràs un missatge amb instruccions per canviar la
+            contrasenya en els propers minuts.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -46,7 +46,9 @@ export default function ForgotPasswordPage() {
             Recorda comprovar la carpeta de correu no desitjat.
           </p>
           <Link href="/login">
-            <Button variant="outline" className="w-full">Tornar a l&apos;accés</Button>
+            <Button variant="outline" className="w-full">
+              Tornar a l&apos;accés
+            </Button>
           </Link>
         </CardContent>
       </Card>
@@ -58,7 +60,8 @@ export default function ForgotPasswordPage() {
       <CardHeader className="space-y-1">
         <CardTitle className="text-2xl">Recuperar contrasenya</CardTitle>
         <CardDescription>
-          Introdueix el teu correu electrònic i t&apos;enviarem un enllaç per canviar la contrasenya.
+          Introdueix el teu correu electrònic i t&apos;enviarem un enllaç per canviar la
+          contrasenya.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -80,7 +83,10 @@ export default function ForgotPasswordPage() {
             {loading ? 'Enviant...' : 'Enviar instruccions'}
           </Button>
           <div className="text-center">
-            <Link href="/login" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+            <Link
+              href="/login"
+              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+            >
               Tornar a l&apos;accés
             </Link>
           </div>

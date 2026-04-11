@@ -24,7 +24,9 @@ const migrationsProdDir = path.join(prismaDir, 'migrations-prod');
 const schemaProd = path.join(prismaDir, 'schema.prod.prisma');
 
 if (!existsSync(migrationsProdDir)) {
-  console.error('ERROR: prisma/migrations-prod/ no existeix. Cal generar les migracions PostgreSQL primer.');
+  console.error(
+    'ERROR: prisma/migrations-prod/ no existeix. Cal generar les migracions PostgreSQL primer.',
+  );
   process.exit(1);
 }
 
@@ -50,8 +52,14 @@ function restore() {
 }
 
 process.on('exit', restore);
-process.on('SIGINT', () => { restore(); process.exit(1); });
-process.on('SIGTERM', () => { restore(); process.exit(1); });
+process.on('SIGINT', () => {
+  restore();
+  process.exit(1);
+});
+process.on('SIGTERM', () => {
+  restore();
+  process.exit(1);
+});
 
 try {
   console.log('→ Backup prisma/migrations/ → prisma/.migrations-sqlite-bak');
@@ -62,11 +70,10 @@ try {
 
   console.log('→ Executant: prisma migrate deploy --schema=prisma/schema.prod.prisma');
   // Usa execFileSync (no shell) — paths estàtics, sense input d'usuari
-  execFileSync(
-    'npx',
-    ['prisma', 'migrate', 'deploy', '--schema', schemaProd],
-    { stdio: 'inherit', cwd: root },
-  );
+  execFileSync('npx', ['prisma', 'migrate', 'deploy', '--schema', schemaProd], {
+    stdio: 'inherit',
+    cwd: root,
+  });
 
   console.log('✔ Migracions PostgreSQL aplicades correctament.');
 } catch (err) {

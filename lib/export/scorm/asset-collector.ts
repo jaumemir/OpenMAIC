@@ -109,10 +109,7 @@ function resolveSrc(src: string): { src: string; poster?: string } | null {
  *
  * Returns an AssetMap that maps original src → zipPath, and iterable AssetEntry[].
  */
-export async function collectAssets(
-  scenes: Scene[],
-  includeVideos: boolean,
-): Promise<AssetMap> {
+export async function collectAssets(scenes: Scene[], includeVideos: boolean): Promise<AssetMap> {
   const map = new AssetMapImpl();
 
   const add = async (
@@ -124,7 +121,10 @@ export async function collectAssets(
     if (!originalSrc || map.get(originalSrc) !== undefined) return; // already queued or empty
     const result = await fetchToBlob(originalSrc);
     if (!result) return;
-    const ext = mimeToExt(result.mimeType, category === 'audio' ? 'mp3' : category === 'videos' ? 'mp4' : 'png');
+    const ext = mimeToExt(
+      result.mimeType,
+      category === 'audio' ? 'mp3' : category === 'videos' ? 'mp4' : 'png',
+    );
     const zipPath = `assets/${category}/scene_${pad2(sceneIdx)}_${suffix}.${ext}`;
     map.set(originalSrc, zipPath, result.blob, result.mimeType);
   };
@@ -149,7 +149,6 @@ export async function collectAssets(
         if (el.type === 'image') {
           const resolved = resolveSrc(el.src);
           if (resolved) await add(resolved.src, 'images', i, elSuffix);
-
         } else if (el.type === 'video') {
           const resolved = resolveSrc(el.src);
           const resolvedPoster = el.poster ? resolveSrc(el.poster) : null;
@@ -163,14 +162,13 @@ export async function collectAssets(
             // Replace video with poster image
             const posterSrc =
               resolvedPoster?.src ??
-              (resolved?.poster) ??
+              resolved?.poster ??
               // Also check media generation store poster
               (isMediaPlaceholder(el.src)
                 ? useMediaGenerationStore.getState().tasks[el.src]?.poster
                 : undefined);
             if (posterSrc) await add(posterSrc, 'images', i, `${elSuffix}_poster`);
           }
-
         } else if (el.type === 'audio') {
           const resolved = resolveSrc(el.src);
           if (resolved) await add(resolved.src, 'audio', i, elSuffix);
@@ -218,7 +216,12 @@ export async function collectAssets(
  * Returns all ZIP asset paths referenced by a specific scene.
  * Used to populate <file> entries in imsmanifest.xml.
  */
-export function getSceneAssetHrefs(scene: Scene, sceneIdx: number, assetMap: AssetMap, includeVideos: boolean): string[] {
+export function getSceneAssetHrefs(
+  scene: Scene,
+  sceneIdx: number,
+  assetMap: AssetMap,
+  includeVideos: boolean,
+): string[] {
   const hrefs: string[] = [];
 
   if (scene.content.type !== 'slide') return hrefs;

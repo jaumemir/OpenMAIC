@@ -162,7 +162,7 @@ export const useMediaGenerationStore = create<MediaGenerationState>()((set, get)
 
       const res = await fetch(`/api/stages/${stageId}/media`);
       if (!res.ok) return;
-      const records = await res.json() as Array<{
+      const records = (await res.json()) as Array<{
         elementId: string;
         type: 'image' | 'video';
         mimeType: string;
@@ -195,7 +195,9 @@ export const useMediaGenerationStore = create<MediaGenerationState>()((set, get)
             prompt: rec.prompt,
             params,
             objectUrl: `/api/stages/${stageId}/media/${rec.elementId}`,
-            poster: rec.hasPoster ? `/api/stages/${stageId}/media/${rec.elementId}/poster` : undefined,
+            poster: rec.hasPoster
+              ? `/api/stages/${stageId}/media/${rec.elementId}/poster`
+              : undefined,
             retryCount: 0,
             stageId,
           };

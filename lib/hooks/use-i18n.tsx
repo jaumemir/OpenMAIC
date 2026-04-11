@@ -26,7 +26,11 @@ export function I18nProvider({ children }: { children: ReactNode }) {
         return;
       }
       const lang = navigator.language ?? '';
-      const detected: Locale = lang.startsWith('zh') ? 'zh-CN' : lang.startsWith('ca') ? 'ca' : 'en-US';
+      const detected: Locale = lang.startsWith('zh')
+        ? 'zh-CN'
+        : lang.startsWith('ca')
+          ? 'ca'
+          : 'en-US';
       localStorage.setItem(LOCALE_STORAGE_KEY, detected);
       setLocaleState(detected);
     } catch {

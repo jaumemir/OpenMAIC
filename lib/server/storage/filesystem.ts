@@ -246,7 +246,10 @@ export class FilesystemBackend implements StorageBackend {
   // ── Serve helpers (used by GET routes) ──────────────────────────────────────
 
   /** Returns the absolute path to an audio file, or null if not found. */
-  async resolveAudioPath(stageId: string, audioId: string): Promise<{ filePath: string; format: string } | null> {
+  async resolveAudioPath(
+    stageId: string,
+    audioId: string,
+  ): Promise<{ filePath: string; format: string } | null> {
     const dir = audioDir(stageId);
     try {
       const entries = await fs.readdir(dir);

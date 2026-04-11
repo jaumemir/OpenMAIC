@@ -48,7 +48,9 @@ export default function AdminUsersPage() {
   const [inviteFirstName, setInviteFirstName] = useState('');
   const [inviteLastName, setInviteLastName] = useState('');
   const [inviteLoading, setInviteLoading] = useState(false);
-  const [inviteResult, setInviteResult] = useState<{ url?: string; emailSent?: boolean } | null>(null);
+  const [inviteResult, setInviteResult] = useState<{ url?: string; emailSent?: boolean } | null>(
+    null,
+  );
   const [inviteError, setInviteError] = useState('');
 
   // Diàleg d'edició
@@ -68,7 +70,9 @@ export default function AdminUsersPage() {
     }
   }, []);
 
-  useEffect(() => { loadUsers(); }, [loadUsers]);
+  useEffect(() => {
+    loadUsers();
+  }, [loadUsers]);
 
   async function handleInvite(e: React.FormEvent) {
     e.preventDefault();
@@ -79,18 +83,24 @@ export default function AdminUsersPage() {
       const res = await fetch('/api/admin/users', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: inviteEmail, firstName: inviteFirstName, lastName: inviteLastName }),
+        body: JSON.stringify({
+          email: inviteEmail,
+          firstName: inviteFirstName,
+          lastName: inviteLastName,
+        }),
       });
       const data = await res.json();
       if (data.success) {
         setInviteResult({ url: data.invitation.acceptUrl, emailSent: data.invitation.emailSent });
-        setInviteEmail(''); setInviteFirstName(''); setInviteLastName('');
+        setInviteEmail('');
+        setInviteFirstName('');
+        setInviteLastName('');
         loadUsers();
       } else {
-        setInviteError(data.error ?? "Error creant la invitació.");
+        setInviteError(data.error ?? 'Error creant la invitació.');
       }
     } catch {
-      setInviteError("Error de connexió.");
+      setInviteError('Error de connexió.');
     } finally {
       setInviteLoading(false);
     }
@@ -117,7 +127,7 @@ export default function AdminUsersPage() {
   }
 
   async function handleDelete(userId: string) {
-    if (!confirm("Segur que vols esborrar aquest usuari? Aquesta acció no es pot desfer.")) return;
+    if (!confirm('Segur que vols esborrar aquest usuari? Aquesta acció no es pot desfer.')) return;
     await fetch(`/api/admin/users/${userId}`, { method: 'DELETE' });
     loadUsers();
   }
@@ -151,10 +161,10 @@ export default function AdminUsersPage() {
         setEditUser(null);
         loadUsers();
       } else {
-        setEditError(data.error ?? "Error desant els canvis.");
+        setEditError(data.error ?? 'Error desant els canvis.');
       }
     } catch {
-      setEditError("Error de connexió.");
+      setEditError('Error de connexió.');
     } finally {
       setEditLoading(false);
     }
@@ -162,76 +172,115 @@ export default function AdminUsersPage() {
 
   return (
     <div className="max-w-6xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-10">
-        <h1 className="text-2xl font-semibold tracking-tight mb-8">Gestió d&apos;usuaris</h1>
+      <h1 className="text-2xl font-semibold tracking-tight mb-8">Gestió d&apos;usuaris</h1>
 
-        {/* Formulari invitació */}
-        <Card className="mb-8 rounded-2xl border-border/60 bg-white/60 dark:bg-slate-900/50 shadow-sm">
-          <CardHeader><CardTitle>Convidar nou usuari</CardTitle></CardHeader>
-          <CardContent>
-            <form onSubmit={handleInvite} className="grid grid-cols-1 sm:grid-cols-4 gap-4">
-              <div className="space-y-1">
-                <Label htmlFor="inviteFirstName">Nom</Label>
-                <Input id="inviteFirstName" value={inviteFirstName} onChange={(e) => setInviteFirstName(e.target.value)} required disabled={inviteLoading} />
-              </div>
-              <div className="space-y-1">
-                <Label htmlFor="inviteLastName">Cognom</Label>
-                <Input id="inviteLastName" value={inviteLastName} onChange={(e) => setInviteLastName(e.target.value)} required disabled={inviteLoading} />
-              </div>
-              <div className="space-y-1">
-                <Label htmlFor="inviteEmail">Correu electrònic</Label>
-                <Input id="inviteEmail" type="email" value={inviteEmail} onChange={(e) => setInviteEmail(e.target.value)} required disabled={inviteLoading} />
-              </div>
-              <div className="flex items-end">
-                <Button type="submit" disabled={inviteLoading} className="w-full">
-                  {inviteLoading ? 'Enviant...' : 'Convidar'}
-                </Button>
-              </div>
-            </form>
-            {inviteError && <p className="text-sm text-destructive mt-3">{inviteError}</p>}
-            {inviteResult && (
-              <div className="mt-3 p-3 bg-muted rounded text-sm">
-                {inviteResult.emailSent
-                  ? '✓ Invitació enviada per email.'
-                  : '⚠ Email no enviat (ACS no configurat). URL de la invitació:'}
-                {!inviteResult.emailSent && (
-                  <p className="mt-1 break-all text-xs font-mono">{inviteResult.url}</p>
-                )}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Taula d'usuaris */}
-        <div className="rounded-xl border border-border/60 overflow-hidden bg-white/60 dark:bg-slate-900/50 shadow-sm">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-border/60 bg-muted/40">
-                <th className="text-left px-4 py-2.5 font-medium text-muted-foreground">Usuari</th>
-                <th className="text-left px-4 py-2.5 font-medium text-muted-foreground hidden sm:table-cell">Email</th>
-                <th className="text-left px-4 py-2.5 font-medium text-muted-foreground">Rol</th>
-                <th className="text-left px-4 py-2.5 font-medium text-muted-foreground">Estat</th>
-                <th className="text-left px-4 py-2.5 font-medium text-muted-foreground hidden md:table-cell">Creat</th>
-                <th className="px-4 py-2.5" />
-              </tr>
-            </thead>
-            <tbody>
-              {loading && (
-                <tr><td colSpan={6} className="px-4 py-10 text-center text-muted-foreground">Carregant...</td></tr>
+      {/* Formulari invitació */}
+      <Card className="mb-8 rounded-2xl border-border/60 bg-white/60 dark:bg-slate-900/50 shadow-sm">
+        <CardHeader>
+          <CardTitle>Convidar nou usuari</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleInvite} className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+            <div className="space-y-1">
+              <Label htmlFor="inviteFirstName">Nom</Label>
+              <Input
+                id="inviteFirstName"
+                value={inviteFirstName}
+                onChange={(e) => setInviteFirstName(e.target.value)}
+                required
+                disabled={inviteLoading}
+              />
+            </div>
+            <div className="space-y-1">
+              <Label htmlFor="inviteLastName">Cognom</Label>
+              <Input
+                id="inviteLastName"
+                value={inviteLastName}
+                onChange={(e) => setInviteLastName(e.target.value)}
+                required
+                disabled={inviteLoading}
+              />
+            </div>
+            <div className="space-y-1">
+              <Label htmlFor="inviteEmail">Correu electrònic</Label>
+              <Input
+                id="inviteEmail"
+                type="email"
+                value={inviteEmail}
+                onChange={(e) => setInviteEmail(e.target.value)}
+                required
+                disabled={inviteLoading}
+              />
+            </div>
+            <div className="flex items-end">
+              <Button type="submit" disabled={inviteLoading} className="w-full">
+                {inviteLoading ? 'Enviant...' : 'Convidar'}
+              </Button>
+            </div>
+          </form>
+          {inviteError && <p className="text-sm text-destructive mt-3">{inviteError}</p>}
+          {inviteResult && (
+            <div className="mt-3 p-3 bg-muted rounded text-sm">
+              {inviteResult.emailSent
+                ? '✓ Invitació enviada per email.'
+                : '⚠ Email no enviat (ACS no configurat). URL de la invitació:'}
+              {!inviteResult.emailSent && (
+                <p className="mt-1 break-all text-xs font-mono">{inviteResult.url}</p>
               )}
-              {!loading && users.map((u) => (
-                <tr key={u.id} className={`border-t border-border/40 transition-colors ${u.status === 'inactive' ? 'opacity-60 bg-muted/30' : 'hover:bg-muted/20'}`}>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Taula d'usuaris */}
+      <div className="rounded-xl border border-border/60 overflow-hidden bg-white/60 dark:bg-slate-900/50 shadow-sm">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="border-b border-border/60 bg-muted/40">
+              <th className="text-left px-4 py-2.5 font-medium text-muted-foreground">Usuari</th>
+              <th className="text-left px-4 py-2.5 font-medium text-muted-foreground hidden sm:table-cell">
+                Email
+              </th>
+              <th className="text-left px-4 py-2.5 font-medium text-muted-foreground">Rol</th>
+              <th className="text-left px-4 py-2.5 font-medium text-muted-foreground">Estat</th>
+              <th className="text-left px-4 py-2.5 font-medium text-muted-foreground hidden md:table-cell">
+                Creat
+              </th>
+              <th className="px-4 py-2.5" />
+            </tr>
+          </thead>
+          <tbody>
+            {loading && (
+              <tr>
+                <td colSpan={6} className="px-4 py-10 text-center text-muted-foreground">
+                  Carregant...
+                </td>
+              </tr>
+            )}
+            {!loading &&
+              users.map((u) => (
+                <tr
+                  key={u.id}
+                  className={`border-t border-border/40 transition-colors ${u.status === 'inactive' ? 'opacity-60 bg-muted/30' : 'hover:bg-muted/20'}`}
+                >
                   <td className="px-4 py-2 font-medium">
                     {u.firstName && u.lastName ? `${u.firstName} ${u.lastName}` : '—'}
-                    {u.organization && <span className="ml-1 text-xs text-muted-foreground">· {u.organization}</span>}
+                    {u.organization && (
+                      <span className="ml-1 text-xs text-muted-foreground">· {u.organization}</span>
+                    )}
                   </td>
                   <td className="px-4 py-2 text-muted-foreground">{u.email}</td>
                   <td className="px-4 py-2">
-                    <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${u.role === 'admin' ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground'}`}>
+                    <span
+                      className={`text-xs px-2 py-0.5 rounded-full font-medium ${u.role === 'admin' ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground'}`}
+                    >
                       {u.role}
                     </span>
                   </td>
                   <td className="px-4 py-2">
-                    <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${STATUS_COLORS[u.status] ?? ''}`}>
+                    <span
+                      className={`text-xs px-2 py-0.5 rounded-full font-medium ${STATUS_COLORS[u.status] ?? ''}`}
+                    >
                       {STATUS_LABELS[u.status] ?? u.status}
                     </span>
                   </td>
@@ -243,33 +292,55 @@ export default function AdminUsersPage() {
                       <Button variant="ghost" size="sm" onClick={() => openEdit(u)}>
                         Editar
                       </Button>
-                      <Button variant="ghost" size="sm" onClick={() => handleRoleToggle(u.id, u.role)}>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleRoleToggle(u.id, u.role)}
+                      >
                         {u.role === 'admin' ? '↓ user' : '↑ admin'}
                       </Button>
                       <Button
                         variant="ghost"
                         size="sm"
-                        className={u.status === 'inactive' ? 'text-green-600 hover:text-green-700' : 'text-orange-600 hover:text-orange-700'}
+                        className={
+                          u.status === 'inactive'
+                            ? 'text-green-600 hover:text-green-700'
+                            : 'text-orange-600 hover:text-orange-700'
+                        }
                         onClick={() => handleToggleStatus(u.id, u.status)}
                       >
                         {u.status === 'inactive' ? 'Habilitar' : 'Inhabilitar'}
                       </Button>
-                      <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive" onClick={() => handleDelete(u.id)}>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="text-destructive hover:text-destructive"
+                        onClick={() => handleDelete(u.id)}
+                      >
                         Esborra
                       </Button>
                     </div>
                   </td>
                 </tr>
               ))}
-              {!loading && users.length === 0 && (
-                <tr><td colSpan={6} className="px-4 py-10 text-center text-muted-foreground">Sense usuaris</td></tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+            {!loading && users.length === 0 && (
+              <tr>
+                <td colSpan={6} className="px-4 py-10 text-center text-muted-foreground">
+                  Sense usuaris
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
 
       {/* Diàleg d'edició d'usuari */}
-      <Dialog open={!!editUser} onOpenChange={(open) => { if (!open) setEditUser(null); }}>
+      <Dialog
+        open={!!editUser}
+        onOpenChange={(open) => {
+          if (!open) setEditUser(null);
+        }}
+      >
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>Editar usuari</DialogTitle>
@@ -352,7 +423,12 @@ export default function AdminUsersPage() {
               {editError && <p className="text-sm text-destructive">{editError}</p>}
 
               <DialogFooter>
-                <Button type="button" variant="outline" onClick={() => setEditUser(null)} disabled={editLoading}>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setEditUser(null)}
+                  disabled={editLoading}
+                >
                   Cancel·lar
                 </Button>
                 <Button type="submit" disabled={editLoading}>

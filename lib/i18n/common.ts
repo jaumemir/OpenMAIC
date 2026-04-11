@@ -76,7 +76,7 @@ export const commonCa = {
     selectProvider: 'Selecciona proveïdor',
     configureProvider: 'Configura model',
     configureProviderHint: 'Configura almenys un proveïdor de model per generar cursos',
-    enterClassroom: 'Entrar a l\'aula',
+    enterClassroom: "Entrar a l'aula",
     advancedSettings: 'Configuració avançada',
     ttsTitle: 'Síntesi de veu',
     ttsHint: 'Trieu una veu per al professor IA',
@@ -87,7 +87,7 @@ export const commonCa = {
     selectTheme: 'Tema',
     activeTheme: 'actiu',
     loadingThemes: 'Carregant...',
-    loadThemeError: 'No s\'han pogut carregar els temes',
+    loadThemeError: "No s'han pogut carregar els temes",
   },
   export: {
     pptx: 'Exportar PPTX',
@@ -95,7 +95,7 @@ export const commonCa = {
     resourcePackDesc: 'PPTX + pàgines interactives',
     exporting: 'Exportant...',
     exportSuccess: 'Exportació correcta',
-    exportFailed: 'Error en l\'exportació',
+    exportFailed: "Error en l'exportació",
   },
 } as const;
 

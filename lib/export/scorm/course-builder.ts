@@ -25,10 +25,14 @@ export interface CourseHtmlOptions {
 }
 
 const SIDEBAR_W = 240; // px
-const NAV_H = 52;      // px
+const NAV_H = 52; // px
 
 function escHtml(s: string): string {
-  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  return s
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
 }
 
 function serializeMeta(metas: SceneMeta[]): string {
@@ -36,9 +40,13 @@ function serializeMeta(metas: SceneMeta[]): string {
     metas.map((m) => {
       if (m.type === 'slide') {
         return {
-          type: 'slide', id: m.sceneId,
-          canvasId: m.canvasId, scalerId: m.scalerId,
-          cw: m.cw, ch: m.ch, narrIds: m.narrIds,
+          type: 'slide',
+          id: m.sceneId,
+          canvasId: m.canvasId,
+          scalerId: m.scalerId,
+          cw: m.cw,
+          ch: m.ch,
+          narrIds: m.narrIds,
         };
       }
       if (m.type === 'quiz') {
@@ -63,10 +71,15 @@ export function buildCourseHtml(opts: CourseHtmlOptions): string {
     : '';
 
   const sidebarItems = sections
-    .map((s, i) => `    <li id="om-nav-${i}" class="om-nav-item" onclick="sidebarGo(${i})" title="${escHtml(s.title)}">
+    .map(
+      (
+        s,
+        i,
+      ) => `    <li id="om-nav-${i}" class="om-nav-item" onclick="sidebarGo(${i})" title="${escHtml(s.title)}">
       <span class="om-nav-dot"></span>
       <span class="om-nav-label">${escHtml(s.title)}</span>
-    </li>`)
+    </li>`,
+    )
     .join('\n');
 
   return `<!DOCTYPE html>

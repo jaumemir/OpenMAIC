@@ -28,18 +28,80 @@ export type SerializableSettings = {
   ttsVoice?: string;
   ttsSpeed?: number;
   asrProviderId?: string;
-  ttsProvidersConfig?: Record<string, { apiKey: string; baseUrl: string; enabled: boolean; modelId?: string; customModels?: unknown[]; providerOptions?: Record<string, unknown>; isServerConfigured?: boolean; serverBaseUrl?: string }>;
-  asrProvidersConfig?: Record<string, { apiKey: string; baseUrl: string; enabled: boolean; modelId?: string; customModels?: unknown[]; providerOptions?: Record<string, unknown>; isServerConfigured?: boolean; serverBaseUrl?: string }>;
+  ttsProvidersConfig?: Record<
+    string,
+    {
+      apiKey: string;
+      baseUrl: string;
+      enabled: boolean;
+      modelId?: string;
+      customModels?: unknown[];
+      providerOptions?: Record<string, unknown>;
+      isServerConfigured?: boolean;
+      serverBaseUrl?: string;
+    }
+  >;
+  asrProvidersConfig?: Record<
+    string,
+    {
+      apiKey: string;
+      baseUrl: string;
+      enabled: boolean;
+      modelId?: string;
+      customModels?: unknown[];
+      providerOptions?: Record<string, unknown>;
+      isServerConfigured?: boolean;
+      serverBaseUrl?: string;
+    }
+  >;
   pdfProviderId?: string;
-  pdfProvidersConfig?: Record<string, { apiKey: string; baseUrl: string; enabled: boolean; isServerConfigured?: boolean; serverBaseUrl?: string }>;
+  pdfProvidersConfig?: Record<
+    string,
+    {
+      apiKey: string;
+      baseUrl: string;
+      enabled: boolean;
+      isServerConfigured?: boolean;
+      serverBaseUrl?: string;
+    }
+  >;
   imageProviderId?: string;
   imageModelId?: string;
-  imageProvidersConfig?: Record<string, { apiKey: string; baseUrl: string; enabled: boolean; isServerConfigured?: boolean; serverBaseUrl?: string; customModels?: unknown[] }>;
+  imageProvidersConfig?: Record<
+    string,
+    {
+      apiKey: string;
+      baseUrl: string;
+      enabled: boolean;
+      isServerConfigured?: boolean;
+      serverBaseUrl?: string;
+      customModels?: unknown[];
+    }
+  >;
   videoProviderId?: string;
   videoModelId?: string;
-  videoProvidersConfig?: Record<string, { apiKey: string; baseUrl: string; enabled: boolean; isServerConfigured?: boolean; serverBaseUrl?: string; customModels?: unknown[] }>;
+  videoProvidersConfig?: Record<
+    string,
+    {
+      apiKey: string;
+      baseUrl: string;
+      enabled: boolean;
+      isServerConfigured?: boolean;
+      serverBaseUrl?: string;
+      customModels?: unknown[];
+    }
+  >;
   webSearchProviderId?: string;
-  webSearchProvidersConfig?: Record<string, { apiKey: string; baseUrl: string; enabled: boolean; isServerConfigured?: boolean; serverBaseUrl?: string }>;
+  webSearchProvidersConfig?: Record<
+    string,
+    {
+      apiKey: string;
+      baseUrl: string;
+      enabled: boolean;
+      isServerConfigured?: boolean;
+      serverBaseUrl?: string;
+    }
+  >;
   autoConfigApplied?: boolean;
   selectedAgentIds?: string[];
   maxTurns?: string;
@@ -215,7 +277,7 @@ export async function PUT(req: NextRequest) {
           ...currentConfig.providersConfig,
           ...stripSentinelApiKeys(
             updates.providersConfig as Record<string, { apiKey?: string }>,
-            currentConfig.providersConfig as Record<string, { apiKey?: string }> ?? {},
+            (currentConfig.providersConfig as Record<string, { apiKey?: string }>) ?? {},
           ),
         } as SerializableSettings['providersConfig'])
       : currentConfig.providersConfig,
@@ -224,7 +286,7 @@ export async function PUT(req: NextRequest) {
           ...currentConfig.ttsProvidersConfig,
           ...stripSentinelApiKeys(
             updates.ttsProvidersConfig as Record<string, { apiKey?: string }>,
-            currentConfig.ttsProvidersConfig as Record<string, { apiKey?: string }> ?? {},
+            (currentConfig.ttsProvidersConfig as Record<string, { apiKey?: string }>) ?? {},
           ),
         } as SerializableSettings['ttsProvidersConfig'])
       : currentConfig.ttsProvidersConfig,
@@ -233,7 +295,7 @@ export async function PUT(req: NextRequest) {
           ...currentConfig.asrProvidersConfig,
           ...stripSentinelApiKeys(
             updates.asrProvidersConfig as Record<string, { apiKey?: string }>,
-            currentConfig.asrProvidersConfig as Record<string, { apiKey?: string }> ?? {},
+            (currentConfig.asrProvidersConfig as Record<string, { apiKey?: string }>) ?? {},
           ),
         } as SerializableSettings['asrProvidersConfig'])
       : currentConfig.asrProvidersConfig,
@@ -242,7 +304,7 @@ export async function PUT(req: NextRequest) {
           ...currentConfig.pdfProvidersConfig,
           ...stripSentinelApiKeys(
             updates.pdfProvidersConfig as Record<string, { apiKey?: string }>,
-            currentConfig.pdfProvidersConfig as Record<string, { apiKey?: string }> ?? {},
+            (currentConfig.pdfProvidersConfig as Record<string, { apiKey?: string }>) ?? {},
           ),
         } as SerializableSettings['pdfProvidersConfig'])
       : currentConfig.pdfProvidersConfig,
@@ -251,7 +313,7 @@ export async function PUT(req: NextRequest) {
           ...currentConfig.imageProvidersConfig,
           ...stripSentinelApiKeys(
             updates.imageProvidersConfig as Record<string, { apiKey?: string }>,
-            currentConfig.imageProvidersConfig as Record<string, { apiKey?: string }> ?? {},
+            (currentConfig.imageProvidersConfig as Record<string, { apiKey?: string }>) ?? {},
           ),
         } as SerializableSettings['imageProvidersConfig'])
       : currentConfig.imageProvidersConfig,
@@ -260,7 +322,7 @@ export async function PUT(req: NextRequest) {
           ...currentConfig.videoProvidersConfig,
           ...stripSentinelApiKeys(
             updates.videoProvidersConfig as Record<string, { apiKey?: string }>,
-            currentConfig.videoProvidersConfig as Record<string, { apiKey?: string }> ?? {},
+            (currentConfig.videoProvidersConfig as Record<string, { apiKey?: string }>) ?? {},
           ),
         } as SerializableSettings['videoProvidersConfig'])
       : currentConfig.videoProvidersConfig,
@@ -269,7 +331,7 @@ export async function PUT(req: NextRequest) {
           ...currentConfig.webSearchProvidersConfig,
           ...stripSentinelApiKeys(
             updates.webSearchProvidersConfig as Record<string, { apiKey?: string }>,
-            currentConfig.webSearchProvidersConfig as Record<string, { apiKey?: string }> ?? {},
+            (currentConfig.webSearchProvidersConfig as Record<string, { apiKey?: string }>) ?? {},
           ),
         } as SerializableSettings['webSearchProvidersConfig'])
       : currentConfig.webSearchProvidersConfig,
@@ -289,7 +351,11 @@ export async function PUT(req: NextRequest) {
     await prisma.adminConfig.upsert({
       where: { key: 'allowedModels' },
       update: { value: JSON.stringify(updates.allowedModels), updatedById: userId },
-      create: { key: 'allowedModels', value: JSON.stringify(updates.allowedModels), updatedById: userId },
+      create: {
+        key: 'allowedModels',
+        value: JSON.stringify(updates.allowedModels),
+        updatedById: userId,
+      },
     });
   }
 

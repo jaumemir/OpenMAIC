@@ -21,7 +21,7 @@ export const translations = {
     ...generationEnUS,
     ...settingsEnUS,
   },
-  'ca': {
+  ca: {
     ...commonCa,
     ...stageCa,
     ...chatCa,

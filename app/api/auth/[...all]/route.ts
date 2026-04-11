@@ -41,7 +41,13 @@ async function auditedPost(req: NextRequest): Promise<NextResponse> {
       const userId = body?.user?.id;
       const sessionId = body?.session?.id;
       if (userId) {
-        await auditLog({ userId, action: 'USER_LOGIN', entityType: 'session', entityId: sessionId, ...meta });
+        await auditLog({
+          userId,
+          action: 'USER_LOGIN',
+          entityType: 'session',
+          entityId: sessionId,
+          ...meta,
+        });
       }
     } else if (path === '/sign-out' && preLogoutSession?.userId) {
       await auditLog({

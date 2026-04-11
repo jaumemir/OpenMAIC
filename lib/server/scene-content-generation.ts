@@ -5,7 +5,11 @@ import {
   generateSceneContent,
   type AgentInfo,
 } from '@/lib/generation/generation-pipeline';
-import { resolveThemeManifest, resolveThemeCSS, resolveThemeInstructions } from '@/lib/generation/theme-instructions';
+import {
+  resolveThemeManifest,
+  resolveThemeCSS,
+  resolveThemeInstructions,
+} from '@/lib/generation/theme-instructions';
 import { themeToSlideTheme } from '@/lib/generation/theme-utils';
 import { createLogger } from '@/lib/logger';
 import { resolveModel } from '@/lib/server/resolve-model';

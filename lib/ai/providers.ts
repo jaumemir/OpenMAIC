@@ -50,7 +50,8 @@ const AZURE_OPENAI_API_VERSION = '2024-05-01-preview';
 
 function shouldAppendAzureOpenAIApiVersion(url: URL): boolean {
   const isAzureHost =
-    url.hostname.endsWith('.openai.azure.com') || url.hostname.endsWith('.cognitiveservices.azure.com');
+    url.hostname.endsWith('.openai.azure.com') ||
+    url.hostname.endsWith('.cognitiveservices.azure.com');
 
   return (
     isAzureHost &&

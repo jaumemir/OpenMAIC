@@ -135,4 +135,3 @@ export async function PATCH(req: NextRequest, { params }: Params) {
     return apiError('INTERNAL_ERROR', 500, 'Error reanomenant stage.');
   }
 }
-

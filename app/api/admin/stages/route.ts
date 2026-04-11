@@ -90,6 +90,6 @@ export async function DELETE(req: NextRequest) {
     return NextResponse.json({ ok: true });
   } catch (err) {
     console.error('[DELETE /api/admin/stages]', err);
-    return apiError('INTERNAL_ERROR', 500, "Error esborrant el stage.");
+    return apiError('INTERNAL_ERROR', 500, 'Error esborrant el stage.');
   }
 }

@@ -1,11 +1,7 @@
 import { NextResponse } from 'next/server';
 import JSZip from 'jszip';
 import { getBuiltInTheme } from '@/lib/themes/index';
-import {
-  saveCustomTheme,
-  saveCustomThemeCSS,
-  saveThemeAsset,
-} from '@/lib/server/theme-storage';
+import { saveCustomTheme, saveCustomThemeCSS, saveThemeAsset } from '@/lib/server/theme-storage';
 import type { ThemeManifest } from '@/lib/types/theme';
 
 // POST /api/themes/import — multipart body with a single 'file' field (ZIP)
@@ -32,8 +28,12 @@ export async function POST(req: Request) {
 
     // ZIP bomb guard — check total uncompressed size before extraction
     const MAX_UNCOMPRESSED_BYTES = 50 * 1024 * 1024; // 50 MB
-    const totalUncompressed = Object.values(zip.files)
-      .reduce((sum, f) => sum + ((f as unknown as { _data?: { uncompressedSize?: number } })._data?.uncompressedSize ?? 0), 0);
+    const totalUncompressed = Object.values(zip.files).reduce(
+      (sum, f) =>
+        sum +
+        ((f as unknown as { _data?: { uncompressedSize?: number } })._data?.uncompressedSize ?? 0),
+      0,
+    );
     if (totalUncompressed > MAX_UNCOMPRESSED_BYTES) {
       return NextResponse.json({ error: 'ZIP contents exceed size limit' }, { status: 400 });
     }
@@ -54,7 +54,10 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'theme.json must have id and name' }, { status: 400 });
     }
     if (!/^[a-zA-Z0-9_-]{1,64}$/.test(manifest.id)) {
-      return NextResponse.json({ error: 'theme.json id is invalid (use only letters, numbers, - and _)' }, { status: 400 });
+      return NextResponse.json(
+        { error: 'theme.json id is invalid (use only letters, numbers, - and _)' },
+        { status: 400 },
+      );
     }
 
     // Prevent overwriting built-ins
@@ -66,7 +69,7 @@ export async function POST(req: Request) {
     manifest.builtIn = false;
     manifest.locked = false;
 
-    await saveCustomTheme(manifest);  // also validates manifest.id internally
+    await saveCustomTheme(manifest); // also validates manifest.id internally
 
     // styles.css (optional)
     const cssEntry = zip.file('styles.css');

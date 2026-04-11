@@ -15,7 +15,7 @@ export async function GET() {
 
 // POST /api/themes — create custom theme
 export async function POST(req: Request) {
-  const body = await req.json() as Partial<ThemeManifest> & { css?: string };
+  const body = (await req.json()) as Partial<ThemeManifest> & { css?: string };
   if (!body.id || !body.name) {
     return NextResponse.json({ error: 'id and name are required' }, { status: 400 });
   }
@@ -32,8 +32,19 @@ export async function POST(req: Request) {
       locked: false,
       builtIn: false,
       version: body.version ?? '1.0.0',
-      typography: body.typography ?? { fontFamily: 'system-ui', headingWeight: '700', bodyWeight: '400' },
-      colors: body.colors ?? { primary: '#000000', secondary: '#333333', background: '#ffffff', text: '#333333', accent: '#ff0000', palette: [] },
+      typography: body.typography ?? {
+        fontFamily: 'system-ui',
+        headingWeight: '700',
+        bodyWeight: '400',
+      },
+      colors: body.colors ?? {
+        primary: '#000000',
+        secondary: '#333333',
+        background: '#ffffff',
+        text: '#333333',
+        accent: '#ff0000',
+        palette: [],
+      },
       modelInstructions: body.modelInstructions ?? '',
       assets: body.assets ?? {},
     };

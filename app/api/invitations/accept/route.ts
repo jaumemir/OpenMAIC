@@ -24,11 +24,13 @@ export async function POST(req: NextRequest) {
     return apiError('INVALID_REQUEST', 400, 'Cos de la petició invàlid.');
   }
 
-  const { token, password, organization, department, jobTitle, city } =
-    body as Record<string, unknown>;
+  const { token, password, organization, department, jobTitle, city } = body as Record<
+    string,
+    unknown
+  >;
 
   if (!token || typeof token !== 'string') {
-    return apiError('MISSING_REQUIRED_FIELD', 400, 'El token d\'invitació és obligatori.');
+    return apiError('MISSING_REQUIRED_FIELD', 400, "El token d'invitació és obligatori.");
   }
   if (!password || typeof password !== 'string') {
     return apiError('MISSING_REQUIRED_FIELD', 400, 'La contrasenya és obligatòria.');
@@ -41,13 +43,13 @@ export async function POST(req: NextRequest) {
   const invitation = await prisma.invitation.findUnique({ where: { token } });
 
   if (!invitation) {
-    return apiError('INVALID_REQUEST', 404, 'Token d\'invitació no vàlid.');
+    return apiError('INVALID_REQUEST', 404, "Token d'invitació no vàlid.");
   }
   if (invitation.usedAt !== null) {
-    return apiError('INVALID_REQUEST', 410, 'Aquest token d\'invitació ja ha estat usat.');
+    return apiError('INVALID_REQUEST', 410, "Aquest token d'invitació ja ha estat usat.");
   }
   if (invitation.expiresAt < new Date()) {
-    return apiError('INVALID_REQUEST', 410, 'El token d\'invitació ha caducat.');
+    return apiError('INVALID_REQUEST', 410, "El token d'invitació ha caducat.");
   }
 
   // Comprovar que no existeix ja un usuari amb aquest email

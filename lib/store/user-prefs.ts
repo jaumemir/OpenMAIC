@@ -124,9 +124,16 @@ export const useUserPrefsStore = create<UserPrefsState>()((set) => ({
 
   hydrate: (prefs) => {
     const {
-      providerId, modelId, ttsEnabled, asrEnabled,
-      imageGenerationEnabled, videoGenerationEnabled,
-      asrLanguage, agentMode, avatar, bio,
+      providerId,
+      modelId,
+      ttsEnabled,
+      asrEnabled,
+      imageGenerationEnabled,
+      videoGenerationEnabled,
+      asrLanguage,
+      agentMode,
+      avatar,
+      bio,
     } = prefs;
     set({
       ...(providerId !== undefined && { providerId }),
