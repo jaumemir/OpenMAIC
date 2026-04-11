@@ -34,7 +34,7 @@
 </p>
 
 <p align="center">
-  <a href="./README.md">English</a> | <a href="./README-zh.md">简体中文</a>
+  <strong>English</strong> | <a href="./README-zh.md">简体中文</a> | <a href="./README-ca.md">Català</a>
   <br/>
   <a href="https://open.maic.chat/">Live Demo</a> · <a href="#-quick-start">Quick Start</a> · <a href="#-features">Features</a> · <a href="#-use-cases">Use Cases</a> · <a href="#-openclaw-integration">OpenClaw</a>
 </p>
