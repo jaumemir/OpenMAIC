@@ -1,7 +1,7 @@
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 import resourcesToBackend from 'i18next-resources-to-backend';
-import { defaultLocale } from './locales';
+import { defaultLocale, supportedLocales } from './locales';
 
 i18n
   .use(initReactI18next)
@@ -13,7 +13,7 @@ i18n
   .init({
     lng: defaultLocale,
     fallbackLng: defaultLocale,
-    supportedLngs: ['zh-CN', 'en-US', 'ca'],
+    supportedLngs: supportedLocales.map((l) => l.code),
     interpolation: {
       escapeValue: false,
     },
