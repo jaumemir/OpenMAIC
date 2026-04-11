@@ -248,7 +248,7 @@ function HomePage() {
       const result = await regenerateClassroomAudio(id);
       await loadClassrooms();
       toast.success(
-        t('classroom.regenerateAudioSuccess').replace('{count}', String(result.speechCount)),
+        t('classroom.regenerateAudioSuccess', { count: result.speechCount }),
       );
     } catch (err) {
       if (err instanceof RegenerateAudioError) {

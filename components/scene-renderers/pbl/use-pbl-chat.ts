@@ -224,9 +224,10 @@ async function handleIssueComplete(
           config.chat.messages.push({
             id: `msg_${Date.now()}_welcome`,
             agent_name: nextIssue.question_agent_name,
-            message: t('pbl.chat.welcomeMessage')
-              .replace('{title}', nextIssue.title)
-              .replace('{questions}', data.message),
+            message: t('pbl.chat.welcomeMessage', {
+              title: nextIssue.title,
+              questions: data.message,
+            }),
             timestamp: Date.now(),
             read_by: [],
           });
@@ -239,9 +240,10 @@ async function handleIssueComplete(
       config.chat.messages.push({
         id: `msg_${Date.now()}_welcome`,
         agent_name: nextIssue.question_agent_name,
-        message: t('pbl.chat.welcomeMessage')
-          .replace('{title}', nextIssue.title)
-          .replace('{questions}', nextIssue.generated_questions),
+        message: t('pbl.chat.welcomeMessage', {
+          title: nextIssue.title,
+          questions: nextIssue.generated_questions,
+        }),
         timestamp: Date.now(),
         read_by: [],
       });
@@ -251,9 +253,10 @@ async function handleIssueComplete(
     config.chat.messages.push({
       id: `msg_${Date.now()}_system`,
       agent_name: 'System',
-      message: t('pbl.chat.issueCompleteMessage')
-        .replace('{completed}', completedIssue.title)
-        .replace('{next}', nextIssue.title),
+      message: t('pbl.chat.issueCompleteMessage', {
+        completed: completedIssue.title,
+        next: nextIssue.title,
+      }),
       timestamp: Date.now(),
       read_by: [],
     });

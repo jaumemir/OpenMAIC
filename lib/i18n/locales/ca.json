@@ -76,7 +76,7 @@
     "restore": "Restaurar",
     "noHistory": "Encara no hi ha historial",
     "restored": "Pissarra restaurada",
-    "elementCount": "{count} elements"
+    "elementCount": "{{count}} elements"
   },
   "quiz": {
     "title": "Qüestionari",
@@ -154,8 +154,8 @@
       "mentionHint": "Useu @question per preguntar, @judge per enviar a revisió",
       "placeholder": "Escriviu un missatge...",
       "send": "Enviar",
-      "welcomeMessage": "Hola! Soc el vostre Agent de Preguntes per a aquesta tasca: \"{title}\"\n\nPer guiar el vostre treball, he preparat algunes preguntes:\n\n{questions}\n\nNo dubteu a fer-me @question qualsevol moment si necessiteu ajuda!",
-      "issueCompleteMessage": "Tasca \"{completed}\" completada! Passant a la tasca següent: \"{next}\"",
+      "welcomeMessage": "Hola! Soc el vostre Agent de Preguntes per a aquesta tasca: \"{{title}}\"\n\nPer guiar el vostre treball, he preparat algunes preguntes:\n\n{{questions}}\n\nNo dubteu a fer-me @question qualsevol moment si necessiteu ajuda!",
+      "issueCompleteMessage": "Tasca \"{{completed}}\" completada! Passant a la tasca següent: \"{{next}}\"",
       "allCompleteMessage": "🎉 Totes les tasques completades! Bon treball en el projecte!"
     },
     "guide": {
@@ -211,7 +211,7 @@
     "lectureNotes": {
       "empty": "Les notes apareixeran aquí després de la reproducció de la lliçó",
       "emptyHint": "Premeu reproduir per iniciar la lliçó",
-      "pageLabel": "Pàgina {n}",
+      "pageLabel": "Pàgina {{n}}",
       "currentPage": "Actual"
     },
     "badge": {
@@ -279,7 +279,7 @@
     "renamePlaceholder": "Introduïu el nom de l'aula",
     "renameFailed": "Error en reanomenar l'aula",
     "regenerateAudio": "Regenerar àudio",
-    "regenerateAudioSuccess": "S'han regenerat {count} clips d'àudio",
+    "regenerateAudioSuccess": "S'han regenerat {{count}} clips d'àudio",
     "regenerateAudioFailed": "Error en regenerar l'àudio",
     "regenerateAudioNoSpeech": "Aquesta aula no té àudio de veu per regenerar",
     "regenerateAudioSetupNeeded": "Configureu primer un proveïdor TTS disponible",
@@ -320,8 +320,8 @@
     "goBackAndRetry": "Tornar enrere i reintentar",
     "classroomReady": "El vostre entorn d'aprenentatge IA personalitzat s'ha generat correctament.",
     "aiWorking": "Agents IA treballant...",
-    "textTruncated": "El text del document és llarg, s'utilitzen els primers {n} caràcters per a la generació",
-    "imageTruncated": "S'han trobat {total} imatges, que superen el límit de {max}. Les imatges addicionals només usaran descripcions de text",
+    "textTruncated": "El text del document és llarg, s'utilitzen els primers {{n}} caràcters per a la generació",
+    "imageTruncated": "S'han trobat {{total}} imatges, que superen el límit de {{max}}. Les imatges addicionals només usaran descripcions de text",
     "agentGeneration": "Generant rols de l'aula",
     "agentGenerationDesc": "Generant rols basats en el contingut del curs...",
     "agentRevealTitle": "Els vostres rols de l'aula",
@@ -380,12 +380,12 @@
     "directAnswer": "Resposta directa",
     "multiAgentMode": "Mode multi-agent",
     "agentsCollaborating": "Discussió col·laborativa",
-    "agentsCollaboratingCount": "{count} agents seleccionats per a la discussió col·laborativa",
+    "agentsCollaboratingCount": "{{count}} agents seleccionats per a la discussió col·laborativa",
     "maxTurns": "Torns màxims de discussió",
     "maxTurnsDesc": "El nombre màxim de torns de discussió entre agents (cada agent completa accions i respon compta com un torn)",
     "priority": "Prioritat",
     "actions": "Accions",
-    "actionCount": "{count} accions",
+    "actionCount": "{{count}} accions",
     "selectedAgent": "Agent seleccionat",
     "selectedAgents": "Agents seleccionats",
     "required": "Obligatori",
