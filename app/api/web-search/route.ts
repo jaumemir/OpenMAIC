@@ -27,11 +27,9 @@ export async function POST(req: NextRequest) {
     const {
       query: requestQuery,
       pdfText,
-      apiKey: clientApiKey,
     } = body as {
       query?: string;
       pdfText?: string;
-      apiKey?: string;
     };
     query = requestQuery;
 
@@ -39,7 +37,7 @@ export async function POST(req: NextRequest) {
       return apiError('MISSING_REQUIRED_FIELD', 400, 'query is required');
     }
 
-    const apiKey = await resolveWebSearchApiKey(clientApiKey);
+    const apiKey = await resolveWebSearchApiKey();
     if (!apiKey) {
       return apiError(
         'MISSING_API_KEY',

@@ -115,8 +115,12 @@ function GenerationPreviewContent() {
       'x-video-api-key': videoProviderConfig?.apiKey || '',
       'x-video-base-url': videoProviderConfig?.baseUrl || '',
       // Media generation toggles (per-user preferences)
-      'x-image-generation-enabled': String(useUserPrefsStore.getState().imageGenerationEnabled ?? false),
-      'x-video-generation-enabled': String(useUserPrefsStore.getState().videoGenerationEnabled ?? false),
+      'x-image-generation-enabled': String(
+        useUserPrefsStore.getState().imageGenerationEnabled ?? false,
+      ),
+      'x-video-generation-enabled': String(
+        useUserPrefsStore.getState().videoGenerationEnabled ?? false,
+      ),
     };
   };
 
@@ -306,16 +310,12 @@ function GenerationPreviewContent() {
         setCurrentStepIndex(webSearchStepIdx);
         setWebSearchSources([]);
 
-        const wsSettings = useSettingsStore.getState();
-        const wsApiKey =
-          wsSettings.webSearchProvidersConfig?.[wsSettings.webSearchProviderId]?.apiKey;
         const res = await fetch('/api/web-search', {
           method: 'POST',
           headers: getApiHeaders(),
           body: JSON.stringify({
             query: currentSession.requirements.requirement,
             pdfText: currentSession.pdfText || undefined,
-            apiKey: wsApiKey || undefined,
           }),
           signal,
         });
@@ -707,7 +707,10 @@ function GenerationPreviewContent() {
       }
 
       // Generate TTS for first scene (part of actions step — blocking)
-      if (useUserPrefsStore.getState().ttsEnabled && settings.ttsProviderId !== 'browser-native-tts') {
+      if (
+        useUserPrefsStore.getState().ttsEnabled &&
+        settings.ttsProviderId !== 'browser-native-tts'
+      ) {
         const ttsProviderConfig = settings.ttsProvidersConfig?.[settings.ttsProviderId];
         const speechActions = (data.scene.actions || []).filter(
           (a: { type: string; text?: string }) => a.type === 'speech' && a.text,

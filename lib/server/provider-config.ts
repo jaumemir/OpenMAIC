@@ -406,10 +406,8 @@ export function getServerWebSearchProviders(): Record<string, { baseUrl?: string
 
 const SENTINEL = '__STORED__';
 
-/** Resolve Tavily API key: client key > YAML/env > DB > empty */
-export async function resolveWebSearchApiKey(clientKey?: string): Promise<string> {
-  const effectiveClientKey = clientKey && clientKey !== SENTINEL ? clientKey : undefined;
-  if (effectiveClientKey) return effectiveClientKey;
+/** Resolve Tavily API key: YAML/env > DB > empty */
+export async function resolveWebSearchApiKey(): Promise<string> {
   const serverKey = getConfig().webSearch.tavily?.apiKey;
   if (serverKey) return serverKey;
   if (process.env.TAVILY_API_KEY) return process.env.TAVILY_API_KEY;

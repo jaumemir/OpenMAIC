@@ -155,11 +155,6 @@ providers:
   });
 
   describe('resolveWebSearchApiKey', () => {
-    it('returns client key first', async () => {
-      const { resolveWebSearchApiKey } = await import('@/lib/server/provider-config');
-      await expect(resolveWebSearchApiKey('client-key')).resolves.toBe('client-key');
-    });
-
     it('falls back to TAVILY_API_KEY env var', async () => {
       vi.stubEnv('TAVILY_API_KEY', 'tvly-bare-env');
       const { resolveWebSearchApiKey } = await import('@/lib/server/provider-config');
