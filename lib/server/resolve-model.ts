@@ -49,15 +49,19 @@ export async function resolveModel(params: {
   }
 
   // Normalize client key: treat sentinel and empty string the same (no client key)
-  const clientKey =
-    params.apiKey && params.apiKey !== SENTINEL ? params.apiKey : undefined;
+  const clientKey = params.apiKey && params.apiKey !== SENTINEL ? params.apiKey : undefined;
 
+  // Resolve API key: client → YAML/env → DB (always, even if clientBaseUrl is set).
+  // The clientBaseUrl shortcut is only taken when the client also provides a real key,
+  // which means it's a user-configured custom provider. If only the URL is provided
+  // (e.g. server-configured provider with a custom baseUrl but key in DB), fall through
+  // to the standard resolution path.
   let apiKey: string;
-  if (clientBaseUrl) {
-    // Custom base URL: client key required (user-provided provider)
-    apiKey = clientKey || '';
+  if (clientBaseUrl && clientKey) {
+    // User provided both URL and key explicitly → fully custom provider
+    apiKey = clientKey;
   } else {
-    // Standard provider: resolve from client → YAML/env → DB
+    // Standard resolution: client key → YAML/env → DB
     apiKey = resolveApiKey(providerId, clientKey);
     if (!apiKey) {
       apiKey = await resolveApiKeyFromDb(providerId);
