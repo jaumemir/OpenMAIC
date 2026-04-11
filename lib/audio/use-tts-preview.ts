@@ -13,8 +13,6 @@ export interface TTSPreviewOptions {
   modelId?: string;
   voice: string;
   speed: number;
-  apiKey?: string;
-  baseUrl?: string;
 }
 
 /**
@@ -92,7 +90,7 @@ export function useTTSPreview() {
         }
 
         // API-based TTS
-        const body: Record<string, unknown> = {
+        const body = {
           text: options.text,
           audioId: 'preview',
           ttsProviderId: options.providerId,
@@ -100,8 +98,6 @@ export function useTTSPreview() {
           ttsVoice: options.voice,
           ttsSpeed: options.speed,
         };
-        if (options.apiKey?.trim()) body.ttsApiKey = options.apiKey;
-        if (options.baseUrl?.trim()) body.ttsBaseUrl = options.baseUrl;
 
         const res = await fetch('/api/generate/tts', {
           method: 'POST',

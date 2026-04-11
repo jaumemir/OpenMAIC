@@ -323,16 +323,6 @@ export function AudioSettings({ onSave }: AudioSettingsProps = {}) {
             formData.append('providerId', asrProviderId);
             formData.append('language', asrLanguage);
 
-            // Only append non-empty values
-            const apiKeyValue = asrProvidersConfig[asrProviderId]?.apiKey;
-            if (apiKeyValue && apiKeyValue.trim()) {
-              formData.append('apiKey', apiKeyValue);
-            }
-            const baseUrlValue = asrProvidersConfig[asrProviderId]?.baseUrl;
-            if (baseUrlValue && baseUrlValue.trim()) {
-              formData.append('baseUrl', baseUrlValue);
-            }
-
             try {
               const response = await fetch('/api/transcription', {
                 method: 'POST',

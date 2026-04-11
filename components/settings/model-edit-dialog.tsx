@@ -73,8 +73,6 @@ export function ModelEditDialog({
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          apiKey,
-          baseUrl,
           model: `${providerId}:${editingModel.model.id}`,
           providerType,
           requiresApiKey,

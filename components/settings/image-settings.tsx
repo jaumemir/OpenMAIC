@@ -79,8 +79,6 @@ export function ImageSettings({ selectedProviderId }: ImageSettingsProps) {
         headers: {
           'x-image-provider': selectedProviderId,
           'x-image-model': imageModelId || '',
-          'x-api-key': currentConfig?.apiKey || '',
-          'x-base-url': currentConfig?.baseUrl || '',
         },
       });
       const data = await response.json();

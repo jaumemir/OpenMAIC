@@ -68,8 +68,6 @@ export function TtsConfigPopover() {
         modelId: providerConfig?.modelId,
         voice: ttsVoice,
         speed: ttsSpeed,
-        apiKey: providerConfig?.apiKey,
-        baseUrl: providerConfig?.baseUrl,
       });
     } catch (error) {
       const message =

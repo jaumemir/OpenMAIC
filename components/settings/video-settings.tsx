@@ -78,8 +78,6 @@ export function VideoSettings({ selectedProviderId }: VideoSettingsProps) {
         headers: {
           'x-video-provider': selectedProviderId,
           'x-video-model': videoModelId || '',
-          'x-api-key': currentConfig?.apiKey || '',
-          'x-base-url': currentConfig?.baseUrl || '',
         },
       });
       const data = await response.json();

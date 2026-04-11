@@ -56,9 +56,6 @@ export function PDFSettings({ selectedProviderId }: PDFSettingsProps) {
   }
 
   const handleTestConnection = async () => {
-    const baseUrl = providerConfig?.baseUrl;
-    if (!baseUrl) return;
-
     setTestStatus('testing');
     setTestMessage('');
 
@@ -68,8 +65,6 @@ export function PDFSettings({ selectedProviderId }: PDFSettingsProps) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           providerId: selectedProviderId,
-          apiKey: providerConfig?.apiKey || '',
-          baseUrl,
         }),
       });
 

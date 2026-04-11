@@ -47,7 +47,8 @@ export function TTSSettings({ selectedProviderId }: TTSSettingsProps) {
   // Syncs back to the global store when this is the active provider.
   const [selectedVoice, setSelectedVoice] = useState(defaultEffectiveVoice);
 
-  const effectiveVoice = getTTSVoices(selectedProviderId).length > 0 ? selectedVoice : defaultEffectiveVoice;
+  const effectiveVoice =
+    getTTSVoices(selectedProviderId).length > 0 ? selectedVoice : defaultEffectiveVoice;
 
   const handleVoiceChange = (voice: string) => {
     setSelectedVoice(voice);
@@ -98,7 +99,7 @@ export function TTSSettings({ selectedProviderId }: TTSSettingsProps) {
         ? ttsVoice
         : DEFAULT_TTS_VOICES[selectedProviderId] || 'default',
     );
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedProviderId, stopPreview]);
 
   const handleTestTTS = async () => {
@@ -114,8 +115,6 @@ export function TTSSettings({ selectedProviderId }: TTSSettingsProps) {
         modelId: ttsProvidersConfig[selectedProviderId]?.modelId || ttsProvider.defaultModelId,
         voice: effectiveVoice,
         speed: ttsSpeed,
-        apiKey: ttsProvidersConfig[selectedProviderId]?.apiKey,
-        baseUrl: ttsProvidersConfig[selectedProviderId]?.baseUrl,
       });
       setTestStatus('success');
       setTestMessage(t('settings.ttsTestSuccess'));
