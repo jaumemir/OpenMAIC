@@ -1,4 +1,6 @@
-# CLAUDE.md — OpenMAIC
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 ## Projecte
 
@@ -20,6 +22,9 @@ pnpm test:e2e         # Tests E2E (Playwright)
 pnpm lint             # ESLint (flat config)
 pnpm format           # Prettier --write
 pnpm check            # Prettier --check
+pnpm db:migrate       # Aplica migracions SQLite (dev)
+pnpm db:studio        # Prisma Studio per inspeccionar la BD
+pnpm tsx scripts/create-admin.ts  # Crea el primer usuari admin interactivament
 ```
 
 **Mai fer** `npm install` ni `yarn` — el projecte usa **pnpm 10** amb workspace.
@@ -194,6 +199,7 @@ e2e/                     # Playwright
 |--------|---------|
 | `.env.local` | API keys i config (no versionat) |
 | `.env.example` | Plantilla completa de variables |
+| `server-providers.yml` | Config de providers sense BD (opcional; muntat en Docker com `:ro`) |
 | `next.config.ts` | Build standalone, límit proxy 200MB |
 | `tsconfig.json` | Strict, alias `@/*` |
 | `vitest.config.ts` | Unit tests, alias `@/*` |
@@ -333,6 +339,15 @@ log.info('...'); log.warn('...'); log.error('...');
 
 Nivells: `debug < info < warn < error`. Control via `LOG_LEVEL` env var.
 
+### Convenció variables no usades
+
+El flat ESLint config (`eslint.config.mjs`) ignora variables amb prefix `_`:
+
+```typescript
+const [value, _setValue] = useState(0); // _setValue no genera error ESLint
+function handler(_event: MouseEvent) {}  // ídem
+```
+
 ---
 
 ## i18n
@@ -392,3 +407,5 @@ Els tests d'integració amb proveïdors LLM reals requereixen API keys al `.env.
 11. **Providers de l'admin visibles a usuaris sense reload:** `fetchServerProviders()` esborra `apiKey` de tots els providers en el reset. Si veus un provider que no hauria d'aparèixer, comprova que no hi hagi API keys residuals d'una sessió d'admin anterior. Un reload complet (`window.location.reload()`) sempre resol l'estat.
 
 12. **Avatar o bio no es guarda a la BD:** Verificar que el canvi va per `useUserProfileStore.setAvatar`/`setBio` (que deleguen a `useUserPrefsStore`), no per `hydrateProfile` (que és sols per a la càrrega inicial). Si crides `hydrateProfile` des d'una acció d'usuari, el canvi es perd en recarregar.
+
+13. **`server-providers.yml` té prioritat sobre la BD:** Si existeix aquest fitxer al root del projecte, la seva configuració de providers sobreescriu la de la BD (AdminConfig). Útil en desplegaments Docker on es vol evitar configuració via panell admin. En dev, si el fitxer existeix i no conté un provider, aquell provider no estarà disponible encara que estigui configurat a la BD.
