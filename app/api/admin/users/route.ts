@@ -109,7 +109,7 @@ export async function POST(req: NextRequest) {
 
   // Construir URL d'acceptació
   const appUrl = process.env.APP_URL ?? 'http://localhost:3000';
-  const acceptUrl = `${appUrl}/accept-invite?token=${token}`;
+  const acceptUrl = `${appUrl}/accept-invite?token=${token}&locale=${locale}`;
 
   // Obtenir nom de l'admin per al template
   const inviterProfile = await prisma.userProfile.findUnique({

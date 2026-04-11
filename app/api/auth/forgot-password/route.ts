@@ -80,7 +80,7 @@ export async function POST(req: NextRequest) {
       });
 
       const appUrl = process.env.APP_URL ?? 'http://localhost:3000';
-      const resetUrl = `${appUrl}/reset-password?token=${token}`;
+      const resetUrl = `${appUrl}/reset-password?token=${token}&locale=${locale}`;
 
       // Enviar email (si no hi ha ACS configurat, log en dev)
       const firstName = user.profile?.firstName ?? '';

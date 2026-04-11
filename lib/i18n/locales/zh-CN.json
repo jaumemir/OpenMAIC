@@ -1092,5 +1092,57 @@
       "plainCta": "重置密码，请访问：",
       "ignore": "如果您未请求密码重置，可以忽略此邮件。"
     }
+  },
+  "auth": {
+    "acceptInvite": {
+      "verifying": "正在验证邀请...",
+      "invalidTitle": "邀请无效",
+      "noToken": "未提供邀请令牌。",
+      "invalidToken": "邀请令牌无效或已过期。",
+      "connectionError": "连接错误，请重试。",
+      "title": "完成注册",
+      "description": "欢迎，{{name}}！请设置密码以激活您的账户。",
+      "firstName": "名字",
+      "lastName": "姓氏",
+      "email": "电子邮件",
+      "password": "密码（至少8个字符）",
+      "passwordConfirm": "确认密码",
+      "passwordMinLength": "密码至少需要8个字符。",
+      "passwordMismatch": "密码不匹配。",
+      "profileOptional": "个人信息（可选）",
+      "organization": "组织",
+      "organizationPlaceholder": "大学、公司、机构...",
+      "department": "部门",
+      "city": "城市",
+      "jobTitle": "职位",
+      "jobTitlePlaceholder": "教师、研究员、技术人员...",
+      "activating": "正在激活账户...",
+      "activate": "激活账户",
+      "activateError": "激活账户时出错，请重试。"
+    },
+    "resetPassword": {
+      "verifying": "正在验证链接...",
+      "invalidTitle": "链接无效",
+      "noToken": "链接无效。",
+      "expired": "链接已过期，请重新申请。",
+      "invalidOrUsed": "链接无效或已被使用。",
+      "connectionError": "连接错误，请重试。",
+      "requestNew": "申请新链接",
+      "backToLogin": "返回登录",
+      "doneTitle": "密码已更改",
+      "doneDescription": "您的密码已成功更新，即将跳转到登录页面。",
+      "loginNow": "立即登录",
+      "title": "新密码",
+      "emailDescription": "修改 {{email}} 的密码",
+      "password": "新密码",
+      "passwordHint": "至少8个字符。",
+      "confirmPassword": "确认密码",
+      "mismatchInline": "密码不匹配。",
+      "passwordMinLength": "密码至少需要8个字符。",
+      "passwordMismatch": "密码不匹配。",
+      "changeError": "更改密码时出错。",
+      "saving": "保存中...",
+      "submit": "更改密码"
+    }
   }
 }

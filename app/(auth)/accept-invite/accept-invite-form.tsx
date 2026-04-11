@@ -6,6 +6,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { useI18n } from '@/lib/hooks/use-i18n';
+import { type Locale, supportedLocales } from '@/lib/i18n';
 
 interface InvitationInfo {
   email: string;
@@ -18,6 +20,9 @@ export default function AcceptInviteForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const token = searchParams.get('token');
+  const localeParam = searchParams.get('locale');
+
+  const { t, setLocale } = useI18n();
 
   const [invitation, setInvitation] = useState<InvitationInfo | null>(null);
   const [tokenError, setTokenError] = useState('');
@@ -33,9 +38,16 @@ export default function AcceptInviteForm() {
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState('');
 
+  // Apply the locale from the invitation URL before anything else renders.
+  useEffect(() => {
+    if (!localeParam) return;
+    const valid = supportedLocales.find((l) => l.code === localeParam);
+    if (valid) setLocale(localeParam as Locale);
+  }, [localeParam, setLocale]);
+
   useEffect(() => {
     if (!token) {
-      setTokenError("No s'ha proporcionat cap token d'invitació.");
+      setTokenError(t('auth.acceptInvite.noToken'));
       setLoading(false);
       return;
     }
@@ -46,23 +58,23 @@ export default function AcceptInviteForm() {
         if (data.success) {
           setInvitation(data.invitation);
         } else {
-          setTokenError(data.error ?? "Token d'invitació no vàlid o caducat.");
+          setTokenError(data.error ?? t('auth.acceptInvite.invalidToken'));
         }
       })
-      .catch(() => setTokenError('Error de connexió. Torna-ho a intentar.'))
+      .catch(() => setTokenError(t('auth.acceptInvite.connectionError')))
       .finally(() => setLoading(false));
-  }, [token]);
+  }, [token, t]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setFormError('');
 
     if (password.length < 8) {
-      setFormError('La contrasenya ha de tenir mínim 8 caràcters.');
+      setFormError(t('auth.acceptInvite.passwordMinLength'));
       return;
     }
     if (password !== passwordConfirm) {
-      setFormError('Les contrasenyes no coincideixen.');
+      setFormError(t('auth.acceptInvite.passwordMismatch'));
       return;
     }
 
@@ -83,13 +95,13 @@ export default function AcceptInviteForm() {
 
       const data = await res.json();
       if (!res.ok || !data.success) {
-        setFormError(data.error ?? 'Error activant el compte. Torna-ho a intentar.');
+        setFormError(data.error ?? t('auth.acceptInvite.activateError'));
         return;
       }
 
       router.push('/login?activated=1');
     } catch {
-      setFormError('Error de connexió. Torna-ho a intentar.');
+      setFormError(t('auth.acceptInvite.connectionError'));
     } finally {
       setSubmitting(false);
     }
@@ -99,7 +111,7 @@ export default function AcceptInviteForm() {
     return (
       <Card>
         <CardContent className="pt-6">
-          <p className="text-center text-muted-foreground">Verificant invitació...</p>
+          <p className="text-center text-muted-foreground">{t('auth.acceptInvite.verifying')}</p>
         </CardContent>
       </Card>
     );
@@ -109,7 +121,7 @@ export default function AcceptInviteForm() {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Invitació no vàlida</CardTitle>
+          <CardTitle>{t('auth.acceptInvite.invalidTitle')}</CardTitle>
         </CardHeader>
         <CardContent>
           <p className="text-sm text-destructive">{tokenError}</p>
@@ -121,31 +133,31 @@ export default function AcceptInviteForm() {
   return (
     <Card>
       <CardHeader className="space-y-1">
-        <CardTitle className="text-2xl">Completa el teu registre</CardTitle>
+        <CardTitle className="text-2xl">{t('auth.acceptInvite.title')}</CardTitle>
         <CardDescription>
-          Benvingut/da, {invitation!.firstName}! Configura la contrasenya per activar el teu compte.
+          {t('auth.acceptInvite.description', { name: invitation!.firstName })}
         </CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label>Nom</Label>
+              <Label>{t('auth.acceptInvite.firstName')}</Label>
               <Input value={invitation!.firstName} readOnly disabled />
             </div>
             <div className="space-y-2">
-              <Label>Cognom</Label>
+              <Label>{t('auth.acceptInvite.lastName')}</Label>
               <Input value={invitation!.lastName} readOnly disabled />
             </div>
           </div>
 
           <div className="space-y-2">
-            <Label>Correu electrònic</Label>
+            <Label>{t('auth.acceptInvite.email')}</Label>
             <Input value={invitation!.email} readOnly disabled type="email" />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="password">Contrasenya (mínim 8 caràcters)</Label>
+            <Label htmlFor="password">{t('auth.acceptInvite.password')}</Label>
             <Input
               id="password"
               type="password"
@@ -158,7 +170,7 @@ export default function AcceptInviteForm() {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="passwordConfirm">Confirma la contrasenya</Label>
+            <Label htmlFor="passwordConfirm">{t('auth.acceptInvite.passwordConfirm')}</Label>
             <Input
               id="passwordConfirm"
               type="password"
@@ -171,22 +183,22 @@ export default function AcceptInviteForm() {
           </div>
 
           <div className="pt-2 border-t">
-            <p className="text-sm text-muted-foreground mb-3">Informació del perfil (opcional)</p>
+            <p className="text-sm text-muted-foreground mb-3">{t('auth.acceptInvite.profileOptional')}</p>
             <div className="space-y-3">
               <div className="space-y-2">
-                <Label htmlFor="organization">Organització</Label>
+                <Label htmlFor="organization">{t('auth.acceptInvite.organization')}</Label>
                 <Input
                   id="organization"
                   value={organization}
                   onChange={(e) => setOrganization(e.target.value)}
-                  placeholder="Universitat, empresa, institució..."
+                  placeholder={t('auth.acceptInvite.organizationPlaceholder')}
                   disabled={submitting}
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="department">Departament</Label>
+                  <Label htmlFor="department">{t('auth.acceptInvite.department')}</Label>
                   <Input
                     id="department"
                     value={department}
@@ -195,7 +207,7 @@ export default function AcceptInviteForm() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="city">Ciutat</Label>
+                  <Label htmlFor="city">{t('auth.acceptInvite.city')}</Label>
                   <Input
                     id="city"
                     value={city}
@@ -206,12 +218,12 @@ export default function AcceptInviteForm() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="jobTitle">Càrrec</Label>
+                <Label htmlFor="jobTitle">{t('auth.acceptInvite.jobTitle')}</Label>
                 <Input
                   id="jobTitle"
                   value={jobTitle}
                   onChange={(e) => setJobTitle(e.target.value)}
-                  placeholder="Professor/a, investigador/a, tècnic/a..."
+                  placeholder={t('auth.acceptInvite.jobTitlePlaceholder')}
                   disabled={submitting}
                 />
               </div>
@@ -221,7 +233,7 @@ export default function AcceptInviteForm() {
           {formError && <p className="text-sm text-destructive">{formError}</p>}
 
           <Button type="submit" className="w-full" disabled={submitting}>
-            {submitting ? 'Activant compte...' : 'Activar compte'}
+            {submitting ? t('auth.acceptInvite.activating') : t('auth.acceptInvite.activate')}
           </Button>
         </form>
       </CardContent>

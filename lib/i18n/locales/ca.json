@@ -1092,5 +1092,57 @@
       "plainCta": "Per canviar la contrasenya, accedeix a:",
       "ignore": "Si no has sol·licitat cap canvi de contrasenya, pots ignorar aquest missatge."
     }
+  },
+  "auth": {
+    "acceptInvite": {
+      "verifying": "Verificant invitació...",
+      "invalidTitle": "Invitació no vàlida",
+      "noToken": "No s'ha proporcionat cap token d'invitació.",
+      "invalidToken": "Token d'invitació no vàlid o caducat.",
+      "connectionError": "Error de connexió. Torna-ho a intentar.",
+      "title": "Completa el teu registre",
+      "description": "Benvingut/da, {{name}}! Configura la contrasenya per activar el teu compte.",
+      "firstName": "Nom",
+      "lastName": "Cognom",
+      "email": "Correu electrònic",
+      "password": "Contrasenya (mínim 8 caràcters)",
+      "passwordConfirm": "Confirma la contrasenya",
+      "passwordMinLength": "La contrasenya ha de tenir mínim 8 caràcters.",
+      "passwordMismatch": "Les contrasenyes no coincideixen.",
+      "profileOptional": "Informació del perfil (opcional)",
+      "organization": "Organització",
+      "organizationPlaceholder": "Universitat, empresa, institució...",
+      "department": "Departament",
+      "city": "Ciutat",
+      "jobTitle": "Càrrec",
+      "jobTitlePlaceholder": "Professor/a, investigador/a, tècnic/a...",
+      "activating": "Activant compte...",
+      "activate": "Activar compte",
+      "activateError": "Error activant el compte. Torna-ho a intentar."
+    },
+    "resetPassword": {
+      "verifying": "Verificant l'enllaç...",
+      "invalidTitle": "Enllaç no vàlid",
+      "noToken": "L'enllaç no és vàlid.",
+      "expired": "L'enllaç ha caducat. Sol·licita'n un de nou.",
+      "invalidOrUsed": "L'enllaç no és vàlid o ja ha estat utilitzat.",
+      "connectionError": "Error de connexió. Torna-ho a intentar.",
+      "requestNew": "Sol·licitar un nou enllaç",
+      "backToLogin": "Tornar a l'accés",
+      "doneTitle": "Contrasenya canviada",
+      "doneDescription": "La teva contrasenya s'ha actualitzat correctament. Seràs redirigit a l'accés en uns moments.",
+      "loginNow": "Accedir ara",
+      "title": "Nova contrasenya",
+      "emailDescription": "Canvia la contrasenya de {{email}}",
+      "password": "Nova contrasenya",
+      "passwordHint": "Mínim 8 caràcters.",
+      "confirmPassword": "Confirmar contrasenya",
+      "mismatchInline": "Les contrasenyes no coincideixen.",
+      "passwordMinLength": "La contrasenya ha de tenir mínim 8 caràcters.",
+      "passwordMismatch": "Les contrasenyes no coincideixen.",
+      "changeError": "Error en canviar la contrasenya.",
+      "saving": "Desant...",
+      "submit": "Canviar la contrasenya"
+    }
   }
 }

@@ -7,11 +7,16 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { useI18n } from '@/lib/hooks/use-i18n';
+import { type Locale, supportedLocales } from '@/lib/i18n';
 
 export default function ResetPasswordForm() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const token = searchParams.get('token') ?? '';
+  const localeParam = searchParams.get('locale');
+
+  const { t, setLocale } = useI18n();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -22,10 +27,17 @@ export default function ResetPasswordForm() {
   const [done, setDone] = useState(false);
   const [validating, setValidating] = useState(true);
 
-  // Validar el token quan es carrega la pàgina
+  // Apply the locale from the reset URL before anything else renders.
+  useEffect(() => {
+    if (!localeParam) return;
+    const valid = supportedLocales.find((l) => l.code === localeParam);
+    if (valid) setLocale(localeParam as Locale);
+  }, [localeParam, setLocale]);
+
+  // Validate the token when the page loads.
   useEffect(() => {
     if (!token) {
-      setTokenError("L'enllaç no és vàlid.");
+      setTokenError(t('auth.resetPassword.noToken'));
       setValidating(false);
       return;
     }
@@ -35,27 +47,27 @@ export default function ResetPasswordForm() {
         if (r.ok) {
           setEmail(data.email ?? '');
         } else if (r.status === 410) {
-          setTokenError("L'enllaç ha caducat. Sol·licita'n un de nou.");
+          setTokenError(t('auth.resetPassword.expired'));
         } else {
-          setTokenError("L'enllaç no és vàlid o ja ha estat utilitzat.");
+          setTokenError(t('auth.resetPassword.invalidOrUsed'));
         }
       })
       .catch(() => {
-        setTokenError('Error de connexió. Torna-ho a intentar.');
+        setTokenError(t('auth.resetPassword.connectionError'));
       })
       .finally(() => setValidating(false));
-  }, [token]);
+  }, [token, t]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setSubmitError('');
 
     if (password.length < 8) {
-      setSubmitError('La contrasenya ha de tenir mínim 8 caràcters.');
+      setSubmitError(t('auth.resetPassword.passwordMinLength'));
       return;
     }
     if (password !== confirmPassword) {
-      setSubmitError('Les contrasenyes no coincideixen.');
+      setSubmitError(t('auth.resetPassword.passwordMismatch'));
       return;
     }
 
@@ -69,15 +81,14 @@ export default function ResetPasswordForm() {
       const data = await res.json();
       if (res.ok) {
         setDone(true);
-        // Redirigir al login després de 3 segons
         setTimeout(() => router.push('/login'), 3000);
       } else if (res.status === 410) {
-        setTokenError("L'enllaç ha caducat. Sol·licita'n un de nou.");
+        setTokenError(t('auth.resetPassword.expired'));
       } else {
-        setSubmitError(data.error ?? 'Error en canviar la contrasenya.');
+        setSubmitError(data.error ?? t('auth.resetPassword.changeError'));
       }
     } catch {
-      setSubmitError('Error de connexió. Torna-ho a intentar.');
+      setSubmitError(t('auth.resetPassword.connectionError'));
     } finally {
       setLoading(false);
     }
@@ -87,7 +98,7 @@ export default function ResetPasswordForm() {
     return (
       <Card>
         <CardContent className="py-8 text-center text-muted-foreground">
-          Verificant l&apos;enllaç...
+          {t('auth.resetPassword.verifying')}
         </CardContent>
       </Card>
     );
@@ -97,16 +108,16 @@ export default function ResetPasswordForm() {
     return (
       <Card>
         <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl">Enllaç no vàlid</CardTitle>
+          <CardTitle className="text-2xl">{t('auth.resetPassword.invalidTitle')}</CardTitle>
           <CardDescription>{tokenError}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-3">
           <Link href="/forgot-password">
-            <Button className="w-full">Sol·licitar un nou enllaç</Button>
+            <Button className="w-full">{t('auth.resetPassword.requestNew')}</Button>
           </Link>
           <Link href="/login">
             <Button variant="outline" className="w-full">
-              Tornar a l&apos;accés
+              {t('auth.resetPassword.backToLogin')}
             </Button>
           </Link>
         </CardContent>
@@ -118,15 +129,12 @@ export default function ResetPasswordForm() {
     return (
       <Card>
         <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl">Contrasenya canviada</CardTitle>
-          <CardDescription>
-            La teva contrasenya s&apos;ha actualitzat correctament. Seràs redirigit a l&apos;accés
-            en uns moments.
-          </CardDescription>
+          <CardTitle className="text-2xl">{t('auth.resetPassword.doneTitle')}</CardTitle>
+          <CardDescription>{t('auth.resetPassword.doneDescription')}</CardDescription>
         </CardHeader>
         <CardContent>
           <Link href="/login">
-            <Button className="w-full">Accedir ara</Button>
+            <Button className="w-full">{t('auth.resetPassword.loginNow')}</Button>
           </Link>
         </CardContent>
       </Card>
@@ -136,17 +144,17 @@ export default function ResetPasswordForm() {
   return (
     <Card>
       <CardHeader className="space-y-1">
-        <CardTitle className="text-2xl">Nova contrasenya</CardTitle>
+        <CardTitle className="text-2xl">{t('auth.resetPassword.title')}</CardTitle>
         {email && (
           <CardDescription>
-            Canvia la contrasenya de <strong>{email}</strong>
+            {t('auth.resetPassword.emailDescription', { email })}
           </CardDescription>
         )}
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="password">Nova contrasenya</Label>
+            <Label htmlFor="password">{t('auth.resetPassword.password')}</Label>
             <Input
               id="password"
               type="password"
@@ -157,10 +165,10 @@ export default function ResetPasswordForm() {
               disabled={loading}
               autoFocus
             />
-            <p className="text-xs text-muted-foreground">Mínim 8 caràcters.</p>
+            <p className="text-xs text-muted-foreground">{t('auth.resetPassword.passwordHint')}</p>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="confirmPassword">Confirmar contrasenya</Label>
+            <Label htmlFor="confirmPassword">{t('auth.resetPassword.confirmPassword')}</Label>
             <Input
               id="confirmPassword"
               type="password"
@@ -171,7 +179,7 @@ export default function ResetPasswordForm() {
               disabled={loading}
             />
             {confirmPassword && password !== confirmPassword && (
-              <p className="text-xs text-destructive">Les contrasenyes no coincideixen.</p>
+              <p className="text-xs text-destructive">{t('auth.resetPassword.mismatchInline')}</p>
             )}
           </div>
           {submitError && <p className="text-sm text-destructive">{submitError}</p>}
@@ -180,7 +188,7 @@ export default function ResetPasswordForm() {
             className="w-full"
             disabled={loading || (!!confirmPassword && password !== confirmPassword)}
           >
-            {loading ? 'Desant...' : 'Canviar la contrasenya'}
+            {loading ? t('auth.resetPassword.saving') : t('auth.resetPassword.submit')}
           </Button>
         </form>
       </CardContent>

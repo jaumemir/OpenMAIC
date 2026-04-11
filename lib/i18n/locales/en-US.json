@@ -1092,5 +1092,57 @@
       "plainCta": "To reset your password, go to:",
       "ignore": "If you did not request a password reset, you can ignore this message."
     }
+  },
+  "auth": {
+    "acceptInvite": {
+      "verifying": "Verifying invitation...",
+      "invalidTitle": "Invalid invitation",
+      "noToken": "No invitation token was provided.",
+      "invalidToken": "Invalid or expired invitation token.",
+      "connectionError": "Connection error. Please try again.",
+      "title": "Complete your registration",
+      "description": "Welcome, {{name}}! Set up your password to activate your account.",
+      "firstName": "First name",
+      "lastName": "Last name",
+      "email": "Email address",
+      "password": "Password (minimum 8 characters)",
+      "passwordConfirm": "Confirm password",
+      "passwordMinLength": "Password must be at least 8 characters.",
+      "passwordMismatch": "Passwords do not match.",
+      "profileOptional": "Profile information (optional)",
+      "organization": "Organization",
+      "organizationPlaceholder": "University, company, institution...",
+      "department": "Department",
+      "city": "City",
+      "jobTitle": "Job title",
+      "jobTitlePlaceholder": "Teacher, researcher, technician...",
+      "activating": "Activating account...",
+      "activate": "Activate account",
+      "activateError": "Error activating the account. Please try again."
+    },
+    "resetPassword": {
+      "verifying": "Verifying link...",
+      "invalidTitle": "Invalid link",
+      "noToken": "The link is not valid.",
+      "expired": "The link has expired. Please request a new one.",
+      "invalidOrUsed": "The link is not valid or has already been used.",
+      "connectionError": "Connection error. Please try again.",
+      "requestNew": "Request a new link",
+      "backToLogin": "Back to login",
+      "doneTitle": "Password changed",
+      "doneDescription": "Your password has been updated successfully. You will be redirected to login in a moment.",
+      "loginNow": "Log in now",
+      "title": "New password",
+      "emailDescription": "Change the password for {{email}}",
+      "password": "New password",
+      "passwordHint": "Minimum 8 characters.",
+      "confirmPassword": "Confirm password",
+      "mismatchInline": "Passwords do not match.",
+      "passwordMinLength": "Password must be at least 8 characters.",
+      "passwordMismatch": "Passwords do not match.",
+      "changeError": "Error changing the password.",
+      "saving": "Saving...",
+      "submit": "Change password"
+    }
   }
 }
