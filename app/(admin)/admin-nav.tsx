@@ -4,21 +4,23 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { signOut } from '@/lib/auth/client';
 import { ChevronRight, LayoutDashboard, LogOut } from 'lucide-react';
+import { useI18n } from '@/lib/hooks/use-i18n';
 
 interface AdminNavProps {
   displayName: string;
 }
 
-const SECTION_LABELS: Record<string, string> = {
-  users: 'Usuaris',
-  config: 'Configuració',
-  courses: 'Cursos generats',
-  audit: 'Auditoria',
-};
-
 export default function AdminNav({ displayName }: AdminNavProps) {
+  const { t } = useI18n();
   const pathname = usePathname();
   const router = useRouter();
+
+  const SECTION_LABELS: Record<string, string> = {
+    users: t('admin.nav.users'),
+    config: t('admin.nav.config'),
+    courses: t('admin.nav.courses'),
+    audit: t('admin.nav.audit'),
+  };
 
   const segments = pathname.split('/').filter(Boolean);
   const section = segments[1] as string | undefined;
@@ -42,7 +44,7 @@ export default function AdminNav({ displayName }: AdminNavProps) {
           <Link
             href="/"
             className="flex items-center gap-1.5 text-muted-foreground hover:text-foreground transition-colors shrink-0 px-2 py-1 rounded-md hover:bg-muted/50"
-            title="Tornar a l'aplicació"
+            title={t('admin.backToApp')}
           >
             <LayoutDashboard className="h-4 w-4" />
             <span className="hidden sm:inline">App</span>
@@ -55,10 +57,10 @@ export default function AdminNav({ displayName }: AdminNavProps) {
               href="/admin"
               className="text-muted-foreground hover:text-foreground transition-colors shrink-0 px-2 py-1 rounded-md hover:bg-muted/50"
             >
-              Panel
+              {t('admin.panel')}
             </Link>
           ) : (
-            <span className="font-semibold text-foreground px-2 py-1">Panel</span>
+            <span className="font-semibold text-foreground px-2 py-1">{t('admin.panel')}</span>
           )}
 
           {section && (
@@ -82,7 +84,7 @@ export default function AdminNav({ displayName }: AdminNavProps) {
             title="Tancar sessió"
           >
             <LogOut className="h-4 w-4" />
-            <span className="hidden sm:inline">Sortir</span>
+            <span className="hidden sm:inline">{t('admin.logout')}</span>
           </button>
         </div>
       </div>

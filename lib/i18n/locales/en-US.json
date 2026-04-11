@@ -266,6 +266,150 @@
     "startListening": "Voice input",
     "stopListening": "Stop recording"
   },
+  "admin": {
+    "panel": "Admin Panel",
+    "welcome": "Welcome, {{name}}",
+    "stats": {
+      "registeredUsers": "Registered users",
+      "actionsToday": "Actions today",
+      "actionsLast24h": "Actions (last 24h)"
+    },
+    "nav": {
+      "users": "Users",
+      "config": "Configuration",
+      "courses": "Generated courses",
+      "audit": "Audit"
+    },
+    "cards": {
+      "usersDesc": "Manage users and invitations",
+      "configDesc": "Allowed models and global settings",
+      "coursesDesc": "All courses in the system",
+      "auditDesc": "Full action log"
+    },
+    "recentActivity": "Recent activity",
+    "table": {
+      "action": "Action",
+      "user": "User",
+      "entity": "Entity",
+      "date": "Date",
+      "system": "System",
+      "noActivity": "No activity recorded"
+    },
+    "backToApp": "Back to app",
+    "logout": "Sign out",
+    "users": {
+      "title": "User management",
+      "invite": {
+        "title": "Invite new user",
+        "firstName": "First name",
+        "lastName": "Last name",
+        "email": "Email address",
+        "sending": "Sending...",
+        "submit": "Invite",
+        "errorCreating": "Error creating the invitation.",
+        "errorConnection": "Connection error.",
+        "emailSent": "✓ Invitation sent by email.",
+        "emailNotSent": "⚠ Email not sent (ACS not configured). Invitation URL:"
+      },
+      "table": {
+        "user": "User",
+        "email": "Email",
+        "role": "Role",
+        "status": "Status",
+        "created": "Created",
+        "loading": "Loading...",
+        "noUsers": "No users"
+      },
+      "status": {
+        "active": "Active",
+        "pending": "Pending",
+        "inactive": "Disabled"
+      },
+      "actions": {
+        "edit": "Edit",
+        "enable": "Enable",
+        "disable": "Disable",
+        "delete": "Delete"
+      },
+      "confirmDelete": "Are you sure you want to delete this user? This action cannot be undone.",
+      "edit": {
+        "title": "Edit user",
+        "emailNote": "Email cannot be changed.",
+        "firstName": "First name",
+        "lastName": "Last name",
+        "org": "Organisation",
+        "dept": "Department",
+        "job": "Job title",
+        "city": "City",
+        "optional": "Optional",
+        "saving": "Saving...",
+        "save": "Save changes",
+        "cancel": "Cancel",
+        "errorSaving": "Error saving changes."
+      }
+    },
+    "config": {
+      "title": "Global configuration",
+      "allowedModels": {
+        "title": "Allowed models",
+        "desc": "Specify which LLM models users can use. Leave empty to allow all.",
+        "placeholder": "Empty = all models allowed"
+      },
+      "loading": "Loading...",
+      "saving": "Saving...",
+      "save": "Save",
+      "saved": "✓ Configuration saved.",
+      "errorSaving": "Error saving.",
+      "errorConnection": "Connection error."
+    },
+    "courses": {
+      "title": "Generated courses",
+      "subtitle": "All courses in the system with their owner.",
+      "loading": "Loading…",
+      "empty": "No courses generated yet.",
+      "table": {
+        "name": "Name",
+        "scenes": "Scenes",
+        "owner": "Owner",
+        "createdAt": "Created at",
+        "noTitle": "Untitled",
+        "unknownOwner": "Unknown"
+      },
+      "delete": {
+        "title": "Delete course",
+        "confirm": "This action is irreversible. The course and all its content will be deleted.",
+        "cancel": "Cancel",
+        "button": "Delete",
+        "tooltip": "Delete course"
+      }
+    },
+    "audit": {
+      "title": "Audit log",
+      "filter": {
+        "action": "Action",
+        "from": "From",
+        "to": "To",
+        "apply": "Filter",
+        "clear": "Clear"
+      },
+      "records": "{{count}} records",
+      "table": {
+        "action": "Action",
+        "user": "User",
+        "entity": "Entity",
+        "ip": "IP",
+        "date": "Date",
+        "system": "System",
+        "noRecords": "No records",
+        "loading": "Loading..."
+      },
+      "pagination": {
+        "prev": "← Previous",
+        "next": "Next →",
+        "page": "Page {{page}}"
+      }
+    }
+  },
   "classroom": {
     "recentClassrooms": "Recent",
     "today": "Today",

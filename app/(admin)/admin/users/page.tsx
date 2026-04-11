@@ -12,6 +12,7 @@ import {
   DialogTitle,
   DialogFooter,
 } from '@/components/ui/dialog';
+import { useI18n } from '@/lib/hooks/use-i18n';
 
 interface UserRow {
   id: string;
@@ -27,11 +28,6 @@ interface UserRow {
   city: string | null;
 }
 
-const STATUS_LABELS: Record<string, string> = {
-  active: 'Actiu',
-  pending: 'Pendent',
-  inactive: 'Inhabilitat',
-};
 
 const STATUS_COLORS: Record<string, string> = {
   active: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
@@ -40,6 +36,14 @@ const STATUS_COLORS: Record<string, string> = {
 };
 
 export default function AdminUsersPage() {
+  const { t, locale } = useI18n();
+
+  const STATUS_LABELS: Record<string, string> = {
+    active: t('admin.users.status.active'),
+    pending: t('admin.users.status.pending'),
+    inactive: t('admin.users.status.inactive'),
+  };
+
   const [users, setUsers] = useState<UserRow[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -97,10 +101,10 @@ export default function AdminUsersPage() {
         setInviteLastName('');
         loadUsers();
       } else {
-        setInviteError(data.error ?? 'Error creant la invitació.');
+        setInviteError(data.error ?? t('admin.users.invite.errorCreating'));
       }
     } catch {
-      setInviteError('Error de connexió.');
+      setInviteError(t('admin.users.invite.errorConnection'));
     } finally {
       setInviteLoading(false);
     }
@@ -127,7 +131,7 @@ export default function AdminUsersPage() {
   }
 
   async function handleDelete(userId: string) {
-    if (!confirm('Segur que vols esborrar aquest usuari? Aquesta acció no es pot desfer.')) return;
+    if (!confirm(t('admin.users.confirmDelete'))) return;
     await fetch(`/api/admin/users/${userId}`, { method: 'DELETE' });
     loadUsers();
   }
@@ -161,10 +165,10 @@ export default function AdminUsersPage() {
         setEditUser(null);
         loadUsers();
       } else {
-        setEditError(data.error ?? 'Error desant els canvis.');
+        setEditError(data.error ?? t('admin.users.edit.errorSaving'));
       }
     } catch {
-      setEditError('Error de connexió.');
+      setEditError(t('admin.users.invite.errorConnection'));
     } finally {
       setEditLoading(false);
     }
@@ -172,17 +176,17 @@ export default function AdminUsersPage() {
 
   return (
     <div className="max-w-6xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-10">
-      <h1 className="text-2xl font-semibold tracking-tight mb-8">Gestió d&apos;usuaris</h1>
+      <h1 className="text-2xl font-semibold tracking-tight mb-8">{t('admin.users.title')}</h1>
 
       {/* Formulari invitació */}
       <Card className="mb-8 rounded-2xl border-border/60 bg-white/60 dark:bg-slate-900/50 shadow-sm">
         <CardHeader>
-          <CardTitle>Convidar nou usuari</CardTitle>
+          <CardTitle>{t('admin.users.invite.title')}</CardTitle>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleInvite} className="grid grid-cols-1 sm:grid-cols-4 gap-4">
             <div className="space-y-1">
-              <Label htmlFor="inviteFirstName">Nom</Label>
+              <Label htmlFor="inviteFirstName">{t('admin.users.invite.firstName')}</Label>
               <Input
                 id="inviteFirstName"
                 value={inviteFirstName}
@@ -192,7 +196,7 @@ export default function AdminUsersPage() {
               />
             </div>
             <div className="space-y-1">
-              <Label htmlFor="inviteLastName">Cognom</Label>
+              <Label htmlFor="inviteLastName">{t('admin.users.invite.lastName')}</Label>
               <Input
                 id="inviteLastName"
                 value={inviteLastName}
@@ -202,7 +206,7 @@ export default function AdminUsersPage() {
               />
             </div>
             <div className="space-y-1">
-              <Label htmlFor="inviteEmail">Correu electrònic</Label>
+              <Label htmlFor="inviteEmail">{t('admin.users.invite.email')}</Label>
               <Input
                 id="inviteEmail"
                 type="email"
@@ -214,7 +218,7 @@ export default function AdminUsersPage() {
             </div>
             <div className="flex items-end">
               <Button type="submit" disabled={inviteLoading} className="w-full">
-                {inviteLoading ? 'Enviant...' : 'Convidar'}
+                {inviteLoading ? t('admin.users.invite.sending') : t('admin.users.invite.submit')}
               </Button>
             </div>
           </form>
@@ -222,8 +226,8 @@ export default function AdminUsersPage() {
           {inviteResult && (
             <div className="mt-3 p-3 bg-muted rounded text-sm">
               {inviteResult.emailSent
-                ? '✓ Invitació enviada per email.'
-                : '⚠ Email no enviat (ACS no configurat). URL de la invitació:'}
+                ? t('admin.users.invite.emailSent')
+                : t('admin.users.invite.emailNotSent')}
               {!inviteResult.emailSent && (
                 <p className="mt-1 break-all text-xs font-mono">{inviteResult.url}</p>
               )}
@@ -237,14 +241,14 @@ export default function AdminUsersPage() {
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-border/60 bg-muted/40">
-              <th className="text-left px-4 py-2.5 font-medium text-muted-foreground">Usuari</th>
+              <th className="text-left px-4 py-2.5 font-medium text-muted-foreground">{t('admin.users.table.user')}</th>
               <th className="text-left px-4 py-2.5 font-medium text-muted-foreground hidden sm:table-cell">
-                Email
+                {t('admin.users.table.email')}
               </th>
-              <th className="text-left px-4 py-2.5 font-medium text-muted-foreground">Rol</th>
-              <th className="text-left px-4 py-2.5 font-medium text-muted-foreground">Estat</th>
+              <th className="text-left px-4 py-2.5 font-medium text-muted-foreground">{t('admin.users.table.role')}</th>
+              <th className="text-left px-4 py-2.5 font-medium text-muted-foreground">{t('admin.users.table.status')}</th>
               <th className="text-left px-4 py-2.5 font-medium text-muted-foreground hidden md:table-cell">
-                Creat
+                {t('admin.users.table.created')}
               </th>
               <th className="px-4 py-2.5" />
             </tr>
@@ -253,7 +257,7 @@ export default function AdminUsersPage() {
             {loading && (
               <tr>
                 <td colSpan={6} className="px-4 py-10 text-center text-muted-foreground">
-                  Carregant...
+                  {t('admin.users.table.loading')}
                 </td>
               </tr>
             )}
@@ -285,12 +289,12 @@ export default function AdminUsersPage() {
                     </span>
                   </td>
                   <td className="px-4 py-2 text-muted-foreground text-xs">
-                    {new Date(u.createdAt).toLocaleDateString('ca-ES')}
+                    {new Date(u.createdAt).toLocaleDateString(locale)}
                   </td>
                   <td className="px-4 py-2">
                     <div className="flex gap-1 justify-end flex-wrap">
                       <Button variant="ghost" size="sm" onClick={() => openEdit(u)}>
-                        Editar
+                        {t('admin.users.actions.edit')}
                       </Button>
                       <Button
                         variant="ghost"
@@ -309,7 +313,7 @@ export default function AdminUsersPage() {
                         }
                         onClick={() => handleToggleStatus(u.id, u.status)}
                       >
-                        {u.status === 'inactive' ? 'Habilitar' : 'Inhabilitar'}
+                        {u.status === 'inactive' ? t('admin.users.actions.enable') : t('admin.users.actions.disable')}
                       </Button>
                       <Button
                         variant="ghost"
@@ -317,7 +321,7 @@ export default function AdminUsersPage() {
                         className="text-destructive hover:text-destructive"
                         onClick={() => handleDelete(u.id)}
                       >
-                        Esborra
+                        {t('admin.users.actions.delete')}
                       </Button>
                     </div>
                   </td>
@@ -326,7 +330,7 @@ export default function AdminUsersPage() {
             {!loading && users.length === 0 && (
               <tr>
                 <td colSpan={6} className="px-4 py-10 text-center text-muted-foreground">
-                  Sense usuaris
+                  {t('admin.users.table.noUsers')}
                 </td>
               </tr>
             )}
@@ -343,20 +347,20 @@ export default function AdminUsersPage() {
       >
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>Editar usuari</DialogTitle>
+            <DialogTitle>{t('admin.users.edit.title')}</DialogTitle>
           </DialogHeader>
           {editUser && (
             <form onSubmit={handleEditSave} className="space-y-4">
               {/* Email (no editable) */}
               <div className="space-y-1">
-                <Label>Correu electrònic</Label>
+                <Label>{t('admin.users.invite.email')}</Label>
                 <Input value={editUser.email} disabled className="bg-muted text-muted-foreground" />
-                <p className="text-xs text-muted-foreground">L&apos;email no es pot modificar.</p>
+                <p className="text-xs text-muted-foreground">{t('admin.users.edit.emailNote')}</p>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1">
-                  <Label htmlFor="editFirstName">Nom</Label>
+                  <Label htmlFor="editFirstName">{t('admin.users.edit.firstName')}</Label>
                   <Input
                     id="editFirstName"
                     value={editForm.firstName ?? ''}
@@ -365,7 +369,7 @@ export default function AdminUsersPage() {
                   />
                 </div>
                 <div className="space-y-1">
-                  <Label htmlFor="editLastName">Cognom</Label>
+                  <Label htmlFor="editLastName">{t('admin.users.edit.lastName')}</Label>
                   <Input
                     id="editLastName"
                     value={editForm.lastName ?? ''}
@@ -376,47 +380,47 @@ export default function AdminUsersPage() {
               </div>
 
               <div className="space-y-1">
-                <Label htmlFor="editOrg">Organització</Label>
+                <Label htmlFor="editOrg">{t('admin.users.edit.org')}</Label>
                 <Input
                   id="editOrg"
                   value={editForm.organization ?? ''}
                   onChange={(e) => setEditForm((f) => ({ ...f, organization: e.target.value }))}
                   disabled={editLoading}
-                  placeholder="Opcional"
+                  placeholder={t('admin.users.edit.optional')}
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1">
-                  <Label htmlFor="editDept">Departament</Label>
+                  <Label htmlFor="editDept">{t('admin.users.edit.dept')}</Label>
                   <Input
                     id="editDept"
                     value={editForm.department ?? ''}
                     onChange={(e) => setEditForm((f) => ({ ...f, department: e.target.value }))}
                     disabled={editLoading}
-                    placeholder="Opcional"
+                    placeholder={t('admin.users.edit.optional')}
                   />
                 </div>
                 <div className="space-y-1">
-                  <Label htmlFor="editJob">Càrrec</Label>
+                  <Label htmlFor="editJob">{t('admin.users.edit.job')}</Label>
                   <Input
                     id="editJob"
                     value={editForm.jobTitle ?? ''}
                     onChange={(e) => setEditForm((f) => ({ ...f, jobTitle: e.target.value }))}
                     disabled={editLoading}
-                    placeholder="Opcional"
+                    placeholder={t('admin.users.edit.optional')}
                   />
                 </div>
               </div>
 
               <div className="space-y-1">
-                <Label htmlFor="editCity">Ciutat</Label>
+                <Label htmlFor="editCity">{t('admin.users.edit.city')}</Label>
                 <Input
                   id="editCity"
                   value={editForm.city ?? ''}
                   onChange={(e) => setEditForm((f) => ({ ...f, city: e.target.value }))}
                   disabled={editLoading}
-                  placeholder="Opcional"
+                  placeholder={t('admin.users.edit.optional')}
                 />
               </div>
 
@@ -429,10 +433,10 @@ export default function AdminUsersPage() {
                   onClick={() => setEditUser(null)}
                   disabled={editLoading}
                 >
-                  Cancel·lar
+                  {t('admin.users.edit.cancel')}
                 </Button>
                 <Button type="submit" disabled={editLoading}>
-                  {editLoading ? 'Desant...' : 'Desar canvis'}
+                  {editLoading ? t('admin.users.edit.saving') : t('admin.users.edit.save')}
                 </Button>
               </DialogFooter>
             </form>

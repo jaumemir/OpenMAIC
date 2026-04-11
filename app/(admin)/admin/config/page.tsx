@@ -4,8 +4,10 @@ import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { useI18n } from '@/lib/hooks/use-i18n';
 
 export default function AdminConfigPage() {
+  const { t } = useI18n();
   const [allowedModels, setAllowedModels] = useState<string>('');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -45,9 +47,9 @@ export default function AdminConfigPage() {
         body: JSON.stringify({ allowedModels: value }),
       });
       const data = await res.json();
-      setMessage(data.success ? '✓ Configuració guardada.' : (data.error ?? 'Error desant.'));
+      setMessage(data.success ? t('admin.config.saved') : (data.error ?? t('admin.config.errorSaving')));
     } catch {
-      setMessage('Error de connexió.');
+      setMessage(t('admin.config.errorConnection'));
     } finally {
       setSaving(false);
     }
@@ -55,13 +57,13 @@ export default function AdminConfigPage() {
 
   return (
     <div className="max-w-3xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-10">
-      <h1 className="text-2xl font-semibold tracking-tight mb-8">Configuració global</h1>
+      <h1 className="text-2xl font-semibold tracking-tight mb-8">{t('admin.config.title')}</h1>
 
       <Card className="rounded-2xl border-border/60 bg-white/60 dark:bg-slate-900/50 shadow-sm">
         <CardHeader>
-          <CardTitle>Models permesos</CardTitle>
+          <CardTitle>{t('admin.config.allowedModels.title')}</CardTitle>
           <CardDescription>
-            Especifica quins models LLM poden usar els usuaris. Deixa buit per permetre tots.
+            {t('admin.config.allowedModels.desc')}{' '}
             Format:{' '}
             <code className="text-xs bg-muted px-1 rounded">
               openai:gpt-4o, google:gemini-2.5-flash
@@ -70,18 +72,18 @@ export default function AdminConfigPage() {
         </CardHeader>
         <CardContent>
           {loading ? (
-            <p className="text-muted-foreground text-sm">Carregant...</p>
+            <p className="text-muted-foreground text-sm">{t('admin.config.loading')}</p>
           ) : (
             <form onSubmit={handleSave} className="space-y-4">
               <Input
                 value={allowedModels}
                 onChange={(e) => setAllowedModels(e.target.value)}
-                placeholder="Buit = tots els models permesos"
+                placeholder={t('admin.config.allowedModels.placeholder')}
                 disabled={saving}
               />
               <div className="flex items-center gap-4">
                 <Button type="submit" disabled={saving}>
-                  {saving ? 'Desant...' : 'Guardar'}
+                  {saving ? t('admin.config.saving') : t('admin.config.save')}
                 </Button>
                 {message && <p className="text-sm text-muted-foreground">{message}</p>}
               </div>

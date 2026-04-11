@@ -266,6 +266,150 @@
     "startListening": "Entrada de veu",
     "stopListening": "Aturar gravació"
   },
+  "admin": {
+    "panel": "Panell d'administració",
+    "welcome": "Benvingut/da, {{name}}",
+    "stats": {
+      "registeredUsers": "Usuaris registrats",
+      "actionsToday": "Accions avui",
+      "actionsLast24h": "Accions (últimes 24h)"
+    },
+    "nav": {
+      "users": "Usuaris",
+      "config": "Configuració",
+      "courses": "Cursos generats",
+      "audit": "Auditoria"
+    },
+    "cards": {
+      "usersDesc": "Gestiona usuaris i invitacions",
+      "configDesc": "Models permesos i paràmetres globals",
+      "coursesDesc": "Tots els cursos del sistema",
+      "auditDesc": "Log complet d'accions"
+    },
+    "recentActivity": "Activitat recent",
+    "table": {
+      "action": "Acció",
+      "user": "Usuari",
+      "entity": "Entitat",
+      "date": "Data",
+      "system": "Sistema",
+      "noActivity": "Sense activitat registrada"
+    },
+    "backToApp": "Tornar a l'aplicació",
+    "logout": "Sortir",
+    "users": {
+      "title": "Gestió d'usuaris",
+      "invite": {
+        "title": "Convidar nou usuari",
+        "firstName": "Nom",
+        "lastName": "Cognom",
+        "email": "Correu electrònic",
+        "sending": "Enviant...",
+        "submit": "Convidar",
+        "errorCreating": "Error creant la invitació.",
+        "errorConnection": "Error de connexió.",
+        "emailSent": "✓ Invitació enviada per email.",
+        "emailNotSent": "⚠ Email no enviat (ACS no configurat). URL de la invitació:"
+      },
+      "table": {
+        "user": "Usuari",
+        "email": "Email",
+        "role": "Rol",
+        "status": "Estat",
+        "created": "Creat",
+        "loading": "Carregant...",
+        "noUsers": "Sense usuaris"
+      },
+      "status": {
+        "active": "Actiu",
+        "pending": "Pendent",
+        "inactive": "Inhabilitat"
+      },
+      "actions": {
+        "edit": "Editar",
+        "enable": "Habilitar",
+        "disable": "Inhabilitar",
+        "delete": "Esborra"
+      },
+      "confirmDelete": "Segur que vols esborrar aquest usuari? Aquesta acció no es pot desfer.",
+      "edit": {
+        "title": "Editar usuari",
+        "emailNote": "L'email no es pot modificar.",
+        "firstName": "Nom",
+        "lastName": "Cognom",
+        "org": "Organització",
+        "dept": "Departament",
+        "job": "Càrrec",
+        "city": "Ciutat",
+        "optional": "Opcional",
+        "saving": "Desant...",
+        "save": "Desar canvis",
+        "cancel": "Cancel·lar",
+        "errorSaving": "Error desant els canvis."
+      }
+    },
+    "config": {
+      "title": "Configuració global",
+      "allowedModels": {
+        "title": "Models permesos",
+        "desc": "Especifica quins models LLM poden usar els usuaris. Deixa buit per permetre tots.",
+        "placeholder": "Buit = tots els models permesos"
+      },
+      "loading": "Carregant...",
+      "saving": "Desant...",
+      "save": "Guardar",
+      "saved": "✓ Configuració guardada.",
+      "errorSaving": "Error desant.",
+      "errorConnection": "Error de connexió."
+    },
+    "courses": {
+      "title": "Cursos generats",
+      "subtitle": "Tots els cursos del sistema amb el seu propietari.",
+      "loading": "Carregant…",
+      "empty": "Encara no hi ha cap curs generat.",
+      "table": {
+        "name": "Nom",
+        "scenes": "Escenes",
+        "owner": "Propietari",
+        "createdAt": "Data creació",
+        "noTitle": "Sense títol",
+        "unknownOwner": "Desconegut"
+      },
+      "delete": {
+        "title": "Eliminar curs",
+        "confirm": "Aquesta acció és irreversible. S'eliminarà el curs i tot el seu contingut.",
+        "cancel": "Cancel·lar",
+        "button": "Eliminar",
+        "tooltip": "Eliminar curs"
+      }
+    },
+    "audit": {
+      "title": "Log d'auditoria",
+      "filter": {
+        "action": "Acció",
+        "from": "Des de",
+        "to": "Fins a",
+        "apply": "Filtrar",
+        "clear": "Netejar"
+      },
+      "records": "{{count}} registres",
+      "table": {
+        "action": "Acció",
+        "user": "Usuari",
+        "entity": "Entitat",
+        "ip": "IP",
+        "date": "Data",
+        "system": "Sistema",
+        "noRecords": "Sense registres",
+        "loading": "Carregant..."
+      },
+      "pagination": {
+        "prev": "← Anterior",
+        "next": "Següent →",
+        "page": "Pàgina {{page}}"
+      }
+    }
+  },
   "classroom": {
     "recentClassrooms": "Recent",
     "today": "Avui",

@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
+import { useI18n } from '@/lib/hooks/use-i18n';
 
 interface AuditEntry {
   id: string;
@@ -17,6 +18,7 @@ interface AuditEntry {
 }
 
 export default function AdminAuditPage() {
+  const { t, locale } = useI18n();
   const [logs, setLogs] = useState<AuditEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [total, setTotal] = useState(0);
@@ -56,12 +58,12 @@ export default function AdminAuditPage() {
 
   return (
     <div className="max-w-6xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-10">
-      <h1 className="text-2xl font-semibold tracking-tight mb-6">Log d&apos;auditoria</h1>
+      <h1 className="text-2xl font-semibold tracking-tight mb-6">{t('admin.audit.title')}</h1>
 
       {/* Filtres */}
       <form onSubmit={handleFilter} className="flex flex-wrap gap-4 mb-6 items-end">
         <div className="space-y-1">
-          <Label>Acció</Label>
+          <Label>{t('admin.audit.filter.action')}</Label>
           <Input
             value={filterAction}
             onChange={(e) => setFilterAction(e.target.value)}
@@ -70,7 +72,7 @@ export default function AdminAuditPage() {
           />
         </div>
         <div className="space-y-1">
-          <Label>Des de</Label>
+          <Label>{t('admin.audit.filter.from')}</Label>
           <Input
             type="date"
             value={filterFrom}
@@ -79,7 +81,7 @@ export default function AdminAuditPage() {
           />
         </div>
         <div className="space-y-1">
-          <Label>Fins a</Label>
+          <Label>{t('admin.audit.filter.to')}</Label>
           <Input
             type="date"
             value={filterTo}
@@ -87,7 +89,7 @@ export default function AdminAuditPage() {
             className="w-40"
           />
         </div>
-        <Button type="submit">Filtrar</Button>
+        <Button type="submit">{t('admin.audit.filter.apply')}</Button>
         <Button
           type="button"
           variant="ghost"
@@ -98,28 +100,28 @@ export default function AdminAuditPage() {
             setPage(1);
           }}
         >
-          Netejar
+          {t('admin.audit.filter.clear')}
         </Button>
       </form>
 
-      <p className="text-sm text-muted-foreground mb-4">{total} registres</p>
+      <p className="text-sm text-muted-foreground mb-4">{t('admin.audit.records', { count: String(total) })}</p>
 
       <div className="rounded-xl border border-border/60 overflow-x-auto bg-white/60 dark:bg-slate-900/50 shadow-sm">
         <table className="w-full text-sm min-w-[700px]">
           <thead>
             <tr className="border-b border-border/60 bg-muted/40">
-              <th className="text-left px-3 py-2.5 font-medium text-muted-foreground">Acció</th>
-              <th className="text-left px-3 py-2.5 font-medium text-muted-foreground">Usuari</th>
-              <th className="text-left px-3 py-2.5 font-medium text-muted-foreground">Entitat</th>
-              <th className="text-left px-3 py-2.5 font-medium text-muted-foreground">IP</th>
-              <th className="text-left px-3 py-2.5 font-medium text-muted-foreground">Data</th>
+              <th className="text-left px-3 py-2.5 font-medium text-muted-foreground">{t('admin.audit.table.action')}</th>
+              <th className="text-left px-3 py-2.5 font-medium text-muted-foreground">{t('admin.audit.table.user')}</th>
+              <th className="text-left px-3 py-2.5 font-medium text-muted-foreground">{t('admin.audit.table.entity')}</th>
+              <th className="text-left px-3 py-2.5 font-medium text-muted-foreground">{t('admin.audit.table.ip')}</th>
+              <th className="text-left px-3 py-2.5 font-medium text-muted-foreground">{t('admin.audit.table.date')}</th>
             </tr>
           </thead>
           <tbody>
             {loading && (
               <tr>
                 <td colSpan={5} className="px-4 py-10 text-center text-muted-foreground">
-                  Carregant...
+                  {t('admin.audit.table.loading')}
                 </td>
               </tr>
             )}
@@ -134,7 +136,7 @@ export default function AdminAuditPage() {
                     {log.user
                       ? `${log.user.firstName ?? ''} ${log.user.lastName ?? ''}`.trim() ||
                         log.user.email
-                      : 'Sistema'}
+                      : t('admin.audit.table.system')}
                   </td>
                   <td className="px-3 py-2 text-muted-foreground text-xs">
                     {log.entityType ? `${log.entityType}/${(log.entityId ?? '').slice(0, 8)}` : '—'}
@@ -143,14 +145,14 @@ export default function AdminAuditPage() {
                     {log.ipAddress ?? '—'}
                   </td>
                   <td className="px-3 py-2 text-muted-foreground text-xs">
-                    {new Date(log.createdAt).toLocaleString('ca-ES')}
+                    {new Date(log.createdAt).toLocaleString(locale)}
                   </td>
                 </tr>
               ))}
             {!loading && logs.length === 0 && (
               <tr>
                 <td colSpan={5} className="px-4 py-8 text-center text-muted-foreground">
-                  Sense registres
+                  {t('admin.audit.table.noRecords')}
                 </td>
               </tr>
             )}
@@ -166,16 +168,16 @@ export default function AdminAuditPage() {
           disabled={page <= 1}
           onClick={() => setPage((p) => p - 1)}
         >
-          ← Anterior
+          {t('admin.audit.pagination.prev')}
         </Button>
-        <span className="text-sm text-muted-foreground">Pàgina {page}</span>
+        <span className="text-sm text-muted-foreground">{t('admin.audit.pagination.page', { page: String(page) })}</span>
         <Button
           variant="ghost"
           size="sm"
           disabled={page * 50 >= total}
           onClick={() => setPage((p) => p + 1)}
         >
-          Següent →
+          {t('admin.audit.pagination.next')}
         </Button>
       </div>
     </div>
