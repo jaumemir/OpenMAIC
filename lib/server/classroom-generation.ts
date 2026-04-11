@@ -256,7 +256,7 @@ export async function generateClassroom(
   // Web search (optional, graceful degradation)
   let researchContext: string | undefined;
   if (input.enableWebSearch) {
-    const tavilyKey = resolveWebSearchApiKey();
+    const tavilyKey = await resolveWebSearchApiKey();
     if (tavilyKey) {
       try {
         const searchQuery = await buildSearchQuery(requirement, pdfText, searchQueryAiCall);

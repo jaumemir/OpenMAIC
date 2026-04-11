@@ -400,10 +400,13 @@ export function getServerWebSearchProviders(): Record<string, { baseUrl?: string
   return result;
 }
 
-/** Resolve Tavily API key: client key > server key > TAVILY_API_KEY env > empty */
-export function resolveWebSearchApiKey(clientKey?: string): string {
+/** Resolve Tavily API key: client key > YAML/env > DB > empty */
+export async function resolveWebSearchApiKey(clientKey?: string): Promise<string> {
   if (clientKey) return clientKey;
   const serverKey = getConfig().webSearch.tavily?.apiKey;
   if (serverKey) return serverKey;
-  return process.env.TAVILY_API_KEY || '';
+  if (process.env.TAVILY_API_KEY) return process.env.TAVILY_API_KEY;
+  // Fallback: AdminConfig DB (webSearchProvidersConfig.tavily.apiKey)
+  const { resolveApiKeyFromDb } = await import('@/lib/server/db-provider-config');
+  return resolveApiKeyFromDb('tavily', 'webSearchProvidersConfig');
 }

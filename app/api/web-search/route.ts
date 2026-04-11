@@ -39,7 +39,7 @@ export async function POST(req: NextRequest) {
       return apiError('MISSING_REQUIRED_FIELD', 400, 'query is required');
     }
 
-    const apiKey = resolveWebSearchApiKey(clientApiKey);
+    const apiKey = await resolveWebSearchApiKey(clientApiKey);
     if (!apiKey) {
       return apiError(
         'MISSING_API_KEY',
