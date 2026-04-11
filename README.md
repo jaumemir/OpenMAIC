@@ -11,6 +11,10 @@
 </p>
 
 <p align="center">
+  <strong>Enterprise Edition</strong> — an enterprise-ready fork of <a href="https://github.com/THU-MAIC/OpenMAIC">OpenMAIC</a> with authentication, user management, server-side storage, SCORM export &amp; Azure deployment
+</p>
+
+<p align="center">
   <a href="https://jcst.ict.ac.cn/en/article/doi/10.1007/s11390-025-6000-0"><img src="https://img.shields.io/badge/Paper-JCST'26-blue?style=flat-square" alt="Paper"/></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-AGPL--3.0-blue.svg?style=flat-square" alt="License: AGPL-3.0"/></a>
   <a href="https://open.maic.chat/"><img src="https://img.shields.io/badge/Demo-Live-brightgreen?style=flat-square" alt="Live Demo"/></a>
@@ -43,6 +47,16 @@
 ## 📖 Overview
 
 **OpenMAIC** (Open Multi-Agent Interactive Classroom) is an open-source AI platform that turns any topic or document into a rich, interactive classroom experience. Powered by multi-agent orchestration, it generates slides, quizzes, interactive simulations, and project-based learning activities — all delivered by AI teachers and AI classmates who can speak, draw on a whiteboard, and engage in real-time discussions with you. With built-in [OpenClaw](https://github.com/openclaw/openclaw) integration, you can generate classrooms directly from messaging apps like Feishu, Slack, or Telegram.
+
+**This repository is an enterprise-oriented evolution of the original OpenMAIC project**, adapted for organizational deployments where authentication, data isolation, and compliance matter. It preserves all core AI classroom capabilities while adding production-grade infrastructure:
+
+- **Authentication & user management** — Invitation-only sign-up with Admin and User roles. The admin panel covers user management (invite, edit, deactivate), global model configuration, per-user course storage, and a full audit log.
+- **Server-side storage** — All course content (scenes, media, TTS audio) is persisted server-side: filesystem + SQLite in development; Azure Blob Storage + PostgreSQL in production. Nothing critical lives in the browser.
+- **Per-user course isolation** — Each user sees only their own courses; admins have a global view across all users.
+- **Azure Communication Services** — Invitation and password-reset emails sent through Azure, with locale-aware templates.
+- **SCORM 1.2 export** — Export full classrooms — narration, video, and interactive elements — as SCORM 1.2 packages ready for corporate LMS platforms such as Moodle.
+- **Azure AI Foundry TTS** — New text-to-speech provider using Azure Foundry models for higher-quality, multilingual voices.
+- **Container-first deployment** — Ships as a Docker container designed for Azure Container Apps or any OCI-compatible host.
 
 https://github.com/user-attachments/assets/b4ab35ac-f994-46b1-8957-e82fe87ff0e9
 
