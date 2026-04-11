@@ -275,9 +275,12 @@ export function getServerTTSProviders(): Record<string, { baseUrl?: string }> {
   return result;
 }
 
-export function resolveTTSApiKey(providerId: string, clientKey?: string): string {
+export async function resolveTTSApiKey(providerId: string, clientKey?: string): Promise<string> {
   if (clientKey) return clientKey;
-  return getConfig().tts[providerId]?.apiKey || '';
+  const yamlKey = getConfig().tts[providerId]?.apiKey;
+  if (yamlKey) return yamlKey;
+  const { resolveApiKeyFromDb } = await import('@/lib/server/db-provider-config');
+  return resolveApiKeyFromDb(providerId, 'ttsProvidersConfig');
 }
 
 export function resolveTTSBaseUrl(providerId: string, clientBaseUrl?: string): string | undefined {

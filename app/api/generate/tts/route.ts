@@ -61,9 +61,11 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    const apiKey = clientBaseUrl
-      ? ttsApiKey || ''
-      : resolveTTSApiKey(ttsProviderId, ttsApiKey || undefined);
+    const clientKey = ttsApiKey || undefined;
+    const apiKey =
+      clientBaseUrl && clientKey
+        ? clientKey
+        : await resolveTTSApiKey(ttsProviderId, clientKey);
     const baseUrl = clientBaseUrl
       ? clientBaseUrl
       : resolveTTSBaseUrl(ttsProviderId, ttsBaseUrl || undefined);

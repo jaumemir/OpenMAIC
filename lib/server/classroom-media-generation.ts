@@ -219,7 +219,7 @@ export async function generateTTSForClassroom(
   }
 
   const providerId = ttsProviderIds[0] as TTSProviderId;
-  const apiKey = resolveTTSApiKey(providerId);
+  const apiKey = await resolveTTSApiKey(providerId);
   if (!apiKey) {
     log.warn(`No API key for TTS provider "${providerId}", skipping TTS generation`);
     return;
