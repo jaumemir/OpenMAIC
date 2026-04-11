@@ -276,7 +276,8 @@ export function getServerTTSProviders(): Record<string, { baseUrl?: string }> {
 }
 
 export async function resolveTTSApiKey(providerId: string, clientKey?: string): Promise<string> {
-  if (clientKey) return clientKey;
+  const effectiveClientKey = clientKey && clientKey !== SENTINEL ? clientKey : undefined;
+  if (effectiveClientKey) return effectiveClientKey;
   const yamlKey = getConfig().tts[providerId]?.apiKey;
   if (yamlKey) return yamlKey;
   const { resolveApiKeyFromDb } = await import('@/lib/server/db-provider-config');
@@ -403,9 +404,12 @@ export function getServerWebSearchProviders(): Record<string, { baseUrl?: string
   return result;
 }
 
+const SENTINEL = '__STORED__';
+
 /** Resolve Tavily API key: client key > YAML/env > DB > empty */
 export async function resolveWebSearchApiKey(clientKey?: string): Promise<string> {
-  if (clientKey) return clientKey;
+  const effectiveClientKey = clientKey && clientKey !== SENTINEL ? clientKey : undefined;
+  if (effectiveClientKey) return effectiveClientKey;
   const serverKey = getConfig().webSearch.tavily?.apiKey;
   if (serverKey) return serverKey;
   if (process.env.TAVILY_API_KEY) return process.env.TAVILY_API_KEY;
