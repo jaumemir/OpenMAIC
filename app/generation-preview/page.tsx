@@ -645,7 +645,7 @@ function GenerationPreviewContent() {
 
       // Build stageInfo and userProfile for API call
       const stageInfo = {
-        name: stage.name,
+        name: useStageStore.getState().stage?.name || stage.name,
         description: stage.description,
         language: stage.language,
         style: stage.style,
