@@ -167,7 +167,9 @@
       "deleteSceneTitle": "Удалить сцену?",
       "deleteSceneBody": "Это действие необратимо. Сцена будет удалена из курса.",
       "deleteSceneConfirm": "Удалить",
-      "deleteSceneCancel": "Отмена"
+      "deleteSceneCancel": "Отмена",
+      "designIdea": "Идея дизайна",
+      "designIdeaPlaceholder": "Опишите, как должна работать интерактивная активность…"
     }
   },
   "whiteboard": {

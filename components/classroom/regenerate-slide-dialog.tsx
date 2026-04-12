@@ -96,6 +96,7 @@ export function RegenerateSlideDialog({
   const [title, setTitle] = useState('');
   const [regenerateSlide, setRegenerateSlide] = useState(true);
   const [indication, setIndication] = useState('');
+  const [designIdea, setDesignIdea] = useState('');
   const [audioText, setAudioText] = useState('');
   const [modifyAudio, setModifyAudio] = useState(false);
   const [simpleAudio, setSimpleAudio] = useState(false);
@@ -127,6 +128,7 @@ export function RegenerateSlideDialog({
       setTitle(outline.title);
       setRegenerateSlide(true);
       setIndication(outlineToIndication(outline.description, outline.keyPoints));
+      setDesignIdea(outline.interactiveConfig?.designIdea ?? '');
       setAudioText(sceneToAudioText(scene));
       setModifyAudio(false);
       setSimpleAudio(outline.simpleAudioMode ?? false);
@@ -282,7 +284,15 @@ export function RegenerateSlideDialog({
     const updatedOutline: SceneOutline =
       isSlideType && (regenerateSlide || forceSlideRegen)
         ? { ...outline, title, ...indicationToOutline(indication) }
-        : { ...outline };
+        : !isSlideType && regenerateSlide
+          ? {
+              ...outline,
+              ...indicationToOutline(indication),
+              ...(outline.type === 'interactive' && outline.interactiveConfig
+                ? { interactiveConfig: { ...outline.interactiveConfig, designIdea } }
+                : {}),
+            }
+          : { ...outline };
     const effectiveMediaType = isSlideType ? mediaType : 'none';
     // Do NOT call onClose() here — Stage closes the dialog by transitioning
     // regenState from 'dialog_open' to 'regenerating'. Calling onClose() would
@@ -415,24 +425,51 @@ export function RegenerateSlideDialog({
                 )}
               </>
             ) : (
-              /* Quiz / Interactive: simple keep-vs-regen button group */
-              <div className="flex gap-2">
-                <Button
-                  type="button"
-                  size="sm"
-                  variant={!regenerateSlide ? 'default' : 'outline'}
-                  onClick={() => setRegenerateSlide(false)}
-                >
-                  {t('stage.regen.contentKeep')}
-                </Button>
-                <Button
-                  type="button"
-                  size="sm"
-                  variant={regenerateSlide ? 'default' : 'outline'}
-                  onClick={() => setRegenerateSlide(true)}
-                >
-                  {t('stage.regen.contentRegen')}
-                </Button>
+              /* Quiz / Interactive: keep-vs-regen + editable indication when regenerating */
+              <div className="space-y-2">
+                <div className="flex gap-2">
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant={!regenerateSlide ? 'default' : 'outline'}
+                    onClick={() => setRegenerateSlide(false)}
+                  >
+                    {t('stage.regen.contentKeep')}
+                  </Button>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant={regenerateSlide ? 'default' : 'outline'}
+                    onClick={() => setRegenerateSlide(true)}
+                  >
+                    {t('stage.regen.contentRegen')}
+                  </Button>
+                </div>
+                {regenerateSlide && (
+                  <>
+                    <Textarea
+                      value={indication}
+                      onChange={(e) => setIndication(e.target.value)}
+                      rows={3}
+                      className="resize-none text-sm"
+                      placeholder={t('stage.regen.indicationPlaceholder')}
+                    />
+                    {outline.type === 'interactive' && (
+                      <div className="space-y-1">
+                        <Label className="text-xs text-muted-foreground">
+                          {t('stage.regen.designIdea')}
+                        </Label>
+                        <Textarea
+                          value={designIdea}
+                          onChange={(e) => setDesignIdea(e.target.value)}
+                          rows={2}
+                          className="resize-none text-sm"
+                          placeholder={t('stage.regen.designIdeaPlaceholder')}
+                        />
+                      </div>
+                    )}
+                  </>
+                )}
               </div>
             )}
           </div>

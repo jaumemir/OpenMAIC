@@ -111,7 +111,9 @@
       "deleteSceneTitle": "删除场景？",
       "deleteSceneBody": "此操作不可撤销。该场景将从课程中删除。",
       "deleteSceneConfirm": "删除",
-      "deleteSceneCancel": "取消"
+      "deleteSceneCancel": "取消",
+      "designIdea": "设计思路",
+      "designIdeaPlaceholder": "描述互动活动的运作方式…"
     }
   },
   "whiteboard": {

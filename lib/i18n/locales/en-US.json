@@ -111,7 +111,9 @@
       "deleteSceneTitle": "Delete scene?",
       "deleteSceneBody": "This action is irreversible. The scene will be removed from the course.",
       "deleteSceneConfirm": "Delete",
-      "deleteSceneCancel": "Cancel"
+      "deleteSceneCancel": "Cancel",
+      "designIdea": "Design idea",
+      "designIdeaPlaceholder": "Describe how the interactive activity should work…"
     }
   },
   "whiteboard": {

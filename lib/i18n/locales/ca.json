@@ -111,7 +111,9 @@
       "deleteSceneTitle": "Eliminar escena?",
       "deleteSceneBody": "Aquesta acció és irreversible. L'escena s'eliminarà del curs.",
       "deleteSceneConfirm": "Eliminar",
-      "deleteSceneCancel": "Cancel·lar"
+      "deleteSceneCancel": "Cancel·lar",
+      "designIdea": "Idea de disseny",
+      "designIdeaPlaceholder": "Descriu com hauria de funcionar l'activitat interactiva…"
     }
   },
   "whiteboard": {

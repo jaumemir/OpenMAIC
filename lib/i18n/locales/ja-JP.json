@@ -167,7 +167,9 @@
       "deleteSceneTitle": "シーンを削除しますか？",
       "deleteSceneBody": "この操作は元に戻せません。シーンはコースから削除されます。",
       "deleteSceneConfirm": "削除",
-      "deleteSceneCancel": "キャンセル"
+      "deleteSceneCancel": "キャンセル",
+      "designIdea": "デザインアイデア",
+      "designIdeaPlaceholder": "インタラクティブ活動の仕組みを説明してください…"
     }
   },
   "whiteboard": {
