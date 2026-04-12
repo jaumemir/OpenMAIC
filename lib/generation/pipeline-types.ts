@@ -57,6 +57,7 @@ export interface GenerationResult<T> {
   success: boolean;
   data?: T;
   error?: string;
+  courseTitle?: string;
 }
 
 export interface GenerationCallbacks {

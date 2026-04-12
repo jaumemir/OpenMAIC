@@ -132,9 +132,24 @@ export async function generateSceneOutlinesFromRequirements(
     });
 
     const response = await aiCall(prompts.system, prompts.user, visionImages);
-    const outlines = parseJsonResponse<SceneOutline[]>(response);
 
-    if (!outlines || !Array.isArray(outlines)) {
+    // LLM may return { courseTitle, outlines: [...] } or bare [...].
+    // Parse as unknown first, then extract the outlines array from either format.
+    const parsed = parseJsonResponse<unknown>(response);
+    let outlines: SceneOutline[] | null = null;
+    let courseTitle: string | undefined;
+
+    if (Array.isArray(parsed)) {
+      outlines = parsed as SceneOutline[];
+    } else if (parsed && typeof parsed === 'object' && 'outlines' in parsed) {
+      const wrapper = parsed as { courseTitle?: string; outlines?: unknown };
+      if (Array.isArray(wrapper.outlines)) {
+        outlines = wrapper.outlines as SceneOutline[];
+        courseTitle = typeof wrapper.courseTitle === 'string' ? wrapper.courseTitle : undefined;
+      }
+    }
+
+    if (!outlines) {
       return {
         success: false,
         error: 'Failed to parse scene outlines response',
@@ -160,7 +175,7 @@ export async function generateSceneOutlinesFromRequirements(
       totalScenes: result.length,
     });
 
-    return { success: true, data: result };
+    return { success: true, data: result, courseTitle };
   } catch (error) {
     return { success: false, error: String(error) };
   }

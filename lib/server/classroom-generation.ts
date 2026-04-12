@@ -316,6 +316,7 @@ export async function generateClassroom(
   }
 
   const outlines = outlinesResult.data;
+  const generatedCourseTitle = outlinesResult.courseTitle;
   log.info(`Generated ${outlines.length} scene outlines`);
 
   await options.onProgress?.({
@@ -329,7 +330,7 @@ export async function generateClassroom(
   const stageId = nanoid(10);
   const stage: Stage = {
     id: stageId,
-    name: outlines[0]?.title || requirement.slice(0, 50),
+    name: generatedCourseTitle || outlines[0]?.title || requirement.slice(0, 50),
     description: undefined,
     language: lang,
     style: 'interactive',

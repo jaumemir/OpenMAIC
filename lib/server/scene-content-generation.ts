@@ -152,6 +152,12 @@ export async function generateSceneContentFromInput(
     resolveThemeManifest(stageInfo.themeId),
   ]);
 
+  // Compute slide position for layout context (pageNumber, reservedZonesNote)
+  const slideIndex = allOutlines.findIndex((o) => o.id === effectiveOutline.id);
+  const totalSlides = allOutlines.length;
+  // courseTitle comes from stage.name (set to the LLM-generated short title after outline step)
+  const courseTitle = stageInfo.name;
+
   const content = await generateSceneContent(
     effectiveOutline,
     aiCall,
@@ -164,6 +170,10 @@ export async function generateSceneContentFromInput(
     themeInstructions || undefined,
     themeManifest?.colors.primary,
     themeManifest?.colors.secondary,
+    stageInfo.themeId,
+    courseTitle,
+    totalSlides,
+    slideIndex >= 0 ? slideIndex : undefined,
   );
 
   if (!content) {
