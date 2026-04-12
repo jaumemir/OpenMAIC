@@ -5,6 +5,7 @@ import { apiError, apiSuccess } from '@/lib/server/api-response';
 import { prisma } from '@/lib/prisma';
 import { getSession } from '@/lib/auth/session';
 import { createLogger } from '@/lib/logger';
+import { PROVIDERS, type ProviderId } from '@/lib/ai/providers';
 
 const log = createLogger('ServerProviders');
 
@@ -13,7 +14,8 @@ type ProviderMap = Record<string, ProviderEntry>;
 
 /**
  * Carrega els providers LLM del DB admin config (sense exposar les API keys).
- * Retorna només els providers que tenen apiKey configurada.
+ * Retorna providers amb apiKey configurada, i també providers amb requiresApiKey: false
+ * que estiguin presents a providersConfig (p.ex. Ollama).
  */
 async function getDbProviders(): Promise<ProviderMap> {
   const row = await prisma.adminConfig.findUnique({ where: { key: 'globalConfig' } });
@@ -28,7 +30,7 @@ async function getDbProviders(): Promise<ProviderMap> {
 
   const result: ProviderMap = {};
   for (const [pid, cfg] of Object.entries(config.providersConfig ?? {})) {
-    if (!cfg.apiKey) continue;
+    if (!cfg.apiKey && PROVIDERS[pid as ProviderId]?.requiresApiKey !== false) continue;
     const entry: ProviderEntry = {};
     if (cfg.models?.length) entry.models = cfg.models.map((m) => m.id);
     if (cfg.baseUrl) entry.baseUrl = cfg.baseUrl;

@@ -66,13 +66,13 @@ export function ModelSelector({
   };
 
   // Get all providers that are ready to use:
-  // - (Doesn't require API key OR has API key configured OR server has key)
+  // - (Server-configured OR has API key entered by user)
   // - Has at least one model
   // - Has baseUrl or defaultBaseUrl configured
   const configuredProviders = Object.entries(providersConfig)
     .filter(
       ([, config]) =>
-        (!config.requiresApiKey || config.apiKey || config.isServerConfigured) &&
+        (config.isServerConfigured || config.apiKey) &&
         config.models.length >= 1 &&
         (config.baseUrl || config.defaultBaseUrl || config.serverBaseUrl),
     )
