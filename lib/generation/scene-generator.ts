@@ -45,6 +45,9 @@ import type {
   GenerationCallbacks,
 } from './pipeline-types';
 import { createLogger } from '@/lib/logger';
+import { applyThemeLayout, getContentZone } from './theme-layout';
+import { resolveThemeManifest, resolveThemeAssetDataUri } from './theme-instructions';
+import type { SlideContent } from '@/lib/types/stage';
 const log = createLogger('Generation');
 
 // ==================== Stage 2: Full Scenes (Two-Step) ====================
@@ -158,6 +161,10 @@ export async function generateSceneContent(
   themeInstructions?: string,
   themePrimary?: string,
   themeSecondary?: string,
+  themeId?: string,
+  courseTitle?: string,
+  totalSlides?: number,
+  slideIndex?: number,
 ): Promise<
   | GeneratedSlideContent
   | GeneratedQuizContent
@@ -182,6 +189,10 @@ export async function generateSceneContent(
       themeInstructions,
       themePrimary,
       themeSecondary,
+      themeId,
+      courseTitle,
+      totalSlides,
+      slideIndex,
     );
   }
 
@@ -198,6 +209,10 @@ export async function generateSceneContent(
         themeInstructions,
         themePrimary,
         themeSecondary,
+        themeId,
+        courseTitle,
+        totalSlides,
+        slideIndex,
       );
     case 'quiz':
       return generateQuizContent(outline, aiCall);
@@ -478,6 +493,10 @@ async function generateSlideContent(
   themeInstructions?: string,
   themePrimary?: string,
   themeSecondary?: string,
+  themeId?: string,
+  courseTitle?: string,
+  totalSlides?: number,
+  slideIndex?: number,
 ): Promise<GeneratedSlideContent | null> {
   const lang = outline.language || 'zh-CN';
 
@@ -545,6 +564,27 @@ async function generateSlideContent(
   const canvasWidth = 1000;
   const canvasHeight = 562.5;
 
+  // Resolve theme layout for content zone constraints
+  const themeManifest = themeId ? await resolveThemeManifest(themeId) : null;
+  const contentZone = getContentZone(themeManifest?.layout, canvasHeight);
+
+  // Build reserved zones note for the prompt (empty string when no layout defined)
+  const reservedZonesNote =
+    themeManifest?.layout
+      ? [
+          `## Reserved Zones (DO NOT place elements here)`,
+          themeManifest.layout.header
+            ? `- **Header**: y = 0 → ${themeManifest.layout.header.height}px (injected automatically by the theme system)`
+            : null,
+          themeManifest.layout.footer
+            ? `- **Footer**: y = ${contentZone.bottom}px → ${canvasHeight}px (injected automatically by the theme system)`
+            : null,
+          `- **Your content zone**: y = ${contentZone.top} → ${contentZone.bottom}px`,
+        ]
+          .filter(Boolean)
+          .join('\n')
+      : '';
+
   const teacherContext = formatTeacherPersonaForPrompt(agents);
 
   const prompts = buildPrompt(PROMPT_IDS.SLIDE_CONTENT, {
@@ -559,6 +599,9 @@ async function generateSlideContent(
     themeInstructions: themeInstructions || '',
     themePrimary: themePrimary || '#5b9bd5',
     themeSecondary: themeSecondary || '#ed7d31',
+    reservedZonesNote,
+    contentTop: contentZone.top,
+    contentBottom: contentZone.bottom,
   });
 
   if (!prompts) {
@@ -634,11 +677,68 @@ async function generateSlideContent(
     }
   }
 
-  return {
+  const generatedContent: GeneratedSlideContent = {
     elements: processedElements,
     background,
     remark: generatedData.remark || outline.description,
   };
+
+  // Apply theme layout: inject header/footer, remove overlapping LLM elements
+  if (themeManifest?.layout) {
+    // Resolve logo assets: item.asset is a key in manifest.assets (e.g. "logo"),
+    // which maps to a filename (e.g. "assets/logo.svg").
+    // Using the assets record as indirection keeps a future Theme Editor's asset picker
+    // decoupled from raw filenames (it can enumerate Object.keys(manifest.assets)).
+    const assetCache: Record<string, string> = {};
+    for (const zone of [themeManifest.layout.header, themeManifest.layout.footer]) {
+      if (!zone) continue;
+      for (const item of zone.items) {
+        if (item.type === 'logo' && item.asset && !assetCache[item.asset]) {
+          // item.asset is a key in manifest.assets, e.g. "logo" → "assets/logo.svg"
+          const assetValue = themeManifest.assets[item.asset];
+          if (assetValue) {
+            // Strip leading "assets/" prefix — getThemeAssetPath already adds it
+            const bare = assetValue.replace(/^assets\//, '');
+            assetCache[item.asset] = await resolveThemeAssetDataUri(themeId!, bare);
+          }
+        }
+      }
+    }
+
+    // Build a minimal SlideContent for applyThemeLayout.
+    // Uses viewportSize + viewportRatio (the Slide type), NOT width/height fields.
+    const slideContent: SlideContent = {
+      type: 'slide',
+      canvas: {
+        id: nanoid(),
+        viewportSize: canvasWidth,
+        viewportRatio: canvasWidth / canvasHeight,
+        background: generatedContent.background ?? { type: 'solid', color: '#ffffff' },
+        elements: generatedContent.elements,
+        theme: {
+          backgroundColor: themeManifest.colors.background ?? '#ffffff',
+          themeColors: themeManifest.colors.palette.slice(0, 5),
+          fontColor: themeManifest.colors.text ?? '#333333',
+          fontName: themeManifest.typography.fontFamily.split(',')[0].trim(),
+        },
+      },
+    };
+
+    const withLayout = applyThemeLayout(slideContent, themeManifest.layout, {
+      courseTitle,
+      slideNumber: slideIndex != null ? slideIndex + 1 : undefined,
+      totalSlides,
+      resolveAsset: (key) => assetCache[key] ?? '',
+    });
+
+    return {
+      elements: withLayout.canvas.elements,
+      background: withLayout.canvas.background,
+      remark: generatedContent.remark,
+    };
+  }
+
+  return generatedContent;
 }
 
 /**
