@@ -692,7 +692,7 @@ export function Stage({
 
   /** Open the regeneration dialog for the current scene */
   const openRegenerateDialog = useCallback(() => {
-    if (!currentScene || currentScene.type !== 'slide') return;
+    if (!currentScene || currentScene.type === 'pbl') return;
     setRegenState('dialog_open');
   }, [currentScene]);
 
@@ -700,7 +700,7 @@ export function Stage({
   const handleRegenerate = useCallback(
     async (params: RegenerateParams) => {
       const scene = getCurrentScene();
-      if (!scene || scene.type !== 'slide') return;
+      if (!scene || scene.type === 'pbl') return;
       const outline = useStageStore.getState().outlines.find((o) => o.order === scene.order);
       // When skipAudio, preserve the current narration text for display in case
       // the user activates "Modify narration" on a subsequent retry.
@@ -1480,7 +1480,7 @@ export function Stage({
 
       {/* Regenerate Slide Dialog */}
       {(() => {
-        if (!currentScene || currentScene.type !== 'slide') return null;
+        if (!currentScene || currentScene.type === 'pbl') return null;
         if (regenState !== 'dialog_open') return null;
         const outline = outlines.find((o) => o.order === currentScene.order);
         if (!outline) return null;
