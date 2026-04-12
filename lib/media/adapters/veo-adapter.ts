@@ -98,6 +98,9 @@ export async function generateWithVeo(
     prompt: options.prompt,
     ...(options.aspectRatio && { aspectRatio: options.aspectRatio as `${number}:${number}` }),
     ...(options.duration && { duration: options.duration }),
+    // Explicitly disable Veo 3+ audio generation — audio is handled separately via TTS.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    providerOptions: { google: { generateAudio: false } } as any,
   });
 
   const video = result.videos[0];
