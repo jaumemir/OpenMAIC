@@ -59,7 +59,7 @@ export async function generateMediaForOutlines(
   // Process requests serially — image/video APIs have limited concurrency
   for (const req of allRequests) {
     if (abortSignal?.aborted) break;
-    await generateSingleMedia(req, stageId, abortSignal);
+    await generateAndStoreMedia(req, stageId, abortSignal);
   }
 }
 
@@ -88,7 +88,7 @@ export async function retryMediaTask(elementId: string): Promise<void> {
   );
 
   store.markPendingForRetry(elementId);
-  await generateSingleMedia(
+  await generateAndStoreMedia(
     {
       type: task.type,
       prompt: task.prompt,
@@ -100,9 +100,14 @@ export async function retryMediaTask(elementId: string): Promise<void> {
   );
 }
 
-// ==================== Internal ====================
+// ==================== Exported core ====================
 
-async function generateSingleMedia(
+/**
+ * Generate a single media item (image or video) and persist it to the server.
+ * Updates the media generation store on completion or failure.
+ * Exported for use by the per-slide regeneration flow.
+ */
+export async function generateAndStoreMedia(
   req: MediaGenerationRequest,
   stageId: string,
   abortSignal?: AbortSignal,
@@ -197,6 +202,8 @@ async function generateSingleMedia(
     }
   }
 }
+
+// ==================== Internal helpers ====================
 
 async function callImageApi(
   req: MediaGenerationRequest,
