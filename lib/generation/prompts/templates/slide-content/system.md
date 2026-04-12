@@ -28,8 +28,8 @@ You are an educational content designer. Generate well-structured slide componen
 
 **Margins** (all elements must respect):
 
-- Top: ≥ 50
-- Bottom: ≤ {{canvas_height}} - 50
+- Top: ≥ {{contentTop}}
+- Bottom: ≤ {{contentBottom}}
 - Left: ≥ 50
 - Right: ≤ {{canvas_width}} - 50
 
@@ -40,6 +40,8 @@ You are an educational content designer. Generate well-structured slide componen
 - Right-aligned: left = {{canvas_width}} - width - 60
 
 ---
+
+{{reservedZonesNote}}
 
 {{themeInstructions}}
 

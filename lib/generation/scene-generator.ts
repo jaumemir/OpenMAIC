@@ -600,8 +600,10 @@ async function generateSlideContent(
     themePrimary: themePrimary || '#5b9bd5',
     themeSecondary: themeSecondary || '#ed7d31',
     reservedZonesNote,
-    contentTop: contentZone.top,
-    contentBottom: contentZone.bottom,
+    // When layout is defined, use exact zone boundaries.
+    // When no layout, preserve original 50px margins.
+    contentTop: themeManifest?.layout ? contentZone.top : 50,
+    contentBottom: themeManifest?.layout ? contentZone.bottom : canvasHeight - 50,
   });
 
   if (!prompts) {
