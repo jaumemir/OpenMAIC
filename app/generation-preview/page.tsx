@@ -518,6 +518,7 @@ function GenerationPreviewContent() {
         log.debug('=== Generating outlines (SSE) ===');
         setStreamingOutlines([]);
 
+        let courseTitleFromOutlines: string | undefined;
         outlines = await new Promise<SceneOutline[]>((resolve, reject) => {
           const collected: SceneOutline[] = [];
 
@@ -569,6 +570,7 @@ function GenerationPreviewContent() {
                           setStreamingOutlines([]);
                           setStatusMessage(t('generation.outlineRetrying'));
                         } else if (evt.type === 'done') {
+                          if (evt.courseTitle) courseTitleFromOutlines = evt.courseTitle;
                           resolve(evt.outlines || collected);
                           return;
                         } else if (evt.type === 'error') {
@@ -599,6 +601,21 @@ function GenerationPreviewContent() {
         const updatedSession = { ...currentSession, sceneOutlines: outlines };
         setSession(updatedSession);
         sessionStorage.setItem('generationSession', JSON.stringify(updatedSession));
+
+        // Update stage name from raw requirement to the generated short title.
+        // This fixes both the UI edit field and the SCORM export title.
+        if (courseTitleFromOutlines && stage?.id) {
+          try {
+            await fetch(`/api/stages/${stage.id}`, {
+              method: 'PATCH',
+              headers: getApiHeaders(),
+              body: JSON.stringify({ name: courseTitleFromOutlines }),
+            });
+            useStageStore.getState().updateStageName(courseTitleFromOutlines);
+          } catch (e) {
+            log.warn('Failed to update stage name with courseTitle:', e);
+          }
+        }
 
         // Outline generation succeeded — clear homepage draft cache
         try {
