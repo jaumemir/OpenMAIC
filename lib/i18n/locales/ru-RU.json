@@ -169,7 +169,16 @@
       "deleteSceneConfirm": "Удалить",
       "deleteSceneCancel": "Отмена",
       "designIdea": "Идея дизайна",
-      "designIdeaPlaceholder": "Опишите, как должна работать интерактивная активность…"
+      "designIdeaPlaceholder": "Опишите, как должна работать интерактивная активность…",
+      "questionCount": "Кол-во вопросов",
+      "difficulty": "Сложность",
+      "difficulty_easy": "Лёгкий",
+      "difficulty_medium": "Средний",
+      "difficulty_hard": "Сложный",
+      "questionTypes": "Типы",
+      "questionType_single": "Один ответ",
+      "questionType_multiple": "Несколько",
+      "questionType_text": "Свободный ответ"
     }
   },
   "whiteboard": {

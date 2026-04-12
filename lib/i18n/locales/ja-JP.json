@@ -169,7 +169,16 @@
       "deleteSceneConfirm": "削除",
       "deleteSceneCancel": "キャンセル",
       "designIdea": "デザインアイデア",
-      "designIdeaPlaceholder": "インタラクティブ活動の仕組みを説明してください…"
+      "designIdeaPlaceholder": "インタラクティブ活動の仕組みを説明してください…",
+      "questionCount": "問題数",
+      "difficulty": "難易度",
+      "difficulty_easy": "易しい",
+      "difficulty_medium": "普通",
+      "difficulty_hard": "難しい",
+      "questionTypes": "種類",
+      "questionType_single": "単一選択",
+      "questionType_multiple": "複数選択",
+      "questionType_text": "記述"
     }
   },
   "whiteboard": {

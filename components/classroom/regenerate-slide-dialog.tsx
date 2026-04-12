@@ -97,6 +97,9 @@ export function RegenerateSlideDialog({
   const [regenerateSlide, setRegenerateSlide] = useState(true);
   const [indication, setIndication] = useState('');
   const [designIdea, setDesignIdea] = useState('');
+  const [questionCount, setQuestionCount] = useState(3);
+  const [difficulty, setDifficulty] = useState<'easy' | 'medium' | 'hard'>('medium');
+  const [questionTypes, setQuestionTypes] = useState<('single' | 'multiple' | 'text')[]>(['single']);
   const [audioText, setAudioText] = useState('');
   const [modifyAudio, setModifyAudio] = useState(false);
   const [simpleAudio, setSimpleAudio] = useState(false);
@@ -129,6 +132,9 @@ export function RegenerateSlideDialog({
       setRegenerateSlide(true);
       setIndication(outlineToIndication(outline.description, outline.keyPoints));
       setDesignIdea(outline.interactiveConfig?.designIdea ?? '');
+      setQuestionCount(outline.quizConfig?.questionCount ?? 3);
+      setDifficulty(outline.quizConfig?.difficulty ?? 'medium');
+      setQuestionTypes(outline.quizConfig?.questionTypes ?? ['single']);
       setAudioText(sceneToAudioText(scene));
       setModifyAudio(false);
       setSimpleAudio(outline.simpleAudioMode ?? false);
@@ -291,6 +297,16 @@ export function RegenerateSlideDialog({
               ...(outline.type === 'interactive' && outline.interactiveConfig
                 ? { interactiveConfig: { ...outline.interactiveConfig, designIdea } }
                 : {}),
+              ...(outline.type === 'quiz'
+                ? {
+                    quizConfig: {
+                      ...(outline.quizConfig ?? { questionCount: 3, difficulty: 'medium', questionTypes: ['single'] }),
+                      questionCount,
+                      difficulty,
+                      questionTypes: questionTypes.length > 0 ? questionTypes : ['single'],
+                    },
+                  }
+                : {}),
             }
           : { ...outline };
     const effectiveMediaType = isSlideType ? mediaType : 'none';
@@ -447,13 +463,6 @@ export function RegenerateSlideDialog({
                 </div>
                 {regenerateSlide && (
                   <>
-                    <Textarea
-                      value={indication}
-                      onChange={(e) => setIndication(e.target.value)}
-                      rows={3}
-                      className="resize-none text-sm"
-                      placeholder={t('stage.regen.indicationPlaceholder')}
-                    />
                     {outline.type === 'interactive' && (
                       <div className="space-y-1">
                         <Label className="text-xs text-muted-foreground">
@@ -466,6 +475,83 @@ export function RegenerateSlideDialog({
                           className="resize-none text-sm"
                           placeholder={t('stage.regen.designIdeaPlaceholder')}
                         />
+                      </div>
+                    )}
+                    <Textarea
+                      value={indication}
+                      onChange={(e) => setIndication(e.target.value)}
+                      rows={3}
+                      className="resize-none text-sm"
+                      placeholder={t('stage.regen.indicationPlaceholder')}
+                    />
+                    {outline.type === 'quiz' && (
+                      <div className="space-y-2 pt-1">
+                        {/* Question count */}
+                        <div className="flex items-center gap-3">
+                          <Label className="text-xs text-muted-foreground shrink-0">
+                            {t('stage.regen.questionCount')}
+                          </Label>
+                          <div className="flex items-center gap-1">
+                            <Button
+                              type="button" size="sm" variant="outline"
+                              className="h-6 w-6 p-0 text-xs"
+                              onClick={() => setQuestionCount((n) => Math.max(1, n - 1))}
+                            >−</Button>
+                            <span className="text-sm font-medium w-5 text-center">{questionCount}</span>
+                            <Button
+                              type="button" size="sm" variant="outline"
+                              className="h-6 w-6 p-0 text-xs"
+                              onClick={() => setQuestionCount((n) => Math.min(20, n + 1))}
+                            >+</Button>
+                          </div>
+                        </div>
+                        {/* Difficulty */}
+                        <div className="flex items-center gap-3">
+                          <Label className="text-xs text-muted-foreground shrink-0">
+                            {t('stage.regen.difficulty')}
+                          </Label>
+                          <div className="flex gap-1">
+                            {(['easy', 'medium', 'hard'] as const).map((d) => (
+                              <Button
+                                key={d} type="button" size="sm"
+                                variant={difficulty === d ? 'default' : 'outline'}
+                                className="h-6 text-xs px-2"
+                                onClick={() => setDifficulty(d)}
+                              >
+                                {t(`stage.regen.difficulty_${d}`)}
+                              </Button>
+                            ))}
+                          </div>
+                        </div>
+                        {/* Question types */}
+                        <div className="flex items-center gap-3">
+                          <Label className="text-xs text-muted-foreground shrink-0">
+                            {t('stage.regen.questionTypes')}
+                          </Label>
+                          <div className="flex gap-1">
+                            {(['single', 'multiple', 'text'] as const).map((qt) => {
+                              const active = questionTypes.includes(qt);
+                              return (
+                                <Button
+                                  key={qt} type="button" size="sm"
+                                  variant={active ? 'default' : 'outline'}
+                                  className="h-6 text-xs px-2"
+                                  onClick={() =>
+                                    setQuestionTypes((prev) =>
+                                      active && prev.length > 1
+                                        ? prev.filter((t) => t !== qt)
+                                        : active
+                                          ? prev
+                                          : [...prev, qt],
+                                    )
+                                  }
+                                >
+                                  {t(`stage.regen.questionType_${qt}`)}
+                                </Button>
+                              );
+                            })}
+                          </div>
+                        </div>
                       </div>
                     )}
                   </>

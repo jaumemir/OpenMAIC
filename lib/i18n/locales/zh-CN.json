@@ -113,7 +113,16 @@
       "deleteSceneConfirm": "删除",
       "deleteSceneCancel": "取消",
       "designIdea": "设计思路",
-      "designIdeaPlaceholder": "描述互动活动的运作方式…"
+      "designIdeaPlaceholder": "描述互动活动的运作方式…",
+      "questionCount": "题目数量",
+      "difficulty": "难度",
+      "difficulty_easy": "简单",
+      "difficulty_medium": "中等",
+      "difficulty_hard": "困难",
+      "questionTypes": "题型",
+      "questionType_single": "单选",
+      "questionType_multiple": "多选",
+      "questionType_text": "简答"
     }
   },
   "whiteboard": {

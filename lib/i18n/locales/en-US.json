@@ -113,7 +113,16 @@
       "deleteSceneConfirm": "Delete",
       "deleteSceneCancel": "Cancel",
       "designIdea": "Design idea",
-      "designIdeaPlaceholder": "Describe how the interactive activity should work…"
+      "designIdeaPlaceholder": "Describe how the interactive activity should work…",
+      "questionCount": "No. questions",
+      "difficulty": "Difficulty",
+      "difficulty_easy": "Easy",
+      "difficulty_medium": "Medium",
+      "difficulty_hard": "Hard",
+      "questionTypes": "Types",
+      "questionType_single": "Single",
+      "questionType_multiple": "Multiple",
+      "questionType_text": "Free text"
     }
   },
   "whiteboard": {

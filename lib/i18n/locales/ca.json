@@ -113,7 +113,16 @@
       "deleteSceneConfirm": "Eliminar",
       "deleteSceneCancel": "Cancel·lar",
       "designIdea": "Idea de disseny",
-      "designIdeaPlaceholder": "Descriu com hauria de funcionar l'activitat interactiva…"
+      "designIdeaPlaceholder": "Descriu com hauria de funcionar l'activitat interactiva…",
+      "questionCount": "Núm. preguntes",
+      "difficulty": "Dificultat",
+      "difficulty_easy": "Fàcil",
+      "difficulty_medium": "Mitjana",
+      "difficulty_hard": "Difícil",
+      "questionTypes": "Tipus",
+      "questionType_single": "Una resp.",
+      "questionType_multiple": "Múltiple",
+      "questionType_text": "Text lliure"
     }
   },
   "whiteboard": {
