@@ -35,9 +35,11 @@ import {
 import { AlertTriangle } from 'lucide-react';
 import { VisuallyHidden } from 'radix-ui';
 import { Button } from '@/components/ui/button';
-import { useSceneRegenerator } from '@/lib/hooks/use-scene-regenerator';
+import { useSceneRegenerator, outlineToIndication, type RegenerateParams } from '@/lib/hooks/use-scene-regenerator';
 import { RegenerateSlideDialog, type RegenerateFormValues } from '@/components/classroom/regenerate-slide-dialog';
 import type { Scene } from '@/lib/types/stage';
+
+type RegenState = 'idle' | 'dialog_open' | 'regenerating' | 'review';
 
 /**
  * Stage Component
@@ -105,7 +107,6 @@ export function Stage({
   // Scene switch confirmation dialog state
   const [pendingSceneId, setPendingSceneId] = useState<string | null>(null);
   // Regenerate-slide state machine
-  type RegenState = 'idle' | 'dialog_open' | 'regenerating' | 'review';
   const [regenState, setRegenState] = useState<RegenState>('idle');
   const [backupScene, setBackupScene] = useState<Scene | null>(null);
   const [lastRegenValues, setLastRegenValues] = useState<RegenerateFormValues | null>(null);
@@ -680,10 +681,10 @@ export function Stage({
 
   /** Called when the dialog submits — starts the regeneration pipeline */
   const handleRegenerate = useCallback(
-    async (params: import('@/lib/hooks/use-scene-regenerator').RegenerateParams) => {
-      if (!currentScene) return;
-      const { outlineToIndication } = await import('@/lib/hooks/use-scene-regenerator');
-      const outline = useStageStore.getState().outlines.find((o) => o.order === currentScene.order);
+    async (params: RegenerateParams) => {
+      const scene = getCurrentScene();
+      if (!scene || scene.type !== 'slide') return;
+      const outline = useStageStore.getState().outlines.find((o) => o.order === scene.order);
       setLastRegenValues({
         indication: outlineToIndication(
           outline?.description ?? params.outline.description,
@@ -693,12 +694,23 @@ export function Stage({
         mediaType: params.mediaType,
         mediaPrompt: params.mediaPrompt ?? '',
       });
-      setBackupScene({ ...currentScene });
+      setBackupScene({ ...scene });
       setRegenState('regenerating');
-      await sceneRegenerator.regenerate(currentScene.id, params);
+      const success = await sceneRegenerator.regenerate(scene.id, params);
+      if (!success) {
+        // Restore backup and re-open dialog so user can retry
+        if (backupScene) {
+          useStageStore.getState().updateScene(scene.id, {
+            content: backupScene.content,
+            actions: backupScene.actions,
+          });
+        }
+        setRegenState('dialog_open');
+        return;
+      }
       setRegenState('review');
     },
-    [currentScene, sceneRegenerator],
+    [getCurrentScene, sceneRegenerator, backupScene],
   );
 
   /** Accept the new version: clear backup, return to idle */
@@ -775,10 +787,18 @@ export function Stage({
   /** User chose "Descartar" in regen confirm modal */
   const confirmRegenDiscard = useCallback(() => {
     if (!pendingRegenSceneId) return;
-    handleRegenUndo();
+    if (backupScene && currentScene) {
+      useStageStore.getState().updateScene(currentScene.id, {
+        content: backupScene.content,
+        actions: backupScene.actions,
+      });
+    }
+    setBackupScene(null);
+    setLastRegenValues(null);
+    setRegenState('idle');
     setCurrentSceneId(pendingRegenSceneId);
     setPendingRegenSceneId(null);
-  }, [pendingRegenSceneId, handleRegenUndo, setCurrentSceneId]);
+  }, [backupScene, currentScene, pendingRegenSceneId, setCurrentSceneId]);
 
   // play/pause toggle
   const handlePlayPause = useCallback(async () => {
@@ -1363,7 +1383,12 @@ export function Stage({
       })()}
 
       {/* Regen confirm modal — shown when navigating away during review */}
-      <AlertDialog open={!!pendingRegenSceneId}>
+      <AlertDialog
+        open={!!pendingRegenSceneId}
+        onOpenChange={(open) => {
+          if (!open) setPendingRegenSceneId(null);
+        }}
+      >
         <AlertDialogContent className="max-w-md rounded-2xl">
           <VisuallyHidden.Root>
             <AlertDialogTitle>{t('stage.regen.confirmTitle')}</AlertDialogTitle>
