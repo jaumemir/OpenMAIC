@@ -76,11 +76,50 @@ describe('POST /api/generate/scene-content-only', () => {
     expect(data.data.elements).toBeDefined();
   });
 
-  it('returns 400 when outline is not a slide', async () => {
+  it('returns 400 when outline type is pbl (unsupported)', async () => {
     const { POST } = await import('@/app/api/generate/scene-content-only/route');
     const req = new Request('http://localhost/api/generate/scene-content-only', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        outline: {
+          id: 'o1',
+          type: 'pbl',
+          title: 'PBL 1',
+          description: 'Desc',
+          keyPoints: [],
+          order: 1,
+        },
+        stageId: 'stage1',
+      }),
+    });
+    const res = await POST(req as never);
+    expect(res.status).toBe(400);
+  });
+
+  it('returns questions for a quiz outline', async () => {
+    const { generateSceneContentFromInput } = await import(
+      '@/lib/server/scene-content-generation'
+    );
+    vi.mocked(generateSceneContentFromInput).mockResolvedValueOnce({
+      content: {
+        questions: [{ id: 'q1', type: 'single', question: 'Test?', options: [], answer: ['A'] }],
+      } as never,
+      effectiveOutline: {
+        id: 'o1',
+        type: 'quiz',
+        title: 'Quiz 1',
+        description: 'Desc',
+        keyPoints: [],
+        order: 1,
+      },
+      slideTheme: undefined,
+    });
+
+    const { POST } = await import('@/app/api/generate/scene-content-only/route');
+    const req = new Request('http://localhost/api/generate/scene-content-only', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-model': 'test-model' },
       body: JSON.stringify({
         outline: {
           id: 'o1',
@@ -94,7 +133,10 @@ describe('POST /api/generate/scene-content-only', () => {
       }),
     });
     const res = await POST(req as never);
-    expect(res.status).toBe(400);
+    const data = await res.json();
+    expect(data.success).toBe(true);
+    expect(Array.isArray(data.data.questions)).toBe(true);
+    expect(data.data.questions).toHaveLength(1);
   });
 
   it('returns 400 when outline is missing', async () => {

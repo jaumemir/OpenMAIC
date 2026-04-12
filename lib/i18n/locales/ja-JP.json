@@ -158,7 +158,16 @@
       "generateNarration": "AIで生成",
       "generatingNarration": "ナレーション生成中…",
       "aiGenerationError": "生成に失敗しました。",
-      "aiModelHint": "左下のコントロールでLLMモデルを選択してください。"
+      "aiModelHint": "左下のコントロールでLLMモデルを選択してください。",
+      "dialogTitleQuiz": "クイズを再生成",
+      "dialogTitleInteractive": "アクティビティを再生成",
+      "contentKeep": "現在のコンテンツを保持",
+      "contentRegen": "再生成（新バージョン）",
+      "deleteScene": "シーンを削除",
+      "deleteSceneTitle": "シーンを削除しますか？",
+      "deleteSceneBody": "この操作は元に戻せません。シーンはコースから削除されます。",
+      "deleteSceneConfirm": "削除",
+      "deleteSceneCancel": "キャンセル"
     }
   },
   "whiteboard": {

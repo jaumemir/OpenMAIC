@@ -102,7 +102,16 @@
       "aiGenerationError": "Error en generar.",
       "aiModelHint": "Selecciona un model LLM als controls de la part inferior esquerra.",
       "simpleAudio": "Només narració",
-      "simpleAudioDesc": "S'eliminaran les accions de spotlight, làser i reproducció automàtica de vídeo. Els vídeos es poden reproduir manualment."
+      "simpleAudioDesc": "S'eliminaran les accions de spotlight, làser i reproducció automàtica de vídeo. Els vídeos es poden reproduir manualment.",
+      "dialogTitleQuiz": "Regenerar Quiz",
+      "dialogTitleInteractive": "Regenerar Activitat",
+      "contentKeep": "Mantenir contingut actual",
+      "contentRegen": "Regenerar (nova versió)",
+      "deleteScene": "Eliminar escena",
+      "deleteSceneTitle": "Eliminar escena?",
+      "deleteSceneBody": "Aquesta acció és irreversible. L'escena s'eliminarà del curs.",
+      "deleteSceneConfirm": "Eliminar",
+      "deleteSceneCancel": "Cancel·lar"
     }
   },
   "whiteboard": {

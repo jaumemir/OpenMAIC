@@ -11,13 +11,27 @@ import {
   Globe,
   AlertCircle,
   RefreshCw,
+  Trash2,
 } from 'lucide-react';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { cn } from '@/lib/utils';
 import { ThumbnailSlide } from '@/components/slide-renderer/components/ThumbnailSlide';
 import { useStageStore, useCanvasStore } from '@/lib/store';
 import { useI18n } from '@/lib/hooks/use-i18n';
 import type { SceneType, SlideContent } from '@/lib/types/stage';
 import { PENDING_SCENE_ID } from '@/lib/store/stage';
+import { createLogger } from '@/lib/logger';
+
+const log = createLogger('SceneSidebar');
 
 interface SceneSidebarProps {
   readonly collapsed: boolean;
@@ -50,6 +64,35 @@ export function SceneSidebar({
   const viewportRatio = useCanvasStore.use.viewportRatio();
 
   const [retryingOutlineId, setRetryingOutlineId] = useState<string | null>(null);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+
+  const handleDeleteScene = useCallback(
+    async (sceneId: string) => {
+      const stageId = useStageStore.getState().stage?.id;
+      const currentOutlines = useStageStore.getState().outlines;
+
+      // Remove from store (auto-selects next scene + debouncedSave for scenes)
+      useStageStore.getState().deleteScene(sceneId);
+
+      // Remove outline from server (filter + PUT)
+      if (stageId && currentOutlines.length > 0) {
+        const updatedOutlines = currentOutlines.filter((o) => o.id !== sceneId);
+        useStageStore.getState().setOutlines(updatedOutlines);
+        try {
+          await fetch(`/api/stages/${stageId}/outlines`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ outlines: updatedOutlines }),
+          });
+        } catch (err) {
+          log.warn('Failed to remove outline from server:', err);
+        }
+      }
+
+      setConfirmDeleteId(null);
+    },
+    [],
+  );
 
   const handleRetryOutline = async (outlineId: string) => {
     if (!onRetryOutline) return;
@@ -325,7 +368,8 @@ export function SceneSidebar({
                   </div>
                 </div>
 
-                {isActive && isSlide && onRegenerateClick && (
+                {/* Regen button — all types except pbl */}
+                {isActive && scene.type !== 'pbl' && onRegenerateClick && (
                   <button
                     disabled={regenState !== 'idle'}
                     onClick={(e) => {
@@ -338,6 +382,18 @@ export function SceneSidebar({
                     <span aria-hidden="true">↺</span> {t('stage.regen.buttonLabel')}
                   </button>
                 )}
+
+                {/* Delete button — visible on hover, all types */}
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setConfirmDeleteId(scene.id);
+                  }}
+                  title={t('stage.regen.deleteScene')}
+                  className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 p-0.5 rounded text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-all"
+                >
+                  <Trash2 className="w-3 h-3" />
+                </button>
               </div>
             );
           })}
@@ -468,6 +524,30 @@ export function SceneSidebar({
         {/* Spacer to push toggle button area */}
         <div className="mt-auto" />
       </div>
+
+      {/* Delete confirmation dialog */}
+      <AlertDialog
+        open={confirmDeleteId !== null}
+        onOpenChange={(open) => !open && setConfirmDeleteId(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t('stage.regen.deleteSceneTitle')}</AlertDialogTitle>
+            <AlertDialogDescription>{t('stage.regen.deleteSceneBody')}</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setConfirmDeleteId(null)}>
+              {t('stage.regen.deleteSceneCancel')}
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => confirmDeleteId && handleDeleteScene(confirmDeleteId)}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {t('stage.regen.deleteSceneConfirm')}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

@@ -158,7 +158,16 @@
       "generateNarration": "Сгенерировать с ИИ",
       "generatingNarration": "Генерация нарратива…",
       "aiGenerationError": "Ошибка генерации.",
-      "aiModelHint": "Выберите LLM-модель в элементах управления внизу слева."
+      "aiModelHint": "Выберите LLM-модель в элементах управления внизу слева.",
+      "dialogTitleQuiz": "Регенерация викторины",
+      "dialogTitleInteractive": "Регенерация активности",
+      "contentKeep": "Сохранить текущее содержимое",
+      "contentRegen": "Регенерировать (новая версия)",
+      "deleteScene": "Удалить сцену",
+      "deleteSceneTitle": "Удалить сцену?",
+      "deleteSceneBody": "Это действие необратимо. Сцена будет удалена из курса.",
+      "deleteSceneConfirm": "Удалить",
+      "deleteSceneCancel": "Отмена"
     }
   },
   "whiteboard": {

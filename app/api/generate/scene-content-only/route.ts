@@ -9,6 +9,7 @@ import { generateSceneContentFromInput } from '@/lib/server/scene-content-genera
 import { getStorageBackend } from '@/lib/server/storage';
 import { resolveModelFromHeaders } from '@/lib/server/resolve-model';
 import type { SceneOutline, GeneratedSlideContent } from '@/lib/types/generation';
+import type { GeneratedQuizContent, GeneratedInteractiveContent } from '@/lib/types/generation';
 import type { AgentInfo } from '@/lib/generation/generation-pipeline';
 
 const log = createLogger('SceneContentOnly API');
@@ -32,8 +33,8 @@ export async function POST(req: NextRequest) {
       return apiError('MISSING_REQUIRED_FIELD', 400, 'stageId is required');
     }
 
-    if (outline.type !== 'slide') {
-      return apiError('INVALID_REQUEST', 400, 'Only slide-type outlines are supported');
+    if (outline.type === 'pbl') {
+      return apiError('INVALID_REQUEST', 400, 'PBL-type outlines are not supported');
     }
 
     // Load stage metadata and outlines from server storage
@@ -68,14 +69,28 @@ export async function POST(req: NextRequest) {
       modelConfig: { modelString },
     });
 
-    // Return only the slide content fields (elements + background)
-    const slideContent = result.content as GeneratedSlideContent;
-    return apiSuccess({
-      data: {
-        elements: slideContent.elements ?? [],
-        background: slideContent.background,
-      },
-    });
+    // Return content fields by type
+    switch (outline.type) {
+      case 'slide': {
+        const slideContent = result.content as GeneratedSlideContent;
+        return apiSuccess({
+          data: {
+            elements: slideContent.elements ?? [],
+            background: slideContent.background,
+          },
+        });
+      }
+      case 'quiz': {
+        const quizContent = result.content as GeneratedQuizContent;
+        return apiSuccess({ data: { questions: quizContent.questions ?? [] } });
+      }
+      case 'interactive': {
+        const interactiveContent = result.content as GeneratedInteractiveContent;
+        return apiSuccess({ data: { html: interactiveContent.html } });
+      }
+      default:
+        return apiError('INVALID_REQUEST', 400, `Unsupported outline type: ${outline.type}`);
+    }
   } catch (error) {
     log.error('scene-content-only failed:', error);
     return apiError('INTERNAL_ERROR', 500, error instanceof Error ? error.message : String(error));

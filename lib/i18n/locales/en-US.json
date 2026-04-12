@@ -102,7 +102,16 @@
       "aiGenerationError": "Generation failed.",
       "aiModelHint": "Select an LLM model using the controls at the bottom left.",
       "simpleAudio": "Narration only",
-      "simpleAudioDesc": "Spotlight, laser and video autoplay actions will be removed. Videos can still be played manually."
+      "simpleAudioDesc": "Spotlight, laser and video autoplay actions will be removed. Videos can still be played manually.",
+      "dialogTitleQuiz": "Regenerate Quiz",
+      "dialogTitleInteractive": "Regenerate Activity",
+      "contentKeep": "Keep current content",
+      "contentRegen": "Regenerate (new version)",
+      "deleteScene": "Delete scene",
+      "deleteSceneTitle": "Delete scene?",
+      "deleteSceneBody": "This action is irreversible. The scene will be removed from the course.",
+      "deleteSceneConfirm": "Delete",
+      "deleteSceneCancel": "Cancel"
     }
   },
   "whiteboard": {
