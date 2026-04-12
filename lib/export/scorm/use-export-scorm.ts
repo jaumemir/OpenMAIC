@@ -91,6 +91,22 @@ export function useExportScorm(): {
         const courseId = sanitizeId(fileName);
         const courseTitle = stage?.name ?? fileName;
 
+        // Resolve theme font family for SCORM global CSS override
+        let themeFontFamily: string | undefined;
+        if (stage?.style) {
+          try {
+            const res = await fetch(`/api/themes/${stage.style}`);
+            if (res.ok) {
+              const manifest = await res.json();
+              if (manifest?.typography?.fontFamily) {
+                themeFontFamily = manifest.typography.fontFamily as string;
+              }
+            }
+          } catch {
+            // non-critical: fall back to default Segoe UI/Arial
+          }
+        }
+
         // 1. Filter to exportable scenes only
         const exportableScenes = scenes.filter(isExportableScene);
 
@@ -139,6 +155,7 @@ export function useExportScorm(): {
           courseName: courseTitle,
           sections: sectionResults,
           needsKatex,
+          themeFontFamily,
         });
         zip.file('index.html', courseHtml);
 

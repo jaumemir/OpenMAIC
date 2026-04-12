@@ -22,6 +22,8 @@ export interface CourseHtmlOptions {
   /** Each section includes the pre-built HTML fragment, its metadata, and the scene title. */
   sections: Array<{ html: string; meta: SceneMeta; title: string }>;
   needsKatex: boolean;
+  /** Override the default Segoe UI/Arial font stack with the theme's font family. */
+  themeFontFamily?: string;
 }
 
 const SIDEBAR_W = 240; // px
@@ -58,7 +60,8 @@ function serializeMeta(metas: SceneMeta[]): string {
 }
 
 export function buildCourseHtml(opts: CourseHtmlOptions): string {
-  const { courseName, sections, needsKatex } = opts;
+  const { courseName, sections, needsKatex, themeFontFamily } = opts;
+  const bodyFont = themeFontFamily ?? "'Segoe UI', Arial, sans-serif";
   const metas = sections.map((s) => s.meta);
   const totalScenes = sections.length;
   const hasQuiz = metas.some((m) => m.type === 'quiz');
@@ -92,7 +95,7 @@ export function buildCourseHtml(opts: CourseHtmlOptions): string {
   ${katexLink}
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    html, body { width: 100%; height: 100%; overflow: hidden; font-family: 'Segoe UI', Arial, sans-serif; background: #111; }
+    html, body { width: 100%; height: 100%; overflow: hidden; font-family: ${bodyFont}; background: #111; }
 
     /* ── Sidebar ── */
     #om-sidebar {
