@@ -1,6 +1,6 @@
 # Theme Layout System — Design Reference
 
-> **Target audience:** Developers building the future OpenMAIC Theme Editor UI, or maintainers extending the layout injection pipeline.
+> **Target audience:** Developers building the future OpenMAIC Theme Editor UI, or maintainers extending the layout injection pipeline. For instructions on how to **create a new theme** using an AI assistant, see [`creating-themes-with-ai.md`](./creating-themes-with-ai.md).
 
 ---
 
@@ -9,6 +9,14 @@
 The `layout` field in `ThemeManifest` lets a theme define **fixed header and footer zones** that are injected programmatically into every generated slide. This guarantees visual consistency across all slides — regardless of what the LLM generates.
 
 **Key property:** The layout injection happens _after_ LLM slide generation and _before_ persisting. All three renderers (web canvas, PPTX export, SCORM export) read `slide.elements[]` directly, so they receive the injected elements transparently with no renderer-specific code.
+
+**Responsibility split:**
+
+| What the system controls | What the LLM controls |
+|---|---|
+| Header band (logo, title, background) | Slide body content (text, shapes, images) |
+| Footer band (course title, page number) | Colours and typography within the content zone |
+| Removing overlapping LLM elements | Following content zone boundaries |
 
 ---
 
@@ -65,7 +73,7 @@ Four item types, discriminated by the `type` field:
   y: number;
   width?: number;    // default: canvas width (1000px)
   height?: number;   // default: zone height
-  fill: string;      // hex color
+  fill: string;      // hex or rgba color
 }
 ```
 
@@ -113,7 +121,8 @@ Using the `assets` record key (not the raw filename) enables a future Theme Edit
   type: 'text';
   content: string;   // template string, supports {{variables}}
   x?: number;        // default: 16
-  y?: number;        // default: vertically centered in zone
+  y?: number;        // default: 0 (use small positive value, e.g. 6, for vertical breathing room)
+  width?: number;    // default: canvasWidth - x - 16 (set explicitly to avoid overlap with pageNumber)
   size?: number;     // font size px, default: 11
   color?: string;    // hex, default: '#333333'
   font?: string;     // font family, default: 'Aptos, Calibri, sans-serif'
@@ -126,11 +135,14 @@ Using the `assets` record key (not the raw filename) enables a future Theme Edit
 
 | Variable | Value | Truncation |
 |----------|-------|------------|
-| `{{courseTitle}}` | Generated short course title | Truncated at 50 chars + `…` |
-| `{{slideNumber}}` | Current slide (1-based) | — |
+| `{{courseTitle}}` | LLM-generated short course title | Truncated at **70** chars + `…` |
+| `{{slideTitle}}` | LLM-generated slide title from the outline | Truncated at **80** chars + `…` |
+| `{{slideNumber}}` | Current slide number (1-based) | — |
 | `{{totalSlides}}` | Total slide count | — |
 
 Unknown variables render as empty string.
+
+**Width tip:** If the zone also contains a `pageNumber` element at the right, set `width` explicitly on the text element to leave room. For example, with `pageNumber` at x=916 and width 60, a text element starting at x=16 should use `width: 880` to avoid visual overlap.
 
 ---
 
@@ -141,13 +153,13 @@ Unknown variables render as empty string.
   type: 'pageNumber';
   format?: 'n' | 'n/total';  // default: 'n'
   x?: number;                // default: canvasWidth - 50
-  y?: number;                // default: vertically centered in zone
+  y?: number;                // default: 0 (use small positive value, e.g. 6)
   size?: number;             // default: 10
   color?: string;            // default: '#999999'
 }
 ```
 
-The element is rendered as a right-aligned text element.
+The element is rendered as a right-aligned text element with fixed width 60px.
 
 ---
 
@@ -163,16 +175,23 @@ function getContentZone(layout, canvasHeight = 562.5) {
 }
 ```
 
-**Example — gencat theme:**
-- Header height: 45px
-- Footer height: 28px
-- Canvas height: 562.5px
-- Content zone: y = 45 → 534.5px (height: 489.5px)
+### Content Zone Gap (8px)
 
-The content zone is passed to `generateSlideContent()` as:
-- `contentTop` → prompt variable `{{contentTop}}`
-- `contentBottom` → prompt variable `{{contentBottom}}`
-- `reservedZonesNote` → explicit instruction block injected into the system prompt
+When a theme layout is active, `scene-generator.ts` adds an **8px gap** to the boundaries passed to the LLM prompt:
+
+```typescript
+const CONTENT_ZONE_GAP = themeManifest?.layout ? 8 : 0;
+const promptContentTop    = contentZone.top    + CONTENT_ZONE_GAP;  // e.g. 62 + 8 = 70
+const promptContentBottom = contentZone.bottom - CONTENT_ZONE_GAP;  // e.g. 526.5 - 8 = 518.5
+```
+
+This breathing room prevents LLM-generated elements from being placed flush against the header or footer bands. The gap only affects the prompt variables (`contentTop` / `contentBottom`) — the spatial filter in `applyThemeLayout()` still uses the raw zone height as its boundary.
+
+**Example — gencat theme (current v2.2.0):**
+- Header height: 62px — Content zone starts at y = 62
+- Footer height: 36px — Content zone ends at y = 526.5
+- **Prompt boundaries communicated to LLM:** y = 70 → 518.5px
+- Available height for LLM content: 489.5px (after subtracting both 8px gaps)
 
 ---
 
@@ -192,10 +211,10 @@ Because slide renderers draw elements in array order (later = higher z-index), t
 LLM elements that overlap reserved zones are removed:
 
 ```typescript
-// Header overlap: element top < header.height
+// Header overlap: element top strictly inside header zone
 if (headerH > 0 && elTop < headerH) → removed
 
-// Footer overlap: element bottom > footerTop
+// Footer overlap: element bottom exceeds footer top boundary
 if (footerH > 0 && elBottom > footerTop) → removed
 ```
 
@@ -207,12 +226,13 @@ Note: `PPTLineElement` omits `height` (it uses `start`/`end` coordinates). Line 
 
 ```typescript
 interface LayoutContext {
-  courseTitle?: string;
-  slideNumber?: number;
-  totalSlides?: number;
+  courseTitle?: string;   // LLM-generated short course name
+  slideTitle?: string;    // Current slide title from the outline
+  slideNumber?: number;   // 1-based slide index
+  totalSlides?: number;   // Total number of slides in the course
   canvasWidth?: number;   // default 1000
   canvasHeight?: number;  // default 562.5
-  resolveAsset?: (assetKey: string) => string;
+  resolveAsset?: (assetKey: string) => string;  // asset key → data URI or URL
 }
 ```
 
@@ -231,14 +251,14 @@ The `resolveAsset` callback decouples asset resolution from `applyThemeLayout()`
 `lib/generation/scene-generator.ts` → `generateSlideContent()`:
 
 1. Resolves `ThemeManifest` via `resolveThemeManifest(themeId)`
-2. Calls `getContentZone()` → injects `contentTop`/`contentBottom`/`reservedZonesNote` into the prompt
-3. After LLM generation + element post-processing, calls `applyThemeLayout()`
+2. Calls `getContentZone()` → adds 8px gap → injects `contentTop` / `contentBottom` / `reservedZonesNote` into the prompt
+3. After LLM generation + element post-processing, calls `applyThemeLayout()` with `outline.title` as `slideTitle`
 4. Logo assets: `manifest.assets[item.asset]` → strip prefix → `resolveThemeAssetDataUri(themeId, bare)` → data URI
 
 ### Where `courseTitle` comes from
 
-1. `outline-generator` prompt instructs the LLM to return `{ courseTitle, outlines }` instead of bare array
-2. `scene-outlines-stream/route.ts` extracts `courseTitle` via regex during streaming, includes it in the `done` SSE event
+1. `outline-generator` prompt instructs the LLM to return `{ courseTitle, outlines }` instead of a bare array
+2. `scene-outlines-stream/route.ts` extracts `courseTitle` from the streamed response, includes it in the `done` SSE event
 3. `generation-preview/page.tsx` reads `courseTitle` from the `done` event, PATCHes `stage.name` via `/api/stages/{id}`, updates local `useStageStore`
 4. `courseTitle` is passed down to `generateSlideContent()` via `use-scene-generator.ts` and `generation-preview/page.tsx`
 
@@ -246,7 +266,7 @@ The `resolveAsset` callback decouples asset resolution from `applyThemeLayout()`
 
 `lib/export/scorm/use-export-scorm.ts`:
 - Fetches `GET /api/themes/{stage.style}` to get the manifest
-- Passes `manifest.typography.fontFamily` to `buildCourseHtml({ themeFontFamily })`)
+- Passes `manifest.typography.fontFamily` to `buildCourseHtml({ themeFontFamily })`
 - `course-builder.ts` injects it into the `html, body { font-family: ... }` global CSS rule
 
 ---
@@ -298,9 +318,9 @@ When building a visual Theme Editor UI, these design choices are already in plac
 | Asset picker for logo | `Object.keys(manifest.assets)` enumerates available assets |
 | Live preview of layout | `resolveAsset` callback accepts any URL (use `blob:` from file upload) |
 | Add/remove layout items | `ThemeLayoutZone.items` is a plain array — append/remove freely |
-| Variable list for text items | Fixed list: `{{courseTitle}}`, `{{slideNumber}}`, `{{totalSlides}}` |
+| Variable list for text items | `{{courseTitle}}`, `{{slideTitle}}`, `{{slideNumber}}`, `{{totalSlides}}` |
 | Content zone preview | `getContentZone(layout)` returns `{ top, bottom, height }` — overlay on canvas |
 | Font picker | `typography.fontFamily` → used in SCORM CSS and slide theme |
-| Color picker | `colors.primary/secondary/palette` → used in prompts as `{{themePrimary}}`/`{{themeSecondary}}` |
+| Color picker | `colors.primary/secondary/palette` → used in prompts as `{{themePrimary}}` / `{{themeSecondary}}` |
 
 **Assets record convention:** `{ "logo": "assets/logo.svg", "banner": "assets/banner.png" }` — keys are human-readable identifiers shown in the picker; values are the relative paths within the theme directory.
