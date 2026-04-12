@@ -402,7 +402,7 @@ ${sceneSections}
 
 <!-- ── Fixed navigation bar ── -->
 <div id="nav-bar">
-  <button class="om-nav-btn" id="prev-btn" onclick="prevScene()" disabled>&#8592; Prev</button>
+  <button class="om-nav-btn" id="prev-btn" onclick="prevScene()" disabled>&#8592; Anterior</button>
 
   <div id="nav-center">
     <span id="scene-counter">1 / ${totalScenes}</span>
@@ -410,11 +410,11 @@ ${sceneSections}
 
   <!-- Narration controls (visible only for slides with TTS) -->
   <div id="narr-ctrl">
-    <button id="narr-play-btn" onclick="toggleNarration()">&#9654; Play</button>
-    <button class="om-nav-btn" onclick="restartNarration()" title="Restart narration">&#8635;</button>
+    <button id="narr-play-btn" onclick="toggleNarration()">&#9654; Reprodueix</button>
+    <button class="om-nav-btn" onclick="restartNarration()" title="Reinicia la narració">&#8635;</button>
   </div>
 
-  <button class="om-nav-btn" id="next-btn" onclick="nextScene()">Next &#8594;</button>
+  <button class="om-nav-btn" id="next-btn" onclick="nextScene()">Següent &#8594;</button>
 </div>
 
 <script>
@@ -433,6 +433,7 @@ for (var _vi = 0; _vi < TOTAL; _vi++) visitedArr.push(false);
 var narrEls = [];
 var narrIdx = 0;
 var narrPlaying = false;
+var narrPending = false; // autoplay blocked by browser — play on first interaction
 
 function stopNarration() {
   narrEls.forEach(function(a) {
@@ -443,24 +444,39 @@ function stopNarration() {
   narrEls = [];
   narrIdx = 0;
   narrPlaying = false;
-  document.getElementById('narr-play-btn').textContent = '\\u25B6 Play';
+  narrPending = false;
+  document.getElementById('narr-play-btn').textContent = '\\u25B6 Reprodueix';
 }
 
 function playNarrFrom(idx) {
   if (idx >= narrEls.length) {
     narrPlaying = false;
-    document.getElementById('narr-play-btn').textContent = '\\u25B6 Play';
+    narrPending = false;
+    document.getElementById('narr-play-btn').textContent = '\\u25B6 Reprodueix';
     return;
   }
   narrIdx = idx;
   narrPlaying = true;
-  document.getElementById('narr-play-btn').textContent = '\\u23F8 Pause';
+  narrPending = false;
+  document.getElementById('narr-play-btn').textContent = '\\u23F8 Pausa';
   narrEls[idx].onended = function() { playNarrFrom(idx + 1); };
   narrEls[idx].play().catch(function() {
     narrPlaying = false;
-    document.getElementById('narr-play-btn').textContent = '\\u25B6 Play';
+    narrPending = true; // mark as pending: will auto-start on first user interaction
+    document.getElementById('narr-play-btn').textContent = '\\u25B6 Reprodueix';
   });
 }
+
+// Auto-play on first user interaction if browser blocked autoplay
+function onFirstInteraction() {
+  document.removeEventListener('click', onFirstInteraction, true);
+  document.removeEventListener('keydown', onFirstInteraction, true);
+  if (narrPending && narrEls.length) {
+    playNarrFrom(narrIdx);
+  }
+}
+document.addEventListener('click', onFirstInteraction, true);
+document.addEventListener('keydown', onFirstInteraction, true);
 
 function startNarration(scene) {
   stopNarration();
@@ -478,11 +494,11 @@ function toggleNarration() {
   if (el.paused) {
     narrPlaying = true;
     el.play().catch(function(){});
-    document.getElementById('narr-play-btn').textContent = '\\u23F8 Pause';
+    document.getElementById('narr-play-btn').textContent = '\\u23F8 Pausa';
   } else {
     el.pause();
     narrPlaying = false;
-    document.getElementById('narr-play-btn').textContent = '\\u25B6 Play';
+    document.getElementById('narr-play-btn').textContent = '\\u25B6 Reprodueix';
   }
 }
 

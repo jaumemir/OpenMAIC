@@ -31,7 +31,7 @@ function renderQuestion(q: QuizQuestion, idx: number, sceneIndex: number): strin
   if (q.type === 'short_answer' || !q.options?.length) return '';
   const inputType = q.type === 'multiple' ? 'checkbox' : 'radio';
   const multiHint =
-    q.type === 'multiple' ? ' <span class="om-qhint">(select all that apply)</span>' : '';
+    q.type === 'multiple' ? ' <span class="om-qhint">(selecciona totes les que corresponguin)</span>' : '';
   // Prefix IDs with sceneIndex to avoid conflicts when multiple quizzes share question IDs
   const blockId = `qblock_${sceneIndex}_${escHtml(q.id)}`;
   const analysisId = `analysis_${sceneIndex}_${escHtml(q.id)}`;
@@ -87,12 +87,12 @@ export function buildQuizSection(scene: Scene, sceneIndex: number): QuizSectionR
     <h2 class="om-quiz-title">${escHtml(scene.title)}</h2>
     ${
       noQuestions
-        ? '<p style="color:#6e6e73;">No gradable questions in this section.</p>'
+        ? '<p style="color:#6e6e73;">Sense preguntes qualificables en aquesta secció.</p>'
         : questionsHtml
     }
     <div id="result_${sceneIndex}" class="om-result" style="display:none"></div>
     <button id="submit_${sceneIndex}" class="om-submit"${noQuestions ? ' disabled' : ''}>
-      Submit
+      Envia
     </button>
     <button id="retry_${sceneIndex}" class="om-retry" style="display:none">
       Torna-ho a intentar
@@ -168,7 +168,7 @@ export function buildQuizSection(scene: Scene, sceneIndex: number): QuizSectionR
 
       var bar = document.getElementById('result_${sceneIndex}');
       bar.style.display = 'block';
-      bar.textContent = 'Score: ' + correct + ' / ' + QUESTIONS_${sceneIndex}.length + ' (' + pct + '%)';
+      bar.textContent = 'Puntuació: ' + correct + ' / ' + QUESTIONS_${sceneIndex}.length + ' (' + pct + '%)';
       bar.className = 'om-result ' + (pct >= ${QUIZ_PASS_THRESHOLD} ? 'om-pass' : 'om-fail');
 
       // Show retry button if failed
