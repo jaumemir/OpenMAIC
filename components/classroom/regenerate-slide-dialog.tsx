@@ -40,6 +40,7 @@ export interface RegenerateFormValues {
   regenerateSlide: boolean;
   audioText: string;
   modifyAudio: boolean;
+  simpleAudio: boolean;
   mediaType: 'none' | 'image' | 'video' | 'keep';
   mediaPrompt: string;
   themeId: string;
@@ -97,6 +98,7 @@ export function RegenerateSlideDialog({
   const [indication, setIndication] = useState('');
   const [audioText, setAudioText] = useState('');
   const [modifyAudio, setModifyAudio] = useState(false);
+  const [simpleAudio, setSimpleAudio] = useState(false);
   const [mediaType, setMediaType] = useState<'none' | 'image' | 'video' | 'keep'>('none');
   const [mediaPrompt, setMediaPrompt] = useState('');
   const [themeId, setThemeId] = useState(defaultThemeId);
@@ -117,6 +119,7 @@ export function RegenerateSlideDialog({
       setIndication(initialValues.indication);
       setAudioText(initialValues.audioText);
       setModifyAudio(initialValues.modifyAudio);
+      setSimpleAudio(initialValues.simpleAudio);
       setMediaType(initialValues.mediaType);
       setMediaPrompt(initialValues.mediaPrompt);
       setThemeId(initialValues.themeId || defaultThemeId);
@@ -126,6 +129,7 @@ export function RegenerateSlideDialog({
       setIndication(outlineToIndication(outline.description, outline.keyPoints));
       setAudioText(sceneToAudioText(scene));
       setModifyAudio(false);
+      setSimpleAudio(outline.simpleAudioMode ?? false);
       const mt = outlineToMediaType(outline);
       setMediaType(mt);
       setMediaPrompt(mt === 'keep' ? '' : outlineToMediaPrompt(outline, mt));
@@ -281,6 +285,7 @@ export function RegenerateSlideDialog({
       skipAudio: !modifyAudio,
       skipSlide: !regenerateSlide && !forceSlideRegen,
       themeId: themeId || undefined,
+      simpleAudio,
     });
   };
 
@@ -457,6 +462,23 @@ export function RegenerateSlideDialog({
             ) : (
               <p className="text-xs text-muted-foreground py-1">{t('stage.regen.audioKeep')}</p>
             )}
+          </div>
+
+          {/* Simple audio toggle */}
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex flex-col gap-0.5">
+              <Label htmlFor="regen-simple-audio" className="text-sm">
+                {t('stage.regen.simpleAudio')}
+              </Label>
+              {simpleAudio && (
+                <p className="text-xs text-muted-foreground">{t('stage.regen.simpleAudioDesc')}</p>
+              )}
+            </div>
+            <Switch
+              id="regen-simple-audio"
+              checked={simpleAudio}
+              onCheckedChange={setSimpleAudio}
+            />
           </div>
 
           {/* Media selector */}

@@ -100,7 +100,9 @@
       "generateNarration": "Generar amb IA",
       "generatingNarration": "Generant narració…",
       "aiGenerationError": "Error en generar.",
-      "aiModelHint": "Selecciona un model LLM als controls de la part inferior esquerra."
+      "aiModelHint": "Selecciona un model LLM als controls de la part inferior esquerra.",
+      "simpleAudio": "Només narració",
+      "simpleAudioDesc": "S'eliminaran les accions de spotlight, làser i reproducció automàtica de vídeo. Els vídeos es poden reproduir manualment."
     }
   },
   "whiteboard": {

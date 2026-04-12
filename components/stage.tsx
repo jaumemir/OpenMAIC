@@ -720,6 +720,7 @@ export function Stage({
         ),
         audioText: storedAudioText,
         modifyAudio: !(params.skipAudio ?? false),
+        simpleAudio: params.simpleAudio ?? false,
         mediaType: params.mediaType,
         mediaPrompt: params.mediaPrompt ?? '',
         themeId: params.themeId ?? '',

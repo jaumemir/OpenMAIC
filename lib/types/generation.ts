@@ -127,6 +127,8 @@ export interface SceneOutline {
     issueCount?: number;
     language: 'zh-CN' | 'en-US' | 'ca';
   };
+  /** When true, spotlight/laser/play_video actions are stripped after generation */
+  simpleAudioMode?: boolean;
 }
 
 // ==================== Stage 3 Output: Generated Content ====================

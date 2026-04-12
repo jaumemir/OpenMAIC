@@ -93,6 +93,8 @@ export interface RegenerateParams {
   skipSlide?: boolean;
   /** Theme to apply during content generation. Falls back to server-side stage default. */
   themeId?: string;
+  /** When true, strip spotlight/laser/play_video actions — only speech and discussion remain. */
+  simpleAudio?: boolean;
 }
 
 export type RegenerateProgress = 'idle' | 'content' | 'audio' | 'media' | 'done' | 'error';
@@ -210,6 +212,8 @@ export function useSceneRegenerator(): UseSceneRegeneratorReturn {
       const outline: SceneOutline = {
         ...params.outline,
         mediaGenerations: buildMediaGenerations(resolvedMediaType, params.mediaPrompt),
+        // Persist simpleAudioMode so future regens default to the same setting
+        ...(params.simpleAudio !== undefined ? { simpleAudioMode: params.simpleAudio } : {}),
       };
 
       // ── Steps 1a + 1b: Generate slide content and actions (or use existing) ──
@@ -319,6 +323,14 @@ export function useSceneRegenerator(): UseSceneRegeneratorReturn {
           .updateScene(sceneId, { title: outline.title, content: newContent, actions: newActions });
       }
 
+      // Strip visual sync actions when simple audio mode is requested.
+      // Applied regardless of skipSlide — works on both newly generated and existing actions.
+      if (params.simpleAudio) {
+        newActions = newActions.filter(
+          (a) => a.type !== 'spotlight' && a.type !== 'laser' && a.type !== 'play_video',
+        );
+      }
+
       // ── Step 2: Audio ──
       if (params.skipAudio) {
         // Preserve existing audio — map old speech actions (text + audioId + audioUrl) onto
@@ -375,7 +387,9 @@ export function useSceneRegenerator(): UseSceneRegeneratorReturn {
             speechActions[i] = {
               ...speechAction,
               audioId,
-              ...(audioUrl ? { audioUrl } : {}),
+              // Append cache-busting timestamp so the browser fetches the newly generated
+              // audio instead of serving the previous cached response for the same URL.
+              ...(audioUrl ? { audioUrl: `${audioUrl}?t=${Date.now()}` } : {}),
             } as SpeechAction;
             // Update scene progressively as each TTS clip is ready
             store.getState().updateScene(sceneId, { actions: [...speechActions] });

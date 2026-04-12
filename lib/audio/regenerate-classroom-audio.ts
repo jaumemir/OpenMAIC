@@ -77,8 +77,13 @@ export async function regenerateClassroomAudio(
 
       try {
         const audioUrl = await generateAndStoreTTS(audioId, speechAction.text, signal);
-        if (audioUrl) speechAction.audioUrl = audioUrl;
-        else delete speechAction.audioUrl;
+        if (audioUrl) {
+          // Append cache-busting timestamp so the browser fetches the newly generated
+          // audio instead of serving the previous cached response for the same URL.
+          speechAction.audioUrl = `${audioUrl}?t=${Date.now()}`;
+        } else {
+          delete speechAction.audioUrl;
+        }
       } catch (error) {
         throw new RegenerateAudioError(
           error instanceof Error ? error.message : 'Failed to generate TTS audio',
