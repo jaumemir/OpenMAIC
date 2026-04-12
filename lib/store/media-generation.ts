@@ -48,6 +48,9 @@ interface MediaGenerationState {
   // Retry support
   markPendingForRetry: (elementId: string) => void;
 
+  // Reset a single task (removes it from the store so it can be re-enqueued fresh)
+  resetTask: (elementId: string) => void;
+
   // Queries
   getTask: (elementId: string) => MediaTask | undefined;
   isReady: (elementId: string) => boolean;
@@ -150,6 +153,12 @@ export const useMediaGenerationStore = create<MediaGenerationState>()((set, get)
           },
         },
       };
+    }),
+
+  resetTask: (elementId) =>
+    set((s) => {
+      const { [elementId]: _, ...rest } = s.tasks;
+      return { tasks: rest };
     }),
 
   getTask: (elementId) => get().tasks[elementId],

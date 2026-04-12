@@ -306,6 +306,13 @@ export function useSceneRegenerator(): UseSceneRegeneratorReturn {
           };
         }
 
+        // If new media will be generated, reset any stale gen_img_1/gen_vid_1 task now so the
+        // component shows a skeleton immediately instead of flashing the previous regen's image.
+        if (params.mediaType === 'image' || params.mediaType === 'video') {
+          const staleId = params.mediaType === 'image' ? 'gen_img_1' : 'gen_vid_1';
+          useMediaGenerationStore.getState().resetTask(staleId);
+        }
+
         // Immediately show new slide content (without audio yet)
         store
           .getState()
@@ -386,12 +393,38 @@ export function useSceneRegenerator(): UseSceneRegeneratorReturn {
           type: params.mediaType,
           prompt: params.mediaPrompt ?? '',
         };
+        // Reset any stale task so enqueueTasks creates a fresh pending entry.
+        // Required for skipSlide=false: if a previous regen already stored gen_img_1,
+        // enqueueTasks would skip it and the new slide would flash the old image.
+        useMediaGenerationStore.getState().resetTask(elementId);
         useMediaGenerationStore.getState().enqueueTasks(stageId, [req]);
         try {
           await generateAndStoreMedia(req, stageId, signal);
         } catch (err) {
           if (signal.aborted) return { success: false };
           log.warn('Media generation failed:', err);
+        }
+
+        // Patch the canvas element src to the real server URL.
+        // This fixes two issues:
+        // 1. skipSlide=true: existing element has a real src (not a placeholder) so SlideRenderer
+        //    never consults the media store — direct canvas patch is required.
+        // 2. skipSlide=false: leaving src='gen_img_1' permanently causes cross-slide contamination
+        //    because all regens share the same placeholder key.
+        if (!signal.aborted && newContent.type === 'slide') {
+          const newMediaUrl = useMediaGenerationStore.getState().tasks[elementId]?.objectUrl;
+          if (newMediaUrl) {
+            const slideContent = newContent as SlideContent;
+            const mediaElType = params.mediaType as 'image' | 'video';
+            const patchedElements = slideContent.canvas.elements.map((el) =>
+              el.type === mediaElType ? { ...el, src: newMediaUrl } : el,
+            );
+            newContent = {
+              ...slideContent,
+              canvas: { ...slideContent.canvas, elements: patchedElements },
+            };
+            store.getState().updateScene(sceneId, { content: newContent });
+          }
         }
       }
 
