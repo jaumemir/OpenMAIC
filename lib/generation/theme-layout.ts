@@ -10,6 +10,7 @@ const CANVAS_H = 562.5;
 
 export interface LayoutContext {
   courseTitle?: string;
+  slideTitle?: string;
   slideNumber?: number;
   totalSlides?: number;
   canvasWidth?: number;
@@ -52,8 +53,14 @@ export function interpolateLayoutVars(content: string, ctx: LayoutContext): stri
       ? ctx.courseTitle.slice(0, 50) + '…'
       : (ctx.courseTitle ?? '');
 
+  const slideTitle =
+    ctx.slideTitle && ctx.slideTitle.length > 80
+      ? ctx.slideTitle.slice(0, 80) + '…'
+      : (ctx.slideTitle ?? '');
+
   return content
     .replace(/\{\{courseTitle\}\}/g, title)
+    .replace(/\{\{slideTitle\}\}/g, slideTitle)
     .replace(/\{\{slideNumber\}\}/g, ctx.slideNumber != null ? String(ctx.slideNumber) : '')
     .replace(/\{\{totalSlides\}\}/g, ctx.totalSlides != null ? String(ctx.totalSlides) : '');
 }
@@ -177,8 +184,10 @@ function buildItem(
       const color = item.color ?? '#333333';
       const weight = item.weight ?? '400';
       const x = item.x ?? 16;
-      const h = size + 4;
-      const y = item.y != null ? item.y : Math.round((zoneH - h) / 2);
+      const y = item.y ?? 0;
+      // Height spans from y to end of zone so text is never clipped
+      // (BaseTextElement adds p-[10px] padding internally)
+      const h = zoneH - y;
       const raw = interpolateLayoutVars(item.content, ctx);
       const content = `<p style="text-align:${item.align ?? 'left'}"><span style="font-size:${size}px;color:${color};font-weight:${weight}">${raw}</span></p>`;
       return {
@@ -187,7 +196,7 @@ function buildItem(
         left: x,
         top: yOffset + y,
         width: cw - x - 16,
-        height: h + 4,
+        height: h,
         rotate: 0,
         content,
         defaultFontName: font,
@@ -200,8 +209,9 @@ function buildItem(
       const size = item.size ?? 10;
       const color = item.color ?? '#999999';
       const x = item.x ?? cw - 50;
-      const h = size + 4;
-      const y = item.y != null ? item.y : Math.round((zoneH - h) / 2);
+      const y = item.y ?? 0;
+      // Height spans from y to end of zone so text is never clipped
+      const h = zoneH - y;
       const num =
         item.format === 'n/total'
           ? `${ctx.slideNumber ?? '?'} / ${ctx.totalSlides ?? '?'}`
@@ -213,7 +223,7 @@ function buildItem(
         left: x,
         top: yOffset + y,
         width: 60,
-        height: h + 4,
+        height: h,
         rotate: 0,
         content,
         defaultFontName: 'Aptos, Calibri, sans-serif',

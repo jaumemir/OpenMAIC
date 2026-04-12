@@ -728,6 +728,7 @@ async function generateSlideContent(
 
     const withLayout = applyThemeLayout(slideContent, themeManifest.layout, {
       courseTitle,
+      slideTitle: outline.title,
       slideNumber: slideIndex != null ? slideIndex + 1 : undefined,
       totalSlides,
       resolveAsset: (key) => assetCache[key] ?? '',

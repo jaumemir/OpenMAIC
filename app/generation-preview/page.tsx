@@ -511,14 +511,15 @@ function GenerationPreviewContent() {
 
       // ── Generate outlines (with agent personas for teacher context) ──
       let outlines = currentSession.sceneOutlines;
+      // Hoisted so courseTitleFromOutlines is accessible after the if block
+      // (needed to build stageInfo.name and for updateStageName after setStage)
+      let courseTitleFromOutlines: string | undefined;
 
       const outlineStepIdx = activeSteps.findIndex((s) => s.id === 'outline');
       setCurrentStepIndex(outlineStepIdx >= 0 ? outlineStepIdx : 0);
       if (!outlines || outlines.length === 0) {
         log.debug('=== Generating outlines (SSE) ===');
         setStreamingOutlines([]);
-
-        let courseTitleFromOutlines: string | undefined;
         outlines = await new Promise<SceneOutline[]>((resolve, reject) => {
           const collected: SceneOutline[] = [];
 
@@ -611,7 +612,7 @@ function GenerationPreviewContent() {
               headers: getApiHeaders(),
               body: JSON.stringify({ name: courseTitleFromOutlines }),
             });
-            useStageStore.getState().updateStageName(courseTitleFromOutlines);
+            // updateStageName is called after setStage below to avoid being overwritten
           } catch (e) {
             log.warn('Failed to update stage name with courseTitle:', e);
           }
@@ -637,6 +638,10 @@ function GenerationPreviewContent() {
       // Store stage and outlines
       const store = useStageStore.getState();
       store.setStage(stage);
+      // Apply courseTitle AFTER setStage so it doesn't get overwritten
+      if (courseTitleFromOutlines) {
+        store.updateStageName(courseTitleFromOutlines);
+      }
       store.setOutlines(outlines);
 
       // Advance to slide-content step
@@ -645,7 +650,7 @@ function GenerationPreviewContent() {
 
       // Build stageInfo and userProfile for API call
       const stageInfo = {
-        name: useStageStore.getState().stage?.name || stage.name,
+        name: courseTitleFromOutlines || stage.name,
         description: stage.description,
         language: stage.language,
         style: stage.style,

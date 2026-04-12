@@ -4,7 +4,7 @@
   "description": "Sistema de Disseny de la Generalitat de Catalunya",
   "locked": false,
   "builtIn": false,
-  "version": "2.0.0",
+  "version": "2.1.0",
   "typography": {
     "fontFamily": "Aptos, 'Aptos Narrow', Calibri, Arial, sans-serif",
     "headingWeight": "700",
@@ -18,27 +18,45 @@
     "accent": "#cc0000",
     "palette": ["#006699", "#003366", "#4d9900", "#ff6600", "#cc0000", "#666666"]
   },
-  "modelInstructions": "Segueix la identitat corporativa de la Generalitat de Catalunya.\n\nTIPOGRAFIA OBLIGATÒRIA (body — el header i footer els gestiona el sistema automàticament):\n- Títol slide: Aptos Display Bold 700, 28-32px, color #333333\n  → afegeix una línia decorativa de color #cc0000, height 3px, sota el títol\n- Subtítol: Aptos SemiBold 600, 18-20px, color #006699\n- Cos de text: Aptos Regular 400, 15-16px, color #333333\n- Captions/notes: Aptos Regular 400, 11-12px, color #555555\n- NO usis Open Sans ni cap altra font. Usa SEMPRE Aptos.\n\nCOLORS: ÚNICAMENT de la paleta corporativa: [#006699, #003366, #4d9900, #ff6600, #cc0000, #666666].\nFons de cards/boxes: versió clara (≤15% opacitat) dels colors de paleta.\nNO gradients. NO colors inventats fora de la paleta. Fons de slide sempre #ffffff.\n\nCONTINGUT: Frases curtes i clares. Veu activa. Una idea principal per diapositiva.\nJerarquia nítida: títol > subtítol > cos. To institucional, formal però accessible.\n\nRESTRICCIONS: No generis logos, senyals ni símbols institucionals; s'inclouen automàticament.\nNO col·loquis cap element a les zones de header ni footer; el sistema les gestiona automàticament.",
+  "modelInstructions": "Segueix la identitat corporativa de la Generalitat de Catalunya.\n\nTIPOGRAFIA OBLIGATÒRIA (body — el header i footer els gestiona el sistema automàticament):\n- NO generis cap element de títol: el títol apareix automàticament al header blau.\n- Subtítol/introducció: Aptos SemiBold 600, 18-20px, color #006699\n- Cos de text: Aptos Regular 400, 15-16px, color #333333\n- Captions/notes: Aptos Regular 400, 11-12px, color #555555\n- NO usis Open Sans ni cap altra font. Usa SEMPRE Aptos.\n\nCOLORS: ÚNICAMENT de la paleta corporativa: [#006699, #003366, #4d9900, #ff6600, #cc0000, #666666].\nFons de cards/boxes: versió clara (≤15% opacitat) dels colors de paleta.\nNO gradients. NO colors inventats fora de la paleta. Fons de slide sempre #ffffff.\nNo usis fons de color fort (blau intens, vermell) al body; usa blanc (#ffffff) o colors molt clars.\n\nCONTINGUT: Frases curtes i clares. Veu activa. Una idea principal per diapositiva.\nJerarquia: subtítol > cos. To institucional, formal però accessible.\n\nRESTRICCIONS: No generis logos, senyals ni símbols institucionals; s'inclouen automàticament.\nNO col·loquis cap element a les zones de header ni footer; el sistema les gestiona automàticament.",
   "assets": {
     "logo": "assets/logo.svg"
   },
   "layout": {
     "header": {
-      "height": 45,
+      "height": 62,
       "background": "#006699",
       "items": [
         {
           "type": "logo",
           "asset": "logo",
-          "x": 16,
-          "y": 5,
-          "width": 145,
-          "height": 35
+          "x": 14,
+          "y": 7,
+          "width": 130,
+          "height": 30
+        },
+        {
+          "type": "rect",
+          "x": 158,
+          "y": 10,
+          "width": 1,
+          "height": 42,
+          "fill": "rgba(255,255,255,0.3)"
+        },
+        {
+          "type": "text",
+          "content": "{{slideTitle}}",
+          "x": 172,
+          "y": 0,
+          "size": 15,
+          "color": "#ffffff",
+          "font": "Aptos, Calibri, sans-serif",
+          "weight": "600"
         }
       ]
     },
     "footer": {
-      "height": 28,
+      "height": 30,
       "background": "#ffffff",
       "items": [
         {
@@ -53,7 +71,7 @@
           "type": "text",
           "content": "Generalitat de Catalunya · {{courseTitle}}",
           "x": 16,
-          "y": 8,
+          "y": 0,
           "size": 10,
           "color": "#555555",
           "font": "Aptos, Calibri, sans-serif"
@@ -62,7 +80,7 @@
           "type": "pageNumber",
           "format": "n/total",
           "x": 930,
-          "y": 8,
+          "y": 0,
           "size": 10,
           "color": "#999999"
         }
