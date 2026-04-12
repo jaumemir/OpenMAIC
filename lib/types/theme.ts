@@ -22,9 +22,10 @@ export type ThemeLayoutItem =
     }
   | {
       type: 'text';
-      content: string; // supports {{courseTitle}}, {{slideNumber}}, {{totalSlides}}
+      content: string; // supports {{courseTitle}}, {{slideTitle}}, {{slideNumber}}, {{totalSlides}}
       x?: number; // defaults to 16
       y?: number; // defaults to vertically centered in zone
+      width?: number; // explicit width; defaults to canvasWidth - x - 16
       size?: number; // font size px, default 11
       color?: string; // hex, default '#333333'
       font?: string; // font family, default 'Aptos, Calibri, sans-serif'

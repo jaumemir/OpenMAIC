@@ -49,8 +49,8 @@ export function getContentZone(
  */
 export function interpolateLayoutVars(content: string, ctx: LayoutContext): string {
   const title =
-    ctx.courseTitle && ctx.courseTitle.length > 50
-      ? ctx.courseTitle.slice(0, 50) + '…'
+    ctx.courseTitle && ctx.courseTitle.length > 70
+      ? ctx.courseTitle.slice(0, 70) + '…'
       : (ctx.courseTitle ?? '');
 
   const slideTitle =
@@ -188,6 +188,7 @@ function buildItem(
       // Height spans from y to end of zone so text is never clipped
       // (BaseTextElement adds p-[10px] padding internally)
       const h = zoneH - y;
+      const w = item.width ?? cw - x - 16;
       const raw = interpolateLayoutVars(item.content, ctx);
       const content = `<p style="text-align:${item.align ?? 'left'}"><span style="font-size:${size}px;color:${color};font-weight:${weight}">${raw}</span></p>`;
       return {
@@ -195,7 +196,7 @@ function buildItem(
         type: 'text',
         left: x,
         top: yOffset + y,
-        width: cw - x - 16,
+        width: w,
         height: h,
         rotate: 0,
         content,

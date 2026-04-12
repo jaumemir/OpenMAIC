@@ -86,10 +86,10 @@ describe('interpolateLayoutVars', () => {
     expect(result).toBe('3 / 10');
   });
 
-  it('truncates courseTitle longer than 50 chars with ellipsis', () => {
-    const longTitle = 'A'.repeat(60);
+  it('truncates courseTitle longer than 70 chars with ellipsis', () => {
+    const longTitle = 'A'.repeat(80);
     const result = interpolateLayoutVars('{{courseTitle}}', { courseTitle: longTitle });
-    expect(result.length).toBeLessThanOrEqual(51); // 50 chars + ellipsis char
+    expect(result.length).toBeLessThanOrEqual(71); // 70 chars + ellipsis char
     expect(result.endsWith('…')).toBe(true);
   });
 
