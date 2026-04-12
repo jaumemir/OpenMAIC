@@ -6,6 +6,8 @@ import { prisma } from '@/lib/prisma';
 import { getSession } from '@/lib/auth/session';
 import { createLogger } from '@/lib/logger';
 import { PROVIDERS, type ProviderId } from '@/lib/ai/providers';
+import { TTS_PROVIDERS } from '@/lib/audio/constants';
+import type { TTSProviderId } from '@/lib/audio/types';
 
 const log = createLogger('ServerProviders');
 
@@ -75,10 +77,34 @@ function applyAllowedModelsFilter(
   );
 }
 
+/**
+ * Carrega els providers TTS del DB admin config (sense exposar les API keys).
+ * Retorna providers amb apiKey configurada, i providers que no requereixen API key.
+ */
+async function getDbTtsProviders(): Promise<ProviderMap> {
+  const row = await prisma.adminConfig.findUnique({ where: { key: 'globalConfig' } });
+  if (!row) return {};
+
+  const config = JSON.parse(row.value) as {
+    ttsProvidersConfig?: Record<string, { apiKey?: string; baseUrl?: string }>;
+  };
+
+  const result: ProviderMap = {};
+  for (const [pid, cfg] of Object.entries(config.ttsProvidersConfig ?? {})) {
+    const provider = TTS_PROVIDERS[pid as TTSProviderId];
+    if (!cfg.apiKey && provider?.requiresApiKey !== false) continue;
+    const entry: ProviderEntry = {};
+    if (cfg.baseUrl) entry.baseUrl = cfg.baseUrl;
+    result[pid] = entry;
+  }
+  return result;
+}
+
 export async function GET(req: NextRequest) {
   try {
     // Providers buits per defecte; es poblen des de la BD si hi ha sessió
     let providers: ProviderMap = {};
+    let tts: ProviderMap = {};
 
     try {
       const session = await getSession(req);
@@ -91,6 +117,8 @@ export async function GET(req: NextRequest) {
         const allowedRow = await prisma.adminConfig.findUnique({ where: { key: 'allowedModels' } });
         const allowedModels: string[] | null = allowedRow ? JSON.parse(allowedRow.value) : null;
         providers = applyAllowedModelsFilter(providers, allowedModels);
+
+        tts = await getDbTtsProviders();
       }
       // Admin: no cal retornar res aquí — hidrata des de /api/admin/config/providers
       // Sense sessió: providers buits (el client usa defaults del codi)
@@ -100,7 +128,7 @@ export async function GET(req: NextRequest) {
 
     return apiSuccess({
       providers,
-      tts: {},
+      tts,
       asr: {},
       pdf: {},
       image: {},

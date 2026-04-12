@@ -594,12 +594,16 @@ export const useSettingsStore = create<SettingsState>()((set, get) => {
       set({ asrProviderId: providerId });
       // Reseta asrLanguage al user-prefs store si l'idioma actual no és vàlid
       const supportedLanguages = ASR_PROVIDERS[providerId]?.supportedLanguages || [];
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
-      const { useUserPrefsStore } =
-        require('@/lib/store/user-prefs') as typeof import('@/lib/store/user-prefs');
-      const currentLang = useUserPrefsStore.getState().asrLanguage;
-      if (!supportedLanguages.includes(currentLang)) {
-        useUserPrefsStore.getState().setASRLanguage(supportedLanguages[0] || 'auto');
+      try {
+        // eslint-disable-next-line @typescript-eslint/no-require-imports
+        const { useUserPrefsStore } =
+          require('@/lib/store/user-prefs') as typeof import('@/lib/store/user-prefs');
+        const currentLang = useUserPrefsStore.getState().asrLanguage;
+        if (!supportedLanguages.includes(currentLang)) {
+          useUserPrefsStore.getState().setASRLanguage(supportedLanguages[0] || 'auto');
+        }
+      } catch {
+        // user-prefs not available (e.g., during module initialization or tests)
       }
     },
     // setASRLanguage → useUserPrefsStore
@@ -691,9 +695,7 @@ export const useSettingsStore = create<SettingsState>()((set, get) => {
       try {
         const res = await fetch('/api/server-providers');
         if (!res.ok) return;
-        // eslint-disable-next-line @typescript-eslint/no-require-imports
-        const { useUserPrefsStore } =
-          require('@/lib/store/user-prefs') as typeof import('@/lib/store/user-prefs');
+        const { useUserPrefsStore } = await import('@/lib/store/user-prefs');
         const userPrefs = useUserPrefsStore.getState();
         const data = (await res.json()) as {
           providers: Record<string, { models?: string[]; baseUrl?: string }>;

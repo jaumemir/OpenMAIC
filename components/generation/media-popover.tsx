@@ -422,9 +422,15 @@ export function MediaPopover({ onSettingsOpen }: MediaPopoverProps) {
               enabled={ttsEnabled}
               onToggle={setTTSEnabled}
             >
-              <p className="text-[11px] text-muted-foreground/60">
-                {t('settings.ttsVoiceConfigHint')}
-              </p>
+              <GroupedSelect
+                groups={ttsGroups}
+                selectedGroupId={ttsProviderId}
+                selectedItemId={ttsVoice}
+                onSelect={(gid, iid) => {
+                  setTTSProvider(gid as TTSProviderId);
+                  setTTSVoice(iid);
+                }}
+              />
             </TabPanel>
           )}
 
