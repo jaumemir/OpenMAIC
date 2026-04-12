@@ -146,9 +146,7 @@ export default function ResetPasswordForm() {
       <CardHeader className="space-y-1">
         <CardTitle className="text-2xl">{t('auth.resetPassword.title')}</CardTitle>
         {email && (
-          <CardDescription>
-            {t('auth.resetPassword.emailDescription', { email })}
-          </CardDescription>
+          <CardDescription>{t('auth.resetPassword.emailDescription', { email })}</CardDescription>
         )}
       </CardHeader>
       <CardContent>

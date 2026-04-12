@@ -81,11 +81,15 @@ export default function AdminCoursesPage() {
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-border/60 bg-muted/40">
-                <th className="text-left px-4 py-2.5 font-medium text-muted-foreground">{t('admin.courses.table.name')}</th>
+                <th className="text-left px-4 py-2.5 font-medium text-muted-foreground">
+                  {t('admin.courses.table.name')}
+                </th>
                 <th className="text-left px-4 py-2.5 font-medium text-muted-foreground hidden lg:table-cell">
                   Stage ID
                 </th>
-                <th className="text-left px-4 py-2.5 font-medium text-muted-foreground">{t('admin.courses.table.scenes')}</th>
+                <th className="text-left px-4 py-2.5 font-medium text-muted-foreground">
+                  {t('admin.courses.table.scenes')}
+                </th>
                 <th className="text-left px-4 py-2.5 font-medium text-muted-foreground">
                   {t('admin.courses.table.owner')}
                 </th>
@@ -103,7 +107,9 @@ export default function AdminCoursesPage() {
                 >
                   <td className="px-4 py-2.5 font-medium max-w-xs truncate" title={stage.name}>
                     {stage.name || (
-                      <span className="text-muted-foreground italic">{t('admin.courses.table.noTitle')}</span>
+                      <span className="text-muted-foreground italic">
+                        {t('admin.courses.table.noTitle')}
+                      </span>
                     )}
                   </td>
                   <td className="px-4 py-2.5 font-mono text-xs text-muted-foreground select-all hidden lg:table-cell">
@@ -116,7 +122,9 @@ export default function AdminCoursesPage() {
                     {stage.owner ? (
                       <span title={stage.owner.userId}>{stage.owner.email}</span>
                     ) : (
-                      <span className="italic text-muted-foreground/50">{t('admin.courses.table.unknownOwner')}</span>
+                      <span className="italic text-muted-foreground/50">
+                        {t('admin.courses.table.unknownOwner')}
+                      </span>
                     )}
                   </td>
                   <td className="px-4 py-2.5 text-muted-foreground text-xs whitespace-nowrap hidden sm:table-cell">
@@ -145,11 +153,11 @@ export default function AdminCoursesPage() {
           <AlertDialogHeader>
             <AlertDialogTitle>{t('admin.courses.delete.title')}</AlertDialogTitle>
           </AlertDialogHeader>
-          <p className="text-sm text-muted-foreground px-6">
-            {t('admin.courses.delete.confirm')}
-          </p>
+          <p className="text-sm text-muted-foreground px-6">{t('admin.courses.delete.confirm')}</p>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={deleting}>{t('admin.courses.delete.cancel')}</AlertDialogCancel>
+            <AlertDialogCancel disabled={deleting}>
+              {t('admin.courses.delete.cancel')}
+            </AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDelete}
               disabled={deleting}

@@ -118,7 +118,8 @@ export function Header({ currentSceneTitle }: HeaderProps) {
               }}
               className="flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-bold text-gray-500 dark:text-gray-400 hover:bg-white dark:hover:bg-gray-700 hover:text-gray-800 dark:hover:text-gray-200 hover:shadow-sm transition-all"
             >
-              {{ 'zh-CN': 'CN', 'en-US': 'EN', ca: 'CA', 'ja-JP': 'JA', 'ru-RU': 'RU' }[locale] ?? 'EN'}
+              {{ 'zh-CN': 'CN', 'en-US': 'EN', ca: 'CA', 'ja-JP': 'JA', 'ru-RU': 'RU' }[locale] ??
+                'EN'}
             </button>
             {languageOpen && (
               <div className="absolute top-full mt-2 right-0 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg overflow-hidden z-50 min-w-[120px]">

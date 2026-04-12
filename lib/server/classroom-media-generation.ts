@@ -224,7 +224,8 @@ export async function generateTTSForClassroom(
     log.warn(`No API key for TTS provider "${providerId}", skipping TTS generation`);
     return;
   }
-  const ttsBaseUrl = (await resolveTTSBaseUrl(providerId)) || TTS_PROVIDERS[providerId]?.defaultBaseUrl;
+  const ttsBaseUrl =
+    (await resolveTTSBaseUrl(providerId)) || TTS_PROVIDERS[providerId]?.defaultBaseUrl;
   const voice = DEFAULT_TTS_VOICES[providerId] || 'default';
   const format = TTS_PROVIDERS[providerId]?.supportedFormats?.[0] || 'mp3';
 

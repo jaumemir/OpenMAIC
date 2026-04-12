@@ -30,7 +30,9 @@ const GENERIC_RESPONSE = {
 
 export async function POST(req: NextRequest) {
   const rawLocale = req.cookies.get('locale')?.value;
-  const locale: Locale = (VALID_LOCALES.includes(rawLocale as Locale) ? rawLocale : defaultLocale) as Locale;
+  const locale: Locale = (
+    VALID_LOCALES.includes(rawLocale as Locale) ? rawLocale : defaultLocale
+  ) as Locale;
 
   let body: unknown;
   try {

@@ -9,8 +9,11 @@ export default async function AdminDashboardPage() {
   const hdrs = await headers();
   const cookieStore = await cookies();
   const storedLocale = cookieStore.get('locale')?.value;
-  const locale: Locale = (VALID_LOCALES.includes(storedLocale as Locale) ? storedLocale : defaultLocale) as Locale;
-  const t = (key: string, options?: Record<string, unknown>) => translate(locale, key, options as Record<string, string>);
+  const locale: Locale = (
+    VALID_LOCALES.includes(storedLocale as Locale) ? storedLocale : defaultLocale
+  ) as Locale;
+  const t = (key: string, options?: Record<string, unknown>) =>
+    translate(locale, key, options as Record<string, string>);
 
   const session = await getSessionFromHeaders(hdrs);
 
@@ -77,12 +80,18 @@ export default async function AdminDashboardPage() {
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-border/60 bg-muted/40">
-                <th className="text-left px-4 py-2.5 font-medium text-muted-foreground">{t('admin.table.action')}</th>
-                <th className="text-left px-4 py-2.5 font-medium text-muted-foreground">{t('admin.table.user')}</th>
+                <th className="text-left px-4 py-2.5 font-medium text-muted-foreground">
+                  {t('admin.table.action')}
+                </th>
+                <th className="text-left px-4 py-2.5 font-medium text-muted-foreground">
+                  {t('admin.table.user')}
+                </th>
                 <th className="text-left px-4 py-2.5 font-medium text-muted-foreground hidden sm:table-cell">
                   {t('admin.table.entity')}
                 </th>
-                <th className="text-left px-4 py-2.5 font-medium text-muted-foreground">{t('admin.table.date')}</th>
+                <th className="text-left px-4 py-2.5 font-medium text-muted-foreground">
+                  {t('admin.table.date')}
+                </th>
               </tr>
             </thead>
             <tbody>

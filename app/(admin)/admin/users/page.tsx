@@ -28,7 +28,6 @@ interface UserRow {
   city: string | null;
 }
 
-
 const STATUS_COLORS: Record<string, string> = {
   active: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
   pending: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400',
@@ -241,12 +240,18 @@ export default function AdminUsersPage() {
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-border/60 bg-muted/40">
-              <th className="text-left px-4 py-2.5 font-medium text-muted-foreground">{t('admin.users.table.user')}</th>
+              <th className="text-left px-4 py-2.5 font-medium text-muted-foreground">
+                {t('admin.users.table.user')}
+              </th>
               <th className="text-left px-4 py-2.5 font-medium text-muted-foreground hidden sm:table-cell">
                 {t('admin.users.table.email')}
               </th>
-              <th className="text-left px-4 py-2.5 font-medium text-muted-foreground">{t('admin.users.table.role')}</th>
-              <th className="text-left px-4 py-2.5 font-medium text-muted-foreground">{t('admin.users.table.status')}</th>
+              <th className="text-left px-4 py-2.5 font-medium text-muted-foreground">
+                {t('admin.users.table.role')}
+              </th>
+              <th className="text-left px-4 py-2.5 font-medium text-muted-foreground">
+                {t('admin.users.table.status')}
+              </th>
               <th className="text-left px-4 py-2.5 font-medium text-muted-foreground hidden md:table-cell">
                 {t('admin.users.table.created')}
               </th>
@@ -313,7 +318,9 @@ export default function AdminUsersPage() {
                         }
                         onClick={() => handleToggleStatus(u.id, u.status)}
                       >
-                        {u.status === 'inactive' ? t('admin.users.actions.enable') : t('admin.users.actions.disable')}
+                        {u.status === 'inactive'
+                          ? t('admin.users.actions.enable')
+                          : t('admin.users.actions.disable')}
                       </Button>
                       <Button
                         variant="ghost"

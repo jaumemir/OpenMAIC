@@ -104,17 +104,29 @@ export default function AdminAuditPage() {
         </Button>
       </form>
 
-      <p className="text-sm text-muted-foreground mb-4">{t('admin.audit.records', { count: String(total) })}</p>
+      <p className="text-sm text-muted-foreground mb-4">
+        {t('admin.audit.records', { count: String(total) })}
+      </p>
 
       <div className="rounded-xl border border-border/60 overflow-x-auto bg-white/60 dark:bg-slate-900/50 shadow-sm">
         <table className="w-full text-sm min-w-[700px]">
           <thead>
             <tr className="border-b border-border/60 bg-muted/40">
-              <th className="text-left px-3 py-2.5 font-medium text-muted-foreground">{t('admin.audit.table.action')}</th>
-              <th className="text-left px-3 py-2.5 font-medium text-muted-foreground">{t('admin.audit.table.user')}</th>
-              <th className="text-left px-3 py-2.5 font-medium text-muted-foreground">{t('admin.audit.table.entity')}</th>
-              <th className="text-left px-3 py-2.5 font-medium text-muted-foreground">{t('admin.audit.table.ip')}</th>
-              <th className="text-left px-3 py-2.5 font-medium text-muted-foreground">{t('admin.audit.table.date')}</th>
+              <th className="text-left px-3 py-2.5 font-medium text-muted-foreground">
+                {t('admin.audit.table.action')}
+              </th>
+              <th className="text-left px-3 py-2.5 font-medium text-muted-foreground">
+                {t('admin.audit.table.user')}
+              </th>
+              <th className="text-left px-3 py-2.5 font-medium text-muted-foreground">
+                {t('admin.audit.table.entity')}
+              </th>
+              <th className="text-left px-3 py-2.5 font-medium text-muted-foreground">
+                {t('admin.audit.table.ip')}
+              </th>
+              <th className="text-left px-3 py-2.5 font-medium text-muted-foreground">
+                {t('admin.audit.table.date')}
+              </th>
             </tr>
           </thead>
           <tbody>
@@ -170,7 +182,9 @@ export default function AdminAuditPage() {
         >
           {t('admin.audit.pagination.prev')}
         </Button>
-        <span className="text-sm text-muted-foreground">{t('admin.audit.pagination.page', { page: String(page) })}</span>
+        <span className="text-sm text-muted-foreground">
+          {t('admin.audit.pagination.page', { page: String(page) })}
+        </span>
         <Button
           variant="ghost"
           size="sm"

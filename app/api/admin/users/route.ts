@@ -57,7 +57,9 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   const rawLocale = req.cookies.get('locale')?.value;
-  const locale: Locale = (VALID_LOCALES.includes(rawLocale as Locale) ? rawLocale : defaultLocale) as Locale;
+  const locale: Locale = (
+    VALID_LOCALES.includes(rawLocale as Locale) ? rawLocale : defaultLocale
+  ) as Locale;
 
   const user = await requireAuth(req);
   if ('status' in user && user instanceof Response) return user;

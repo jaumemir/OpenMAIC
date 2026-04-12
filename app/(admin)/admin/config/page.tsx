@@ -47,7 +47,9 @@ export default function AdminConfigPage() {
         body: JSON.stringify({ allowedModels: value }),
       });
       const data = await res.json();
-      setMessage(data.success ? t('admin.config.saved') : (data.error ?? t('admin.config.errorSaving')));
+      setMessage(
+        data.success ? t('admin.config.saved') : (data.error ?? t('admin.config.errorSaving')),
+      );
     } catch {
       setMessage(t('admin.config.errorConnection'));
     } finally {
@@ -63,8 +65,7 @@ export default function AdminConfigPage() {
         <CardHeader>
           <CardTitle>{t('admin.config.allowedModels.title')}</CardTitle>
           <CardDescription>
-            {t('admin.config.allowedModels.desc')}{' '}
-            Format:{' '}
+            {t('admin.config.allowedModels.desc')} Format:{' '}
             <code className="text-xs bg-muted px-1 rounded">
               openai:gpt-4o, google:gemini-2.5-flash
             </code>

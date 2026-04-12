@@ -183,7 +183,9 @@ export default function AcceptInviteForm() {
           </div>
 
           <div className="pt-2 border-t">
-            <p className="text-sm text-muted-foreground mb-3">{t('auth.acceptInvite.profileOptional')}</p>
+            <p className="text-sm text-muted-foreground mb-3">
+              {t('auth.acceptInvite.profileOptional')}
+            </p>
             <div className="space-y-3">
               <div className="space-y-2">
                 <Label htmlFor="organization">{t('auth.acceptInvite.organization')}</Label>
