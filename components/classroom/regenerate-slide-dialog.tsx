@@ -503,8 +503,8 @@ export function RegenerateSlideDialog({
             )}
           </div>
 
-          {/* Simple audio toggle */}
-          <div className="flex items-center justify-between gap-4">
+          {/* Simple audio toggle — slides only (quiz/interactive don't generate spotlight/laser/video actions) */}
+          {isSlideType && <div className="flex items-center justify-between gap-4">
             <div className="flex flex-col gap-0.5">
               <Label htmlFor="regen-simple-audio" className="text-sm">
                 {t('stage.regen.simpleAudio')}
@@ -518,7 +518,7 @@ export function RegenerateSlideDialog({
               checked={simpleAudio}
               onCheckedChange={setSimpleAudio}
             />
-          </div>
+          </div>}
 
           {/* Media selector — slides only */}
           {isSlideType && <div className="space-y-2">
