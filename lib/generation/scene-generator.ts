@@ -568,6 +568,12 @@ async function generateSlideContent(
   const themeManifest = themeId ? await resolveThemeManifest(themeId) : null;
   const contentZone = getContentZone(themeManifest?.layout, canvasHeight);
 
+  // Extra breathing room between header/footer zones and the first/last LLM element.
+  // The LLM is told the padded boundaries so it never places content flush against the chrome.
+  const CONTENT_ZONE_GAP = themeManifest?.layout ? 8 : 0;
+  const promptContentTop = contentZone.top + CONTENT_ZONE_GAP;
+  const promptContentBottom = contentZone.bottom - CONTENT_ZONE_GAP;
+
   // Build reserved zones note for the prompt (empty string when no layout defined)
   const reservedZonesNote =
     themeManifest?.layout
@@ -579,7 +585,7 @@ async function generateSlideContent(
           themeManifest.layout.footer
             ? `- **Footer**: y = ${contentZone.bottom}px → ${canvasHeight}px (injected automatically by the theme system)`
             : null,
-          `- **Your content zone**: y = ${contentZone.top} → ${contentZone.bottom}px`,
+          `- **Your content zone**: y = ${promptContentTop} → ${promptContentBottom}px (leave ${CONTENT_ZONE_GAP}px gap from zone edges)`,
         ]
           .filter(Boolean)
           .join('\n')
@@ -600,10 +606,10 @@ async function generateSlideContent(
     themePrimary: themePrimary || '#5b9bd5',
     themeSecondary: themeSecondary || '#ed7d31',
     reservedZonesNote,
-    // When layout is defined, use exact zone boundaries.
+    // When layout is defined, use padded zone boundaries so content doesn't touch the chrome.
     // When no layout, preserve original 50px margins.
-    contentTop: themeManifest?.layout ? contentZone.top : 50,
-    contentBottom: themeManifest?.layout ? contentZone.bottom : canvasHeight - 50,
+    contentTop: themeManifest?.layout ? promptContentTop : 50,
+    contentBottom: themeManifest?.layout ? promptContentBottom : canvasHeight - 50,
   });
 
   if (!prompts) {
