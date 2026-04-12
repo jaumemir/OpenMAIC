@@ -36,7 +36,6 @@ describe('resolveApiKeyFromDb', () => {
           anthropic: { apiKey: 'sk-ant-stored', baseUrl: '' },
         },
       }),
-      id: '1',
       updatedAt: new Date(),
       updatedById: null,
     });
@@ -54,7 +53,6 @@ describe('resolveApiKeyFromDb', () => {
           anthropic: { apiKey: '', baseUrl: '' },
         },
       }),
-      id: '1',
       updatedAt: new Date(),
       updatedById: null,
     });
@@ -68,7 +66,6 @@ describe('resolveApiKeyFromDb', () => {
     vi.mocked(prisma.adminConfig.findUnique).mockResolvedValue({
       key: 'globalConfig',
       value: JSON.stringify({ providersConfig: {} }),
-      id: '1',
       updatedAt: new Date(),
       updatedById: null,
     });
@@ -86,7 +83,6 @@ describe('resolveApiKeyFromDb', () => {
           'openai-tts': { apiKey: 'sk-tts-key', baseUrl: '' },
         },
       }),
-      id: '1',
       updatedAt: new Date(),
       updatedById: null,
     });

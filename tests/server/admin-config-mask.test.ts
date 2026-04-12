@@ -8,7 +8,7 @@ const SENTINEL = '__STORED__';
 function cfg(
   partial: Record<string, { apiKey: string; [k: string]: unknown }>,
 ): SerializableSettings {
-  return { providersConfig: partial as SerializableSettings['providersConfig'] };
+  return { providersConfig: partial as unknown as SerializableSettings['providersConfig'] };
 }
 
 describe('maskApiKeys', () => {

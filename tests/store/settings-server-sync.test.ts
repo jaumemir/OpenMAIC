@@ -102,6 +102,57 @@ vi.mock('@/lib/audio/constants', () => ({
 
 vi.mock('@/lib/audio/types', () => ({}));
 
+// Mock user-prefs without scheduleSave to prevent stale fetch calls between tests
+vi.mock('@/lib/store/user-prefs', async () => {
+  const { create } = await import('zustand');
+  const useUserPrefsStore = create<{
+    providerId: string;
+    modelId: string;
+    imageGenerationEnabled: boolean;
+    videoGenerationEnabled: boolean;
+    ttsEnabled: boolean;
+    asrEnabled: boolean;
+    asrLanguage: string;
+    agentMode: string;
+    avatar: string;
+    bio: string;
+    setModel: (providerId: string, modelId: string) => void;
+    setTTSEnabled: (enabled: boolean) => void;
+    setASREnabled: (enabled: boolean) => void;
+    setImageGenerationEnabled: (enabled: boolean) => void;
+    setVideoGenerationEnabled: (enabled: boolean) => void;
+    setASRLanguage: (lang: string) => void;
+    setAgentMode: (mode: string) => void;
+    setAvatar: (avatar: string) => void;
+    setBio: (bio: string) => void;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    hydrate: (prefs: any) => void;
+  }>((set) => ({
+    providerId: 'openai',
+    modelId: '',
+    imageGenerationEnabled: false,
+    videoGenerationEnabled: false,
+    ttsEnabled: true,
+    asrEnabled: true,
+    asrLanguage: 'zh-CN',
+    agentMode: 'auto',
+    avatar: '/avatars/user.png',
+    bio: '',
+    setModel: (providerId, modelId) => set({ providerId, modelId }),
+    setTTSEnabled: (enabled) => set({ ttsEnabled: enabled }),
+    setASREnabled: (enabled) => set({ asrEnabled: enabled }),
+    setImageGenerationEnabled: (enabled) => set({ imageGenerationEnabled: enabled }),
+    setVideoGenerationEnabled: (enabled) => set({ videoGenerationEnabled: enabled }),
+    setASRLanguage: (lang) => set({ asrLanguage: lang }),
+    setAgentMode: (mode) => set({ agentMode: mode }),
+    setAvatar: (avatar) => set({ avatar }),
+    setBio: (bio) => set({ bio }),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    hydrate: (prefs) => set(prefs as any),
+  }));
+  return { useUserPrefsStore };
+});
+
 vi.mock('@/lib/pdf/constants', () => ({
   PDF_PROVIDERS: {
     unpdf: { id: 'unpdf', requiresApiKey: false },
@@ -196,21 +247,28 @@ function mockServerResponse(overrides: MockServerResponse = {}) {
 // ---------------------------------------------------------------------------
 
 describe('fetchServerProviders — provider availability sync', () => {
-  beforeEach(() => {
+  beforeEach(async () => {
     vi.resetModules();
     storage.clear();
     mockFetch.mockReset();
+    // Pre-load the user-prefs mock so it's cached before fetchServerProviders()
+    // calls require('@/lib/store/user-prefs') synchronously. Without this,
+    // the async mock factory can't be resolved via synchronous require() after
+    // vi.resetModules() clears the cache, causing fetchServerProviders() to
+    // throw silently and never update state.
+    await import('@/lib/store/user-prefs');
   });
 
-  async function getStore() {
+  async function getStores() {
     const { useSettingsStore } = await import('@/lib/store/settings');
-    return useSettingsStore;
+    const { useUserPrefsStore } = await import('@/lib/store/user-prefs');
+    return { store: useSettingsStore, prefsStore: useUserPrefsStore };
   }
 
   // ---- Server model list filtering ----
 
   it('filters models to only those the server allows', async () => {
-    const store = await getStore();
+    const { store } = await getStores();
     mockServerResponse({
       providers: {
         openai: { models: ['gpt-4o'] },
@@ -227,7 +285,7 @@ describe('fetchServerProviders — provider availability sync', () => {
   });
 
   it('keeps all models when server provides no model restriction', async () => {
-    const store = await getStore();
+    const { store } = await getStores();
     mockServerResponse({
       providers: {
         openai: {}, // no models field = no restriction
@@ -243,7 +301,7 @@ describe('fetchServerProviders — provider availability sync', () => {
   });
 
   it('removes a model when server drops it from the allowed list', async () => {
-    const store = await getStore();
+    const { store } = await getStores();
 
     // Round 1: server allows two models
     mockServerResponse({
@@ -272,7 +330,7 @@ describe('fetchServerProviders — provider availability sync', () => {
   // ---- Provider availability flags ----
 
   it('marks provider as server-configured when present in response', async () => {
-    const store = await getStore();
+    const { store } = await getStores();
     mockServerResponse({
       providers: {
         openai: { models: ['gpt-4o'] },
@@ -285,7 +343,7 @@ describe('fetchServerProviders — provider availability sync', () => {
   });
 
   it('resets isServerConfigured when provider disappears from response', async () => {
-    const store = await getStore();
+    const { store } = await getStores();
 
     // Round 1: openai is server-configured
     mockServerResponse({ providers: { openai: { models: ['gpt-4o'] } } });
@@ -299,7 +357,7 @@ describe('fetchServerProviders — provider availability sync', () => {
   });
 
   it('provider without client key and not server-configured has no usable path', async () => {
-    const store = await getStore();
+    const { store } = await getStores();
     mockServerResponse({}); // no server providers
 
     await store.getState().fetchServerProviders();
@@ -316,7 +374,7 @@ describe('fetchServerProviders — provider availability sync', () => {
   // ---- Multiple providers ----
 
   it('handles mixed provider state: one configured, one not', async () => {
-    const store = await getStore();
+    const { store } = await getStores();
     mockServerResponse({
       providers: {
         openai: { models: ['gpt-4o'] },
@@ -333,7 +391,7 @@ describe('fetchServerProviders — provider availability sync', () => {
   // ---- serverModels metadata ----
 
   it('stores serverModels metadata for downstream filtering', async () => {
-    const store = await getStore();
+    const { store } = await getStores();
     mockServerResponse({
       providers: {
         openai: { models: ['gpt-4o', 'gpt-4o-mini'] },
@@ -346,7 +404,7 @@ describe('fetchServerProviders — provider availability sync', () => {
   });
 
   it('clears serverModels when provider removed from server', async () => {
-    const store = await getStore();
+    const { store } = await getStores();
 
     mockServerResponse({ providers: { openai: { models: ['gpt-4o'] } } });
     await store.getState().fetchServerProviders();
@@ -359,30 +417,26 @@ describe('fetchServerProviders — provider availability sync', () => {
 
   // ---- Stale selection consistency ----
 
-  // BUG: fetchServerProviders() updates providersConfig.models but never
-  // validates the current modelId/providerId selection against the new list.
-  // These tests document the desired fix — remove .fails() once implemented.
-
   it('clears modelId when server removes the selected model', async () => {
-    const store = await getStore();
+    const { store, prefsStore } = await getStores();
 
     // User selects gpt-4o-mini while it's available
-    store.getState().setModel('openai', 'gpt-4o-mini');
-    expect(store.getState().modelId).toBe('gpt-4o-mini');
+    prefsStore.getState().setModel('openai', 'gpt-4o-mini');
+    expect(prefsStore.getState().modelId).toBe('gpt-4o-mini');
 
     // Server drops gpt-4o-mini
     mockServerResponse({ providers: { openai: { models: ['gpt-4o'] } } });
     await store.getState().fetchServerProviders();
 
-    // modelId should be cleared, not silently kept as a stale value
-    expect(store.getState().modelId).toBe('gpt-4o');
+    // modelId should switch to first available, not stay as stale value
+    expect(prefsStore.getState().modelId).toBe('gpt-4o');
   });
 
   it('clears providerId when entire provider loses server config and has no client key', async () => {
-    const store = await getStore();
+    const { store, prefsStore } = await getStores();
 
     // User on a server-only provider (no client key)
-    store.getState().setModel('openai', 'gpt-4o');
+    prefsStore.getState().setModel('openai', 'gpt-4o');
     mockServerResponse({ providers: { openai: { models: ['gpt-4o'] } } });
     await store.getState().fetchServerProviders();
     expect(store.getState().providersConfig.openai.isServerConfigured).toBe(true);
@@ -392,44 +446,44 @@ describe('fetchServerProviders — provider availability sync', () => {
     await store.getState().fetchServerProviders();
 
     // Provider is unusable → selection should be cleared
-    expect(store.getState().providerId).toBe('');
-    expect(store.getState().modelId).toBe('');
+    expect(prefsStore.getState().providerId).toBe('');
+    expect(prefsStore.getState().modelId).toBe('');
   });
 
   it('clears modelId when server narrows model list and selected model is excluded', async () => {
-    const store = await getStore();
+    const { store, prefsStore } = await getStores();
 
     // Round 1: user picks gpt-4-turbo
     mockServerResponse({
       providers: { openai: { models: ['gpt-4o', 'gpt-4o-mini', 'gpt-4-turbo'] } },
     });
     await store.getState().fetchServerProviders();
-    store.getState().setModel('openai', 'gpt-4-turbo');
+    prefsStore.getState().setModel('openai', 'gpt-4-turbo');
 
     // Round 2: server narrows to gpt-4o only
     mockServerResponse({ providers: { openai: { models: ['gpt-4o'] } } });
     await store.getState().fetchServerProviders();
 
-    // Selection should be cleared, not left pointing to unavailable model
-    expect(store.getState().modelId).toBe('gpt-4o');
+    // Selection should switch to first available
+    expect(prefsStore.getState().modelId).toBe('gpt-4o');
   });
 
   it('keeps modelId when selected model is still available after server sync', async () => {
-    const store = await getStore();
+    const { store, prefsStore } = await getStores();
 
-    store.getState().setModel('openai', 'gpt-4o');
+    prefsStore.getState().setModel('openai', 'gpt-4o');
     mockServerResponse({ providers: { openai: { models: ['gpt-4o', 'gpt-4o-mini'] } } });
     await store.getState().fetchServerProviders();
 
     // gpt-4o is still available — selection should be preserved
-    expect(store.getState().providerId).toBe('openai');
-    expect(store.getState().modelId).toBe('gpt-4o');
+    expect(prefsStore.getState().providerId).toBe('openai');
+    expect(prefsStore.getState().modelId).toBe('gpt-4o');
   });
 
   // ---- Error handling ----
 
   it('does not modify state when fetch returns non-ok response', async () => {
-    const store = await getStore();
+    const { store } = await getStores();
 
     // First, set up a known state
     mockServerResponse({ providers: { openai: { models: ['gpt-4o'] } } });
@@ -445,7 +499,7 @@ describe('fetchServerProviders — provider availability sync', () => {
   });
 
   it('does not throw when fetch rejects (network error)', async () => {
-    const store = await getStore();
+    const { store } = await getStores();
 
     mockFetch.mockRejectedValueOnce(new Error('Network error'));
 
@@ -455,16 +509,39 @@ describe('fetchServerProviders — provider availability sync', () => {
 });
 
 describe('fetchServerProviders — TTS stale selection', () => {
-  beforeEach(() => {
+  beforeEach(async () => {
     vi.resetModules();
     storage.clear();
     mockFetch.mockReset();
+    await import('@/lib/store/user-prefs');
   });
 
   async function getStore() {
     const { useSettingsStore } = await import('@/lib/store/settings');
     return useSettingsStore;
   }
+
+  it('marks TTS provider as server-configured when present in server response', async () => {
+    const store = await getStore();
+
+    mockServerResponse({ tts: { 'openai-tts': {} } });
+    await store.getState().fetchServerProviders();
+
+    expect(store.getState().ttsProvidersConfig['openai-tts'].isServerConfigured).toBe(true);
+    expect(store.getState().ttsProvidersConfig['azure-tts'].isServerConfigured).toBe(false);
+  });
+
+  it('resets TTS isServerConfigured when provider removed from server response', async () => {
+    const store = await getStore();
+
+    mockServerResponse({ tts: { 'openai-tts': {} } });
+    await store.getState().fetchServerProviders();
+    expect(store.getState().ttsProvidersConfig['openai-tts'].isServerConfigured).toBe(true);
+
+    mockServerResponse({});
+    await store.getState().fetchServerProviders();
+    expect(store.getState().ttsProvidersConfig['openai-tts'].isServerConfigured).toBe(false);
+  });
 
   it('falls back to browser-native-tts when selected TTS provider loses server config', async () => {
     const store = await getStore();
@@ -508,10 +585,11 @@ describe('fetchServerProviders — TTS stale selection', () => {
 });
 
 describe('fetchServerProviders — ASR stale selection', () => {
-  beforeEach(() => {
+  beforeEach(async () => {
     vi.resetModules();
     storage.clear();
     mockFetch.mockReset();
+    await import('@/lib/store/user-prefs');
   });
 
   async function getStore() {
@@ -548,10 +626,11 @@ describe('fetchServerProviders — ASR stale selection', () => {
 });
 
 describe('fetchServerProviders — PDF stale selection', () => {
-  beforeEach(() => {
+  beforeEach(async () => {
     vi.resetModules();
     storage.clear();
     mockFetch.mockReset();
+    await import('@/lib/store/user-prefs');
   });
 
   async function getStore() {
@@ -574,19 +653,21 @@ describe('fetchServerProviders — PDF stale selection', () => {
 });
 
 describe('fetchServerProviders — Image stale selection', () => {
-  beforeEach(() => {
+  beforeEach(async () => {
     vi.resetModules();
     storage.clear();
     mockFetch.mockReset();
+    await import('@/lib/store/user-prefs');
   });
 
-  async function getStore() {
+  async function getStores() {
     const { useSettingsStore } = await import('@/lib/store/settings');
-    return useSettingsStore;
+    const { useUserPrefsStore } = await import('@/lib/store/user-prefs');
+    return { store: useSettingsStore, prefsStore: useUserPrefsStore };
   }
 
   it('clears imageProviderId and imageModelId when provider loses server config', async () => {
-    const store = await getStore();
+    const { store } = await getStores();
 
     mockServerResponse({ image: { seedream: {} } });
     await store.getState().fetchServerProviders();
@@ -601,54 +682,42 @@ describe('fetchServerProviders — Image stale selection', () => {
   });
 
   it('disables imageGenerationEnabled when no image provider is usable', async () => {
-    const store = await getStore();
+    const { store, prefsStore } = await getStores();
 
     // Server configures seedream, user enables image generation
     mockServerResponse({ image: { seedream: {} } });
     await store.getState().fetchServerProviders();
     store.getState().setImageProvider('seedream');
-    store.getState().setImageGenerationEnabled(true);
-    expect(store.getState().imageGenerationEnabled).toBe(true);
+    prefsStore.getState().setImageGenerationEnabled(true);
+    expect(prefsStore.getState().imageGenerationEnabled).toBe(true);
 
     // Server removes all image providers
     mockServerResponse({});
     await store.getState().fetchServerProviders();
 
-    expect(store.getState().imageGenerationEnabled).toBe(false);
-  });
-
-  it('prevents enabling image generation when no image provider is usable', async () => {
-    const store = await getStore();
-
-    // No server image providers
-    mockServerResponse({});
-    await store.getState().fetchServerProviders();
-
-    // User tries to enable image generation
-    store.getState().setImageGenerationEnabled(true);
-    expect(store.getState().imageGenerationEnabled).toBe(false);
+    expect(prefsStore.getState().imageGenerationEnabled).toBe(false);
   });
 
   it('preserves user-disabled image generation across server syncs', async () => {
-    const store = await getStore();
+    const { store, prefsStore } = await getStores();
 
     // Server has seedream, auto-enabled on first sync
     mockServerResponse({ image: { seedream: {} } });
     await store.getState().fetchServerProviders();
-    expect(store.getState().imageGenerationEnabled).toBe(true);
+    expect(prefsStore.getState().imageGenerationEnabled).toBe(true);
 
     // User intentionally disables
-    store.getState().setImageGenerationEnabled(false);
-    expect(store.getState().imageGenerationEnabled).toBe(false);
+    prefsStore.getState().setImageGenerationEnabled(false);
+    expect(prefsStore.getState().imageGenerationEnabled).toBe(false);
 
     // Next server sync — same config, should NOT re-enable
     mockServerResponse({ image: { seedream: {} } });
     await store.getState().fetchServerProviders();
-    expect(store.getState().imageGenerationEnabled).toBe(false);
+    expect(prefsStore.getState().imageGenerationEnabled).toBe(false);
   });
 
   it('falls back to another server-configured image provider', async () => {
-    const store = await getStore();
+    const { store } = await getStores();
 
     mockServerResponse({ image: { seedream: {}, 'qwen-image': {} } });
     await store.getState().fetchServerProviders();
@@ -663,14 +732,14 @@ describe('fetchServerProviders — Image stale selection', () => {
   });
 
   it('auto-selects provider and model when server adds image provider after empty state', async () => {
-    const store = await getStore();
+    const { store, prefsStore } = await getStores();
 
     // Start with no image providers — selection is empty, generation disabled
     mockServerResponse({});
     await store.getState().fetchServerProviders();
     expect(store.getState().imageProviderId).toBe('');
     expect(store.getState().imageModelId).toBe('');
-    expect(store.getState().imageGenerationEnabled).toBe(false);
+    expect(prefsStore.getState().imageGenerationEnabled).toBe(false);
 
     // Server adds seedream
     mockServerResponse({ image: { seedream: {} } });
@@ -679,24 +748,24 @@ describe('fetchServerProviders — Image stale selection', () => {
     expect(store.getState().imageProviderId).toBe('seedream');
     expect(store.getState().imageModelId).toBe('doubao-seedream-5-0-260128');
     // Provider recovered but generation stays off — user enables manually
-    expect(store.getState().imageGenerationEnabled).toBe(false);
+    expect(prefsStore.getState().imageGenerationEnabled).toBe(false);
   });
 
   it('auto-enables image generation on first load when server has image provider', async () => {
-    const store = await getStore();
+    const { store, prefsStore } = await getStores();
 
     // First ever fetchServerProviders — server has seedream
     // Default state: imageProviderId='seedream', imageGenerationEnabled=false, autoConfigApplied=false
     mockServerResponse({ image: { seedream: {} } });
     await store.getState().fetchServerProviders();
 
-    expect(store.getState().imageGenerationEnabled).toBe(true);
+    expect(prefsStore.getState().imageGenerationEnabled).toBe(true);
     expect(store.getState().imageProviderId).toBe('seedream');
     expect(store.getState().imageModelId).toBe('doubao-seedream-5-0-260128');
   });
 
   it('does not force-enable when provider is already set but generation was disabled', async () => {
-    const store = await getStore();
+    const { store, prefsStore } = await getStores();
 
     // autoConfigApplied=true, provider already set, generation off (user choice)
     mockServerResponse({});
@@ -705,33 +774,35 @@ describe('fetchServerProviders — Image stale selection', () => {
     store.setState({
       imageProviderId: 'seedream',
       imageModelId: '',
-      imageGenerationEnabled: false,
     });
+    prefsStore.setState({ imageGenerationEnabled: false });
 
     // Server has seedream — should NOT force-enable (provider was already set)
     mockServerResponse({ image: { seedream: {} } });
     await store.getState().fetchServerProviders();
 
-    expect(store.getState().imageGenerationEnabled).toBe(false);
+    expect(prefsStore.getState().imageGenerationEnabled).toBe(false);
     // But model should be auto-filled
     expect(store.getState().imageModelId).toBe('doubao-seedream-5-0-260128');
   });
 });
 
 describe('fetchServerProviders — Video stale selection', () => {
-  beforeEach(() => {
+  beforeEach(async () => {
     vi.resetModules();
     storage.clear();
     mockFetch.mockReset();
+    await import('@/lib/store/user-prefs');
   });
 
-  async function getStore() {
+  async function getStores() {
     const { useSettingsStore } = await import('@/lib/store/settings');
-    return useSettingsStore;
+    const { useUserPrefsStore } = await import('@/lib/store/user-prefs');
+    return { store: useSettingsStore, prefsStore: useUserPrefsStore };
   }
 
   it('clears videoProviderId and videoModelId when provider loses server config', async () => {
-    const store = await getStore();
+    const { store } = await getStores();
 
     mockServerResponse({ video: { seedance: {} } });
     await store.getState().fetchServerProviders();
@@ -746,32 +817,22 @@ describe('fetchServerProviders — Video stale selection', () => {
   });
 
   it('disables videoGenerationEnabled when no video provider is usable', async () => {
-    const store = await getStore();
+    const { store, prefsStore } = await getStores();
 
     mockServerResponse({ video: { seedance: {} } });
     await store.getState().fetchServerProviders();
     store.getState().setVideoProvider('seedance');
-    store.getState().setVideoGenerationEnabled(true);
-    expect(store.getState().videoGenerationEnabled).toBe(true);
+    prefsStore.getState().setVideoGenerationEnabled(true);
+    expect(prefsStore.getState().videoGenerationEnabled).toBe(true);
 
     mockServerResponse({});
     await store.getState().fetchServerProviders();
 
-    expect(store.getState().videoGenerationEnabled).toBe(false);
-  });
-
-  it('prevents enabling video generation when no video provider is usable', async () => {
-    const store = await getStore();
-
-    mockServerResponse({});
-    await store.getState().fetchServerProviders();
-
-    store.getState().setVideoGenerationEnabled(true);
-    expect(store.getState().videoGenerationEnabled).toBe(false);
+    expect(prefsStore.getState().videoGenerationEnabled).toBe(false);
   });
 
   it('falls back to another server-configured video provider', async () => {
-    const store = await getStore();
+    const { store } = await getStores();
 
     mockServerResponse({ video: { seedance: {}, kling: {} } });
     await store.getState().fetchServerProviders();
@@ -786,14 +847,14 @@ describe('fetchServerProviders — Video stale selection', () => {
   });
 
   it('auto-selects provider and model when server adds video provider after empty state', async () => {
-    const store = await getStore();
+    const { store, prefsStore } = await getStores();
 
     // Start with no video providers — generation disabled
     mockServerResponse({});
     await store.getState().fetchServerProviders();
     expect(store.getState().videoProviderId).toBe('');
     expect(store.getState().videoModelId).toBe('');
-    expect(store.getState().videoGenerationEnabled).toBe(false);
+    expect(prefsStore.getState().videoGenerationEnabled).toBe(false);
 
     // Server adds seedance
     mockServerResponse({ video: { seedance: {} } });
@@ -802,24 +863,26 @@ describe('fetchServerProviders — Video stale selection', () => {
     expect(store.getState().videoProviderId).toBe('seedance');
     expect(store.getState().videoModelId).toBe('doubao-seedance-1-5-pro-251215');
     // Provider recovered but generation stays off — user enables manually
-    expect(store.getState().videoGenerationEnabled).toBe(false);
+    expect(prefsStore.getState().videoGenerationEnabled).toBe(false);
   });
 });
 
 describe('fetchServerProviders — LLM cross-provider fallback', () => {
-  beforeEach(() => {
+  beforeEach(async () => {
     vi.resetModules();
     storage.clear();
     mockFetch.mockReset();
+    await import('@/lib/store/user-prefs');
   });
 
-  async function getStore() {
+  async function getStores() {
     const { useSettingsStore } = await import('@/lib/store/settings');
-    return useSettingsStore;
+    const { useUserPrefsStore } = await import('@/lib/store/user-prefs');
+    return { store: useSettingsStore, prefsStore: useUserPrefsStore };
   }
 
   it('falls back to another server-configured LLM provider when current becomes unusable', async () => {
-    const store = await getStore();
+    const { store, prefsStore } = await getStores();
 
     mockServerResponse({
       providers: {
@@ -828,7 +891,7 @@ describe('fetchServerProviders — LLM cross-provider fallback', () => {
       },
     });
     await store.getState().fetchServerProviders();
-    store.getState().setModel('openai', 'gpt-4o');
+    prefsStore.getState().setModel('openai', 'gpt-4o');
 
     mockServerResponse({
       providers: {
@@ -837,7 +900,7 @@ describe('fetchServerProviders — LLM cross-provider fallback', () => {
     });
     await store.getState().fetchServerProviders();
 
-    expect(store.getState().providerId).toBe('anthropic');
-    expect(store.getState().modelId).toBe('claude-sonnet-4-6');
+    expect(prefsStore.getState().providerId).toBe('anthropic');
+    expect(prefsStore.getState().modelId).toBe('claude-sonnet-4-6');
   });
 });

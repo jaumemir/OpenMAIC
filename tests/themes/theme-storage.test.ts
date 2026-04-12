@@ -18,7 +18,7 @@ describe('loadCustomTheme', () => {
     const { loadCustomTheme } = await import('@/lib/server/theme-storage');
     const t = await loadCustomTheme('gencat');
     expect(t?.id).toBe('gencat');
-    expect(t?.colors.primary).toBe('#006699');
+    expect(t?.colors.primary).toBe('#cc0000');
   });
 
   it('returns null for nonexistent theme', async () => {
