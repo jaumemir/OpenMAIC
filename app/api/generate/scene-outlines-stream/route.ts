@@ -38,14 +38,27 @@ const log = createLogger('Outlines Stream');
 export const maxDuration = 300;
 
 /**
+ * Extracts the courseTitle field from a partial or complete LLM response.
+ * The LLM now returns { "courseTitle": "...", "outlines": [...] }.
+ * Uses a regex so it works even when the JSON is still streaming.
+ */
+function extractCourseTitleFromBuffer(buffer: string): string | undefined {
+  const match = buffer.match(/"courseTitle"\s*:\s*"([^"]{1,80})"/);
+  return match ? match[1] : undefined;
+}
+
+/**
  * Incremental JSON array parser.
- * Extracts complete top-level objects from a partially-streamed JSON array.
+ * Extracts complete top-level objects from a partially-streamed JSON.
+ * Supports both bare array `[...]` and wrapper `{ "outlines": [...] }`.
  * Returns newly found objects (skipping `alreadyParsed` count).
  */
 function extractNewOutlines(buffer: string, alreadyParsed: number): SceneOutline[] {
   const results: SceneOutline[] = [];
 
-  // Find the start of the JSON array (skip any markdown fencing)
+  // Find the start of the outlines array.
+  // The LLM may return { "courseTitle": "...", "outlines": [...] } or bare [...].
+  // In either case, stripping to the first '[' gets us the outlines array.
   const stripped = buffer.replace(/^[\s\S]*?(?=\[)/, '');
   const arrayStart = stripped.indexOf('[');
   if (arrayStart === -1) return results;
@@ -248,6 +261,7 @@ export async function POST(req: NextRequest) {
 
           let parsedOutlines: SceneOutline[] = [];
           let lastError: string | undefined;
+          let courseTitle: string | undefined;
 
           for (let attempt = 1; attempt <= MAX_STREAM_RETRIES + 1; attempt++) {
             try {
@@ -255,9 +269,15 @@ export async function POST(req: NextRequest) {
 
               let fullText = '';
               parsedOutlines = [];
+              courseTitle = undefined;
 
               for await (const chunk of result.textStream) {
                 fullText += chunk;
+
+                // Extract courseTitle as soon as it appears in the buffer
+                if (!courseTitle) {
+                  courseTitle = extractCourseTitleFromBuffer(fullText);
+                }
 
                 // Try to extract new outlines from the accumulated text
                 const newOutlines = extractNewOutlines(fullText, parsedOutlines.length);
@@ -321,10 +341,13 @@ export async function POST(req: NextRequest) {
           if (parsedOutlines.length > 0) {
             // Replace sequential gen_img_N/gen_vid_N with globally unique IDs
             const uniquifiedOutlines = uniquifyMediaElementIds(parsedOutlines);
-            // Send done event with all outlines
+            // Fallback courseTitle to first outline title if LLM didn't emit one
+            const finalCourseTitle = courseTitle ?? uniquifiedOutlines[0]?.title ?? '';
+            // Send done event with all outlines and the generated course title
             const doneEvent = JSON.stringify({
               type: 'done',
               outlines: uniquifiedOutlines,
+              courseTitle: finalCourseTitle,
             });
             controller.enqueue(encoder.encode(`data: ${doneEvent}\n\n`));
           } else {

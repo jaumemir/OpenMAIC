@@ -180,10 +180,14 @@ Use `pbl` type when the course involves complex, multi-step project work that be
 
 ## Output Format
 
-You must output a JSON array where each element is a scene outline object:
+You must output a JSON **object** with exactly two fields:
+- `courseTitle`: a short, descriptive title for the whole course (max 60 characters, in the course language)
+- `outlines`: the JSON array of scene outline objects
 
 ```json
-[
+{
+  "courseTitle": "Short Course Title (max 60 chars)",
+  "outlines": [
   {
     "id": "scene_1",
     "type": "slide",
@@ -230,7 +234,8 @@ You must output a JSON array where each element is a scene outline object:
       "questionTypes": ["single", "multiple", "short_answer"]
     }
   }
-]
+  ]
+}
 ```
 
 ### Field Descriptions
